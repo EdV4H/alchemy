@@ -30,7 +30,32 @@ export class Alchemist {
 
     return recipe.refiner.refine(result.text);
   }
+
+  async *stream<TInput>(
+    recipe: Recipe<TInput, string>,
+    material: TInput,
+    options?: Omit<TransmutationOptions, "catalyst">,
+  ): AsyncGenerator<string, void, unknown> {
+    if (!this.config.transmuter.stream) {
+      throw new Error(
+        "The configured Transmuter does not support streaming. " +
+          "Implement the stream() method on your Transmuter.",
+      );
+    }
+
+    const prompt = await recipe.spell(material);
+
+    yield* this.config.transmuter.stream(prompt, {
+      catalyst: recipe.catalyst,
+      ...options,
+    });
+  }
 }
 
-// Re-export core types for convenience
+// Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
+export { TextRefiner, JsonRefiner } from "@EdV4H/alchemy-core";
+
+// Re-export transmuters
+export { OpenAITransmuter } from "./transmuters/openai.js";
+export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
