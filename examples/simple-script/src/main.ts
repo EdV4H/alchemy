@@ -55,7 +55,10 @@ const extractionRecipe = {
     temperature: 0,
   },
   spell: (resumeText: string) =>
-    `Extract the person's information from this resume text:\n\n${resumeText}`,
+    `Extract the person's information from this resume text.
+Use exactly these JSON fields: name (string), skills (string[]), experienceYears (number), level ("Junior" | "Mid" | "Senior").
+
+${resumeText}`,
   refiner: new JsonRefiner(PersonSchema),
 };
 

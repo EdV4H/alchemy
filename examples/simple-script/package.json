@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "tsx src/main.ts"
+    "dev": "tsx --env-file=.env src/main.ts"
   },
   "dependencies": {
     "@EdV4H/alchemy-node": "workspace:*",
