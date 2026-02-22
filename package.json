@@ -3,16 +3,23 @@
   "private": true,
   "packageManager": "pnpm@10.13.1",
   "scripts": {
+    "prepare": "prek install",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "format": "biome check --write .",
+    "format:check": "biome check .",
+    "knip": "knip",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "changeset": "changeset",
     "release": "changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
     "@changesets/cli": "^2.27.0",
+    "@j178/prek": "^0.3.3",
+    "knip": "^5.85.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

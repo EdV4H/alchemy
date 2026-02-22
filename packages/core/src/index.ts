@@ -1,14 +1,14 @@
 // Types
+
+// Refiners
+export { JsonRefiner, TextRefiner } from "./refiners.js";
 export type {
+  AlchemistConfig,
   CatalystConfig,
+  Recipe,
+  Refiner,
+  ToolDefinition,
   TransmutationOptions,
   TransmutationResult,
   Transmuter,
-  Refiner,
-  ToolDefinition,
-  Recipe,
-  AlchemistConfig,
 } from "./types.js";
-
-// Refiners
-export { TextRefiner, JsonRefiner } from "./refiners.js";

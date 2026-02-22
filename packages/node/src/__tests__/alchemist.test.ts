@@ -1,11 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
-import { Alchemist } from "../index.js";
-import { TextRefiner, JsonRefiner } from "@EdV4H/alchemy-core";
+import type { TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
+import { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import type {
-  Transmuter,
-  TransmutationResult,
-} from "@EdV4H/alchemy-core";
+import { Alchemist } from "../index.js";
 
 function mockTransmuter(responseText: string): Transmuter {
   return {
@@ -51,8 +48,7 @@ describe("Alchemist.transmute()", () => {
       "some text",
     );
 
-    const prompt = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
-      .calls[0][0] as string;
+    const prompt = (transmuter.transmute as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
     expect(prompt).toContain("Extract: some text");
     expect(prompt).toContain("JSON");
   });

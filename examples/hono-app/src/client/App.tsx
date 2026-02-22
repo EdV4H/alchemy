@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { recipeEntries } from "../shared/recipes.js";
 
 const SAMPLE_MATERIAL = "Hello, world!";
@@ -69,8 +69,13 @@ export function App() {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "16px 0" }}>
         {recipeEntries.map((entry, i) => (
           <button
+            type="button"
             key={entry.recipe.id}
-            onClick={() => { setSelectedIndex(i); setResult(null); setError(null); }}
+            onClick={() => {
+              setSelectedIndex(i);
+              setResult(null);
+              setError(null);
+            }}
             style={{
               padding: "6px 14px",
               fontSize: 14,
@@ -89,6 +94,7 @@ export function App() {
       <p style={{ color: "#666", margin: "4px 0 8px" }}>{selected.description}</p>
 
       <button
+        type="button"
         onClick={() => setShowPreview((v) => !v)}
         style={{
           background: "none",
@@ -104,7 +110,9 @@ export function App() {
       </button>
 
       {showPreview && (
-        <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 16, marginBottom: 16 }}>
+        <div
+          style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 16, marginBottom: 16 }}
+        >
           <div style={{ marginBottom: 12 }}>
             <span style={labelStyle}>Recipe ID</span>
             <div style={{ fontFamily: "monospace", marginTop: 2 }}>{recipe.id}</div>
@@ -120,7 +128,9 @@ export function App() {
           {recipe.catalyst?.temperature != null && (
             <div style={{ marginBottom: 12 }}>
               <span style={labelStyle}>Temperature</span>
-              <div style={{ fontFamily: "monospace", marginTop: 2 }}>{recipe.catalyst.temperature}</div>
+              <div style={{ fontFamily: "monospace", marginTop: 2 }}>
+                {recipe.catalyst.temperature}
+              </div>
             </div>
           )}
 
@@ -145,6 +155,7 @@ export function App() {
       />
 
       <button
+        type="button"
         onClick={handleTransmute}
         disabled={isLoading || !text.trim()}
         style={{ marginTop: 8, padding: "8px 20px", fontSize: 14, cursor: "pointer" }}

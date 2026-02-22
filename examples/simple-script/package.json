@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx --env-file=.env src/main.ts"
+    "dev": "tsx --env-file=.env src/main.ts",
+    "lint": "biome check ."
   },
   "dependencies": {
     "@EdV4H/alchemy-node": "workspace:*",

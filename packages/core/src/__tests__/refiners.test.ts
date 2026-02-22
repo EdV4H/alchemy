@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { TextRefiner, JsonRefiner } from "../refiners.js";
+import { JsonRefiner, TextRefiner } from "../refiners.js";
 
 describe("TextRefiner", () => {
   const refiner = new TextRefiner();

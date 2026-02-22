@@ -1,5 +1,5 @@
-import { TextRefiner, JsonRefiner } from "@EdV4H/alchemy-node";
 import type { Recipe } from "@EdV4H/alchemy-node";
+import { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-node";
 import { z } from "zod";
 
 // ─── Summary Recipe ─────────────────────────────────────────────────────────
@@ -27,8 +27,7 @@ export type Sentiment = z.infer<typeof SentimentSchema>;
 export const sentimentRecipe: Recipe<string, Sentiment> = {
   id: "sentiment",
   catalyst: {
-    roleDefinition:
-      "You are a sentiment analysis expert. Analyze the sentiment of the given text.",
+    roleDefinition: "You are a sentiment analysis expert. Analyze the sentiment of the given text.",
     temperature: 0,
   },
   spell: (text: string) =>
@@ -81,7 +80,11 @@ export interface RecipeEntry {
 
 export const recipeEntries: RecipeEntry[] = [
   { recipe: summaryRecipe, label: "Summary", description: "Summarize in 2-3 sentences" },
-  { recipe: sentimentRecipe, label: "Sentiment", description: "Analyze sentiment (positive/negative/neutral)" },
+  {
+    recipe: sentimentRecipe,
+    label: "Sentiment",
+    description: "Analyze sentiment (positive/negative/neutral)",
+  },
   { recipe: translationRecipe, label: "Translate", description: "Translate English to Japanese" },
   { recipe: keyPointsRecipe, label: "Key Points", description: "Extract 3-5 key points" },
 ];

@@ -1,8 +1,4 @@
-import type {
-  AlchemistConfig,
-  Recipe,
-  TransmutationOptions,
-} from "@EdV4H/alchemy-core";
+import type { AlchemistConfig, Recipe, TransmutationOptions } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -19,9 +15,7 @@ export class Alchemist {
     const prompt = await recipe.spell(material);
 
     const formatInstructions = recipe.refiner.getFormatInstructions?.();
-    const fullPrompt = formatInstructions
-      ? `${prompt}\n\n${formatInstructions}`
-      : prompt;
+    const fullPrompt = formatInstructions ? `${prompt}\n\n${formatInstructions}` : prompt;
 
     const result = await this.config.transmuter.transmute(fullPrompt, {
       catalyst: recipe.catalyst,
@@ -54,8 +48,7 @@ export class Alchemist {
 
 // Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
-export { TextRefiner, JsonRefiner } from "@EdV4H/alchemy-core";
-
+export { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
+export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
 // Re-export transmuters
 export { OpenAITransmuter } from "./transmuters/openai.js";
-export type { OpenAITransmuterConfig } from "./transmuters/openai.js";

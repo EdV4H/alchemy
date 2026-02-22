@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "workspaces": {
+    "packages/*": {
+      "project": ["src/**/*.ts"]
+    },
+    "examples/hono-app": {
+      "entry": ["src/**/*.ts", "src/**/*.tsx"],
+      "project": ["src/**/*.ts", "src/**/*.tsx"]
+    },
+    "examples/simple-script": {
+      "entry": ["src/**/*.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

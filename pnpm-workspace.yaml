@@ -3,3 +3,12 @@ packages:
   - examples/*
 
 allowBuild: esbuild
+
+onlyBuiltDependencies:
+  - b
+  - d
+  - e
+  - i
+  - l
+  - s
+  - u

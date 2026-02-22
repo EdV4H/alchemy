@@ -1,9 +1,5 @@
+import type { TransmutationOptions, TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
 import OpenAI from "openai";
-import type {
-  Transmuter,
-  TransmutationOptions,
-  TransmutationResult,
-} from "@EdV4H/alchemy-core";
 
 export interface OpenAITransmuterConfig {
   apiKey?: string;
@@ -23,10 +19,7 @@ export class OpenAITransmuter implements Transmuter {
     this.defaultModel = config.defaultModel ?? "gpt-4o-mini";
   }
 
-  async transmute(
-    prompt: string,
-    options: TransmutationOptions,
-  ): Promise<TransmutationResult> {
+  async transmute(prompt: string, options: TransmutationOptions): Promise<TransmutationResult> {
     const { catalyst, signal } = options;
     const model = catalyst?.model ?? this.defaultModel;
 

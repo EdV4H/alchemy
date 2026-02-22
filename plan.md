@@ -49,7 +49,7 @@ Alchemy AI Library 設計書 (TypeScript Edition)1. コンセプト定義「デ�
 export interface Recipe<TInput, TOutput> {
   id: string;
   name?: string;
-  
+
   // 触媒: システムプロンプトやモデル設定
   catalyst?: {
     roleDefinition?: string;
@@ -62,19 +62,19 @@ export interface Recipe<TInput, TOutput> {
 
   // 精製器: LLMの生の出力を TOutput に変換する
   refiner: Refiner<TOutput>;
-  
+
   // エージェント拡張用 (将来実装)
-  tools?: ToolDefinition[]; 
+  tools?: ToolDefinition[];
 }
 7.2 Transmuter (LLMアダプタ)LLMごとの差異（APIエンドポイント、認証、独自パラメータ）を吸収します。ブラウザ動作時は、ここを Fetch ベースの実装にすることで対応します。export interface Transmuter {
   transmute(
-    prompt: string, 
+    prompt: string,
     options: TransmutationOptions
   ): Promise<TransmutationResult>;
-  
+
   // ストリーミング対応
   stream?(
-    prompt: string, 
+    prompt: string,
     options: TransmutationOptions
   ): AsyncGenerator<string>;
 }
@@ -126,7 +126,7 @@ const profileExtractionRecipe: Recipe<string, z.infer<typeof UserSchema>> = {
   id: 'extract-profile',
   catalyst: { roleDefinition: "Extract user info strictly." },
   spell: (resumeText) => `Parse this resume:\n${resumeText}`,
-  
+
   // JSON Refinerを使うことで、出力は型付けされたオブジェクトになる
   refiner: new JsonRefiner(UserSchema)
 };
@@ -139,13 +139,13 @@ import { analyzeBioRecipe } from '@/shared/recipes';
 
 // エンドポイントはBFF(Backend for Frontend)を想定
 const BioAnalyzer = () => {
-  const { 
+  const {
     mutate,       // 実行関数
     data,         // 結果 (型: OutputSchema)
     isLoading,    // ローディング中フラグ
     error         // エラー情報
   } = useTransmutation(analyzeBioRecipe, {
-    endpoint: '/api/alchemy/transmute' 
+    endpoint: '/api/alchemy/transmute'
   });
 
   if (data) {

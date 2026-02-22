@@ -29,15 +29,9 @@ export interface TransmutationResult {
 }
 
 export interface Transmuter {
-  transmute(
-    prompt: string,
-    options: TransmutationOptions,
-  ): Promise<TransmutationResult>;
+  transmute(prompt: string, options: TransmutationOptions): Promise<TransmutationResult>;
 
-  stream?(
-    prompt: string,
-    options: TransmutationOptions,
-  ): AsyncGenerator<string, void, unknown>;
+  stream?(prompt: string, options: TransmutationOptions): AsyncGenerator<string, void, unknown>;
 }
 
 // ──────────────────────────────────────────

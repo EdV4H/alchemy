@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "lint": "biome check ."
   },
   "dependencies": {
     "@EdV4H/alchemy-node": "workspace:*",
-    "@EdV4H/alchemy-react": "workspace:*",
     "hono": "^4.7.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
