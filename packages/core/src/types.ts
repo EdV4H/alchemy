@@ -11,6 +11,32 @@ export interface CatalystConfig {
 }
 
 // ──────────────────────────────────────────
+// Material (素材): LLM入力のコンテンツパーツ
+// ──────────────────────────────────────────
+
+export interface TextMaterialPart {
+  readonly type: "text";
+  readonly text: string;
+}
+
+export interface ImageMaterialPart {
+  readonly type: "image";
+  readonly source:
+    | { readonly kind: "url"; readonly url: string }
+    | { readonly kind: "base64"; readonly mediaType: string; readonly data: string };
+}
+
+export type BuiltinMaterialPart = TextMaterialPart | ImageMaterialPart;
+
+/** Declaration merging で拡張可能 */
+// biome-ignore lint/suspicious/noEmptyInterface: declaration merging point
+export interface MaterialPartRegistry {}
+
+export type MaterialPart = BuiltinMaterialPart | MaterialPartRegistry[keyof MaterialPartRegistry];
+
+export type SpellOutput = string | MaterialPart | MaterialPart[];
+
+// ──────────────────────────────────────────
 // Transmuter (錬成炉): LLMプロバイダアダプタ
 // ──────────────────────────────────────────
 
@@ -29,9 +55,12 @@ export interface TransmutationResult {
 }
 
 export interface Transmuter {
-  transmute(prompt: string, options: TransmutationOptions): Promise<TransmutationResult>;
+  transmute(material: MaterialPart[], options: TransmutationOptions): Promise<TransmutationResult>;
 
-  stream?(prompt: string, options: TransmutationOptions): AsyncGenerator<string, void, unknown>;
+  stream?(
+    material: MaterialPart[],
+    options: TransmutationOptions,
+  ): AsyncGenerator<string, void, unknown>;
 }
 
 // ──────────────────────────────────────────
@@ -62,7 +91,7 @@ export interface Recipe<TInput, TOutput> {
   id: string;
   name?: string;
   catalyst?: CatalystConfig;
-  spell: (material: TInput) => string | Promise<string>;
+  spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
   tools?: ToolDefinition[];
 }

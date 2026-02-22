@@ -1,4 +1,10 @@
-import type { TransmutationOptions, TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
+import type {
+  MaterialPart,
+  TransmutationOptions,
+  TransmutationResult,
+  Transmuter,
+} from "@EdV4H/alchemy-core";
+import { extractText, isTextOnly } from "@EdV4H/alchemy-core";
 import OpenAI from "openai";
 
 export interface OpenAITransmuterConfig {
@@ -19,7 +25,10 @@ export class OpenAITransmuter implements Transmuter {
     this.defaultModel = config.defaultModel ?? "gpt-4o-mini";
   }
 
-  async transmute(prompt: string, options: TransmutationOptions): Promise<TransmutationResult> {
+  async transmute(
+    material: MaterialPart[],
+    options: TransmutationOptions,
+  ): Promise<TransmutationResult> {
     const { catalyst, signal } = options;
     const model = catalyst?.model ?? this.defaultModel;
 
@@ -27,7 +36,7 @@ export class OpenAITransmuter implements Transmuter {
     if (catalyst?.roleDefinition) {
       messages.push({ role: "system", content: catalyst.roleDefinition });
     }
-    messages.push({ role: "user", content: prompt });
+    messages.push({ role: "user", content: this.toOpenAIContent(material) });
 
     const response = await this.client.chat.completions.create(
       {
@@ -51,7 +60,7 @@ export class OpenAITransmuter implements Transmuter {
   }
 
   async *stream(
-    prompt: string,
+    material: MaterialPart[],
     options: TransmutationOptions,
   ): AsyncGenerator<string, void, unknown> {
     const { catalyst, signal } = options;
@@ -61,7 +70,7 @@ export class OpenAITransmuter implements Transmuter {
     if (catalyst?.roleDefinition) {
       messages.push({ role: "system", content: catalyst.roleDefinition });
     }
-    messages.push({ role: "user", content: prompt });
+    messages.push({ role: "user", content: this.toOpenAIContent(material) });
 
     const stream = await this.client.chat.completions.create(
       {
@@ -79,5 +88,27 @@ export class OpenAITransmuter implements Transmuter {
         yield delta;
       }
     }
+  }
+
+  private toOpenAIContent(parts: MaterialPart[]): string | OpenAI.Chat.ChatCompletionContentPart[] {
+    if (isTextOnly(parts)) {
+      return extractText(parts);
+    }
+
+    return parts.map((part): OpenAI.Chat.ChatCompletionContentPart => {
+      switch (part.type) {
+        case "text":
+          return { type: "text", text: part.text };
+        case "image": {
+          const url =
+            part.source.kind === "url"
+              ? part.source.url
+              : `data:${part.source.mediaType};base64,${part.source.data}`;
+          return { type: "image_url", image_url: { url } };
+        }
+        default:
+          throw new Error(`Unsupported material part type: ${(part as MaterialPart).type}`);
+      }
+    });
   }
 }

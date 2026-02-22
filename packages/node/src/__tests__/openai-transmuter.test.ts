@@ -1,3 +1,4 @@
+import type { MaterialPart } from "@EdV4H/alchemy-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockCreate = vi.fn();
@@ -28,7 +29,8 @@ describe("OpenAITransmuter.transmute()", () => {
     });
 
     const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
-    const result = await transmuter.transmute("Summarize this", {
+    const material: MaterialPart[] = [{ type: "text", text: "Summarize this" }];
+    const result = await transmuter.transmute(material, {
       catalyst: { roleDefinition: "You are a summarizer", temperature: 0.3 },
     });
 
@@ -60,7 +62,7 @@ describe("OpenAITransmuter.transmute()", () => {
       apiKey: "test-key",
       defaultModel: "gpt-4o",
     });
-    await transmuter.transmute("Hello", {});
+    await transmuter.transmute([{ type: "text", text: "Hello" }], {});
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({ model: "gpt-4o" }),
@@ -75,9 +77,76 @@ describe("OpenAITransmuter.transmute()", () => {
     });
 
     const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
-    await transmuter.transmute("Hello", {});
+    await transmuter.transmute([{ type: "text", text: "Hello" }], {});
 
     const messages = mockCreate.mock.calls[0][0].messages;
     expect(messages).toEqual([{ role: "user", content: "Hello" }]);
+  });
+
+  it("maps image URL material to OpenAI image_url content part", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "I see an image" } }],
+      usage: null,
+    });
+
+    const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
+    const material: MaterialPart[] = [
+      { type: "text", text: "Describe this image" },
+      { type: "image", source: { kind: "url", url: "https://example.com/img.png" } },
+    ];
+    await transmuter.transmute(material, {});
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    expect(messages).toEqual([
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Describe this image" },
+          { type: "image_url", image_url: { url: "https://example.com/img.png" } },
+        ],
+      },
+    ]);
+  });
+
+  it("maps base64 image material to OpenAI data URI content part", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "I see a base64 image" } }],
+      usage: null,
+    });
+
+    const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
+    const material: MaterialPart[] = [
+      { type: "text", text: "What is this?" },
+      { type: "image", source: { kind: "base64", mediaType: "image/png", data: "abc123" } },
+    ];
+    await transmuter.transmute(material, {});
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    expect(messages).toEqual([
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          { type: "image_url", image_url: { url: "data:image/png;base64,abc123" } },
+        ],
+      },
+    ]);
+  });
+
+  it("joins multiple text parts with double newline for text-only input", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "combined" } }],
+      usage: null,
+    });
+
+    const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
+    const material: MaterialPart[] = [
+      { type: "text", text: "First part" },
+      { type: "text", text: "Second part" },
+    ];
+    await transmuter.transmute(material, {});
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    expect(messages).toEqual([{ role: "user", content: "First part\n\nSecond part" }]);
   });
 });

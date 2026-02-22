@@ -1,4 +1,4 @@
-import type { TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
+import type { MaterialPart, TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
 import { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -29,7 +29,7 @@ describe("Alchemist.transmute()", () => {
 
     expect(result).toBe("hello");
     expect(transmuter.transmute).toHaveBeenCalledWith(
-      "Summarize: long text",
+      [{ type: "text", text: "Summarize: long text" }],
       expect.objectContaining({ catalyst: undefined }),
     );
   });
@@ -48,9 +48,12 @@ describe("Alchemist.transmute()", () => {
       "some text",
     );
 
-    const prompt = (transmuter.transmute as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
-    expect(prompt).toContain("Extract: some text");
-    expect(prompt).toContain("JSON");
+    const parts = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as MaterialPart[];
+    expect(parts[0]).toEqual({ type: "text", text: "Extract: some text" });
+    expect(parts.length).toBe(2);
+    expect(parts[1]).toHaveProperty("type", "text");
+    expect((parts[1] as { type: "text"; text: string }).text).toContain("JSON");
   });
 
   it("passes catalyst to transmuter", async () => {
@@ -71,7 +74,7 @@ describe("Alchemist.transmute()", () => {
     );
 
     expect(transmuter.transmute).toHaveBeenCalledWith(
-      "Hello",
+      [{ type: "text", text: "Hello" }],
       expect.objectContaining({
         catalyst: { roleDefinition: "You are helpful", temperature: 0.5 },
       }),
@@ -106,6 +109,10 @@ describe("Alchemist.stream()", () => {
     }
 
     expect(chunks).toEqual(["Hello", " ", "world"]);
+    expect(transmuter.stream).toHaveBeenCalledWith(
+      [{ type: "text", text: "Stream: test" }],
+      expect.objectContaining({ catalyst: undefined }),
+    );
   });
 
   it("throws when transmuter has no stream method", async () => {

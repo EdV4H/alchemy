@@ -8,6 +8,11 @@ const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
+interface TransmuteBody {
+  materials: string[];
+  imageUrl?: string;
+}
+
 app.post("/api/transmute/:recipeId", async (c) => {
   const { recipeId } = c.req.param();
   const recipe = recipeRegistry[recipeId];
@@ -16,14 +21,18 @@ app.post("/api/transmute/:recipeId", async (c) => {
     return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);
   }
 
-  const { material } = await c.req.json<{ material: string }>();
+  const body = await c.req.json<TransmuteBody>();
+  const materials = body.materials;
 
-  if (!material || typeof material !== "string") {
-    return c.json({ error: "material (string) is required" }, 400);
+  if (!Array.isArray(materials) || materials.length === 0) {
+    return c.json({ error: "materials (string[]) is required" }, 400);
   }
 
   try {
-    const result = await alchemist.transmute(recipe, material);
+    const combined = materials.join("\n\n---\n\n");
+    const input =
+      recipe.id === "image-analysis" ? { text: combined, imageUrl: body.imageUrl ?? "" } : combined;
+    const result = await alchemist.transmute(recipe, input);
     return c.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

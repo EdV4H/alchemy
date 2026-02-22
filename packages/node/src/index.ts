@@ -1,4 +1,5 @@
 import type { AlchemistConfig, Recipe, TransmutationOptions } from "@EdV4H/alchemy-core";
+import { normalizeSpellOutput } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -12,12 +13,15 @@ export class Alchemist {
     material: TInput,
     options?: Omit<TransmutationOptions, "catalyst">,
   ): Promise<TOutput> {
-    const prompt = await recipe.spell(material);
+    const spellOutput = await recipe.spell(material);
+    const parts = normalizeSpellOutput(spellOutput);
 
     const formatInstructions = recipe.refiner.getFormatInstructions?.();
-    const fullPrompt = formatInstructions ? `${prompt}\n\n${formatInstructions}` : prompt;
+    if (formatInstructions) {
+      parts.push({ type: "text", text: formatInstructions });
+    }
 
-    const result = await this.config.transmuter.transmute(fullPrompt, {
+    const result = await this.config.transmuter.transmute(parts, {
       catalyst: recipe.catalyst,
       ...options,
     });
@@ -37,9 +41,10 @@ export class Alchemist {
       );
     }
 
-    const prompt = await recipe.spell(material);
+    const spellOutput = await recipe.spell(material);
+    const parts = normalizeSpellOutput(spellOutput);
 
-    yield* this.config.transmuter.stream(prompt, {
+    yield* this.config.transmuter.stream(parts, {
       catalyst: recipe.catalyst,
       ...options,
     });
@@ -48,7 +53,13 @@ export class Alchemist {
 
 // Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
-export { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
+export {
+  extractText,
+  isTextOnly,
+  JsonRefiner,
+  normalizeSpellOutput,
+  TextRefiner,
+} from "@EdV4H/alchemy-core";
 export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
 // Re-export transmuters
 export { OpenAITransmuter } from "./transmuters/openai.js";
