@@ -133,6 +133,42 @@ describe("OpenAITransmuter.transmute()", () => {
     ]);
   });
 
+  it("adds language system message when language is provided", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "こんにちは" } }],
+      usage: null,
+    });
+
+    const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
+    await transmuter.transmute([{ type: "text", text: "Hello" }], { language: "Japanese" });
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    expect(messages).toEqual([
+      { role: "system", content: "Respond in Japanese." },
+      { role: "user", content: "Hello" },
+    ]);
+  });
+
+  it("adds language after roleDefinition when both are provided", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "こんにちは" } }],
+      usage: null,
+    });
+
+    const transmuter = new OpenAITransmuter({ apiKey: "test-key" });
+    await transmuter.transmute([{ type: "text", text: "Hello" }], {
+      catalyst: { roleDefinition: "You are a translator" },
+      language: "Japanese",
+    });
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    expect(messages).toEqual([
+      { role: "system", content: "You are a translator" },
+      { role: "system", content: "Respond in Japanese." },
+      { role: "user", content: "Hello" },
+    ]);
+  });
+
   it("joins multiple text parts with double newline for text-only input", async () => {
     mockCreate.mockResolvedValueOnce({
       choices: [{ message: { content: "combined" } }],

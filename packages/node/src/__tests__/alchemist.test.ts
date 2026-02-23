@@ -85,6 +85,26 @@ describe("Alchemist.transmute()", () => {
       }),
     );
   });
+
+  it("passes language option through to transmuter", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter });
+
+    await alchemist.transmute(
+      {
+        id: "language-test",
+        spell: () => "Hello",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+      { language: "Japanese" },
+    );
+
+    expect(transmuter.transmute).toHaveBeenCalledWith(
+      [{ type: "text", text: "Hello" }],
+      expect.objectContaining({ language: "Japanese" }),
+    );
+  });
 });
 
 describe("Alchemist.stream()", () => {

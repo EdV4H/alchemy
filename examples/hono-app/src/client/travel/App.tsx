@@ -199,6 +199,7 @@ export function App() {
   const [compareMode, setCompareMode] = useState(false);
   const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
   const [compareResults, setCompareResults] = useState<Record<string, unknown> | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   const selectedEntry = travelRecipeEntries.find((e) => e.recipe.id === selectedRecipeId);
 
@@ -298,6 +299,7 @@ export function App() {
         body: JSON.stringify({
           materials: materialInputs,
           catalystKey: selectedCatalystKey ?? undefined,
+          language: selectedLanguage ?? undefined,
         }),
       });
       if (!res.ok) {
@@ -310,7 +312,13 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEntry, selectedMaterials, selectedCatalystKey, buildMaterialInputs]);
+  }, [
+    selectedEntry,
+    selectedMaterials,
+    selectedCatalystKey,
+    selectedLanguage,
+    buildMaterialInputs,
+  ]);
 
   const handleCompare = useCallback(async () => {
     if (!selectedEntry || selectedMaterials.length === 0 || selectedCompareKeys.length < 2) return;
@@ -326,6 +334,7 @@ export function App() {
         body: JSON.stringify({
           materials: materialInputs,
           catalystKeys: selectedCompareKeys,
+          language: selectedLanguage ?? undefined,
         }),
       });
       if (!res.ok) {
@@ -338,7 +347,13 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEntry, selectedMaterials, selectedCompareKeys, buildMaterialInputs]);
+  }, [
+    selectedEntry,
+    selectedMaterials,
+    selectedCompareKeys,
+    selectedLanguage,
+    buildMaterialInputs,
+  ]);
 
   const hasSelection = selectedMaterials.length > 0;
 
@@ -494,34 +509,55 @@ export function App() {
                   );
                 })}
               </div>
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 12,
-                  color: "#888",
-                  cursor: "pointer",
-                  marginLeft: "auto",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={compareMode}
-                  onChange={(e) => {
-                    const on = e.target.checked;
-                    setCompareMode(on);
-                    setResult(null);
-                    setCompareResults(null);
-                    if (on) {
-                      setSelectedCompareKeys(travelCatalystPresets.map((c) => c.key));
-                    } else {
-                      setSelectedCompareKeys([]);
-                    }
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
+                <select
+                  value={selectedLanguage ?? ""}
+                  onChange={(e) => setSelectedLanguage(e.target.value || null)}
+                  style={{
+                    padding: "3px 6px",
+                    fontSize: 12,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    background: "#fff",
+                    color: "#333",
+                    cursor: "pointer",
                   }}
-                />
-                Compare
-              </label>
+                >
+                  <option value="">Auto</option>
+                  <option value="English">English</option>
+                  <option value="Japanese">日本語</option>
+                  <option value="Chinese">中文</option>
+                  <option value="Korean">한국어</option>
+                </select>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 12,
+                    color: "#888",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={compareMode}
+                    onChange={(e) => {
+                      const on = e.target.checked;
+                      setCompareMode(on);
+                      setResult(null);
+                      setCompareResults(null);
+                      if (on) {
+                        setSelectedCompareKeys(travelCatalystPresets.map((c) => c.key));
+                      } else {
+                        setSelectedCompareKeys([]);
+                      }
+                    }}
+                  />
+                  Compare
+                </label>
+              </div>
             </div>
           </div>
 

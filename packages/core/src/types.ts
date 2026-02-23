@@ -96,6 +96,7 @@ export type MaterialTransform = (
 export interface TransmutationOptions {
   catalyst?: CatalystConfig;
   signal?: AbortSignal;
+  language?: string;
 }
 
 export interface TransmutationResult {

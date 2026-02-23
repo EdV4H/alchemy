@@ -94,6 +94,7 @@ function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
 interface TransmuteBody {
   materials: MaterialInput[];
   catalystKey?: string;
+  language?: string;
 }
 
 app.post("/api/transmute/:recipeId", async (c) => {
@@ -114,7 +115,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
   try {
     const parts = toMaterialParts(materials);
     const catalyst = resolveCatalystPreset(body.catalystKey);
-    const result = await alchemist.transmute(recipe, parts, { catalyst });
+    const result = await alchemist.transmute(recipe, parts, { catalyst, language: body.language });
     return c.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -125,6 +126,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
 interface CompareBody {
   materials: MaterialInput[];
   catalystKeys: string[];
+  language?: string;
 }
 
 app.post("/api/compare/:recipeId", async (c) => {
@@ -153,7 +155,7 @@ app.post("/api/compare/:recipeId", async (c) => {
       const config = resolveCatalystPreset(key);
       if (config) catalysts[key] = config;
     }
-    const results = await alchemist.compare(recipe, parts, catalysts);
+    const results = await alchemist.compare(recipe, parts, catalysts, { language: body.language });
     return c.json(results);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
