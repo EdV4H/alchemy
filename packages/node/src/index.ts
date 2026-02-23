@@ -1,12 +1,13 @@
 import type {
   AlchemistConfig,
+  CatalystConfig,
   MaterialPart,
   MaterialTransform,
   MaterialTransformContext,
   Recipe,
   TransmutationOptions,
 } from "@EdV4H/alchemy-core";
-import { normalizeSpellOutput } from "@EdV4H/alchemy-core";
+import { normalizeSpellOutput, resolveCatalyst } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -18,21 +19,17 @@ export class Alchemist {
   async transmute<TInput, TOutput>(
     recipe: Recipe<TInput, TOutput>,
     material: TInput,
-    options?: Omit<TransmutationOptions, "catalyst">,
+    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
   ): Promise<TOutput> {
+    const { catalyst: overrideCatalyst, ...rest } = options ?? {};
+    const catalyst = resolveCatalyst(recipe, overrideCatalyst);
+
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
-      parts = await this.applyTransforms(
-        parts,
-        {
-          catalyst: recipe.catalyst,
-          recipeId: recipe.id,
-        },
-        transforms,
-      );
+      parts = await this.applyTransforms(parts, { catalyst, recipeId: recipe.id }, transforms);
     }
 
     const formatInstructions = recipe.refiner.getFormatInstructions?.();
@@ -40,10 +37,7 @@ export class Alchemist {
       parts.push({ type: "text", text: formatInstructions });
     }
 
-    const result = await this.config.transmuter.transmute(parts, {
-      catalyst: recipe.catalyst,
-      ...options,
-    });
+    const result = await this.config.transmuter.transmute(parts, { catalyst, ...rest });
 
     return recipe.refiner.refine(result.text);
   }
@@ -51,7 +45,7 @@ export class Alchemist {
   async *stream<TInput>(
     recipe: Recipe<TInput, string>,
     material: TInput,
-    options?: Omit<TransmutationOptions, "catalyst">,
+    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
   ): AsyncGenerator<string, void, unknown> {
     if (!this.config.transmuter.stream) {
       throw new Error(
@@ -60,25 +54,33 @@ export class Alchemist {
       );
     }
 
+    const { catalyst: overrideCatalyst, ...rest } = options ?? {};
+    const catalyst = resolveCatalyst(recipe, overrideCatalyst);
+
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
-      parts = await this.applyTransforms(
-        parts,
-        {
-          catalyst: recipe.catalyst,
-          recipeId: recipe.id,
-        },
-        transforms,
-      );
+      parts = await this.applyTransforms(parts, { catalyst, recipeId: recipe.id }, transforms);
     }
 
-    yield* this.config.transmuter.stream(parts, {
-      catalyst: recipe.catalyst,
-      ...options,
-    });
+    yield* this.config.transmuter.stream(parts, { catalyst, ...rest });
+  }
+
+  async compare<TInput, TOutput>(
+    recipe: Recipe<TInput, TOutput>,
+    material: TInput,
+    catalysts: Record<string, CatalystConfig>,
+    options?: Omit<TransmutationOptions, "catalyst">,
+  ): Promise<Record<string, TOutput>> {
+    const results = await Promise.all(
+      Object.entries(catalysts).map(async ([key, catalyst]) => {
+        const result = await this.transmute(recipe, material, { ...options, catalyst });
+        return [key, result] as const;
+      }),
+    );
+    return Object.fromEntries(results);
   }
 
   private collectTransforms<TInput, TOutput>(recipe: Recipe<TInput, TOutput>): MaterialTransform[] {
@@ -111,6 +113,7 @@ export {
   JsonRefiner,
   normalizeSpellOutput,
   prependText,
+  resolveCatalyst,
   TextRefiner,
   truncateText,
 } from "@EdV4H/alchemy-core";

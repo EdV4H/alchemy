@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { catalystPresets } from "../shared/catalysts.js";
 import type { RecipeEntry, RecipeFieldMeta } from "../shared/recipes.js";
 import { recipeEntries } from "../shared/recipes.js";
 
@@ -946,6 +947,10 @@ export function App() {
     "text" | "image" | "audio" | "video" | "data" | "document" | null
   >(null);
   const [infoPopoverId, setInfoPopoverId] = useState<string | null>(null);
+  const [selectedCatalystKey, setSelectedCatalystKey] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
+  const [compareResults, setCompareResults] = useState<Record<string, unknown> | null>(null);
 
   const selectedEntry = recipeEntries.find((e) => e.recipe.id === selectedRecipeId);
 
@@ -999,51 +1004,54 @@ export function App() {
     });
   };
 
+  const buildMaterialInputs = useCallback((): MaterialInput[] => {
+    return selectedMaterials.flatMap((m) => {
+      const inputs: MaterialInput[] = [];
+      const category = "category" in m ? m.category : undefined;
+      if (category === "data" || ("type" in m && m.type === "data")) {
+        const dc = "dataContent" in m ? m.dataContent : undefined;
+        const df = "dataFormat" in m ? m.dataFormat : undefined;
+        if (dc && df) {
+          inputs.push({ type: "data", dataFormat: df, dataContent: dc, dataLabel: m.label });
+        }
+      } else if (category === "document" || ("type" in m && m.type === "document")) {
+        const dt = "documentText" in m ? m.documentText : undefined;
+        if (dt) {
+          inputs.push({ type: "document", documentText: dt });
+        }
+      } else if (category === "audio" || ("type" in m && m.type === "audio")) {
+        const au = "audioUrl" in m ? m.audioUrl : undefined;
+        if (au) {
+          inputs.push({ type: "audio", audioUrl: au });
+        }
+      } else if (category === "video" || ("type" in m && m.type === "video")) {
+        const vu = "videoUrl" in m ? m.videoUrl : undefined;
+        if (vu) {
+          inputs.push({ type: "video", videoUrl: vu });
+        }
+      } else {
+        if ("text" in m && m.text) inputs.push({ type: "text", text: m.text });
+        if ("imageUrl" in m && m.imageUrl) inputs.push({ type: "image", imageUrl: m.imageUrl });
+      }
+      return inputs;
+    });
+  }, [selectedMaterials]);
+
   const handleTransmute = useCallback(async () => {
     if (!selectedEntry || selectedMaterials.length === 0) return;
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setCompareResults(null);
     try {
-      const materialInputs: MaterialInput[] = selectedMaterials.flatMap((m) => {
-        const inputs: MaterialInput[] = [];
-        const category = "category" in m ? m.category : undefined;
-        if (category === "data" || ("type" in m && m.type === "data")) {
-          const dc = "dataContent" in m ? m.dataContent : undefined;
-          const df = "dataFormat" in m ? m.dataFormat : undefined;
-          if (dc && df) {
-            inputs.push({
-              type: "data",
-              dataFormat: df,
-              dataContent: dc,
-              dataLabel: m.label,
-            });
-          }
-        } else if (category === "document" || ("type" in m && m.type === "document")) {
-          const dt = "documentText" in m ? m.documentText : undefined;
-          if (dt) {
-            inputs.push({ type: "document", documentText: dt });
-          }
-        } else if (category === "audio" || ("type" in m && m.type === "audio")) {
-          const au = "audioUrl" in m ? m.audioUrl : undefined;
-          if (au) {
-            inputs.push({ type: "audio", audioUrl: au });
-          }
-        } else if (category === "video" || ("type" in m && m.type === "video")) {
-          const vu = "videoUrl" in m ? m.videoUrl : undefined;
-          if (vu) {
-            inputs.push({ type: "video", videoUrl: vu });
-          }
-        } else {
-          if ("text" in m && m.text) inputs.push({ type: "text", text: m.text });
-          if ("imageUrl" in m && m.imageUrl) inputs.push({ type: "image", imageUrl: m.imageUrl });
-        }
-        return inputs;
-      });
+      const materialInputs = buildMaterialInputs();
       const res = await fetch(`/api/transmute/${selectedEntry.recipe.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ materials: materialInputs }),
+        body: JSON.stringify({
+          materials: materialInputs,
+          catalystKey: selectedCatalystKey ?? undefined,
+        }),
       });
       if (!res.ok) {
         const b = await res.text();
@@ -1055,7 +1063,35 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEntry, selectedMaterials]);
+  }, [selectedEntry, selectedMaterials, selectedCatalystKey, buildMaterialInputs]);
+
+  const handleCompare = useCallback(async () => {
+    if (!selectedEntry || selectedMaterials.length === 0 || selectedCompareKeys.length < 2) return;
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+    setCompareResults(null);
+    try {
+      const materialInputs = buildMaterialInputs();
+      const res = await fetch(`/api/compare/${selectedEntry.recipe.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          materials: materialInputs,
+          catalystKeys: selectedCompareKeys,
+        }),
+      });
+      if (!res.ok) {
+        const b = await res.text();
+        throw new Error(`${res.status}: ${b}`);
+      }
+      setCompareResults(await res.json());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedEntry, selectedMaterials, selectedCompareKeys, buildMaterialInputs]);
 
   const hasSelection = selectedMaterials.length > 0;
 
@@ -1090,6 +1126,10 @@ export function App() {
                     setInfoPopoverId(null);
                     setResult(null);
                     setError(null);
+                    setSelectedCatalystKey(null);
+                    setCompareMode(false);
+                    setSelectedCompareKeys([]);
+                    setCompareResults(null);
                   }}
                   style={{
                     padding: "6px 14px",
@@ -1139,6 +1179,103 @@ export function App() {
               )}
             </div>
           )}
+
+          {/* Catalyst selector (global presets) */}
+          <div style={{ margin: "0 0 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ ...labelStyle, margin: 0 }}>Catalyst</span>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {/* Default = no override, use recipe's built-in catalyst */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!compareMode) {
+                      setSelectedCatalystKey(null);
+                      setResult(null);
+                      setCompareResults(null);
+                    }
+                  }}
+                  style={{
+                    padding: "4px 12px",
+                    fontSize: 12,
+                    borderRadius: 14,
+                    border:
+                      !compareMode && selectedCatalystKey === null
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
+                    background: !compareMode && selectedCatalystKey === null ? "#333" : "#fff",
+                    color: !compareMode && selectedCatalystKey === null ? "#fff" : "#555",
+                    cursor: "pointer",
+                  }}
+                >
+                  Default
+                </button>
+                {catalystPresets.map((cat) => {
+                  const isSelected = compareMode
+                    ? selectedCompareKeys.includes(cat.key)
+                    : selectedCatalystKey === cat.key;
+                  return (
+                    <button
+                      type="button"
+                      key={cat.key}
+                      onClick={() => {
+                        if (compareMode) {
+                          setSelectedCompareKeys((prev) =>
+                            prev.includes(cat.key)
+                              ? prev.filter((k) => k !== cat.key)
+                              : [...prev, cat.key],
+                          );
+                        } else {
+                          setSelectedCatalystKey(cat.key);
+                          setResult(null);
+                          setCompareResults(null);
+                        }
+                      }}
+                      style={{
+                        padding: "4px 12px",
+                        fontSize: 12,
+                        borderRadius: 14,
+                        border: isSelected ? "2px solid #333" : "1px solid #ccc",
+                        background: isSelected ? "#333" : "#fff",
+                        color: isSelected ? "#fff" : "#555",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 12,
+                  color: "#888",
+                  cursor: "pointer",
+                  marginLeft: "auto",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={compareMode}
+                  onChange={(e) => {
+                    const on = e.target.checked;
+                    setCompareMode(on);
+                    setResult(null);
+                    setCompareResults(null);
+                    if (on) {
+                      setSelectedCompareKeys(catalystPresets.map((c) => c.key));
+                    } else {
+                      setSelectedCompareKeys([]);
+                    }
+                  }}
+                />
+                Compare
+              </label>
+            </div>
+          </div>
 
           {/* Selected materials preview */}
           {hasSelection ? (
@@ -1220,18 +1357,30 @@ export function App() {
             </div>
           )}
 
-          {/* Transmute Button */}
-          <button
-            type="button"
-            onClick={handleTransmute}
-            disabled={isLoading || !hasSelection}
-            style={{ marginTop: 8, padding: "8px 20px", fontSize: 14, cursor: "pointer" }}
-          >
-            {isLoading ? "Transmuting..." : "Transmute"}
-          </button>
+          {/* Transmute / Compare Button */}
+          {compareMode ? (
+            <button
+              type="button"
+              onClick={handleCompare}
+              disabled={isLoading || !hasSelection || selectedCompareKeys.length < 2}
+              style={{ marginTop: 8, padding: "8px 20px", fontSize: 14, cursor: "pointer" }}
+            >
+              {isLoading ? "Comparing..." : `Compare (${selectedCompareKeys.length} catalysts)`}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleTransmute}
+              disabled={isLoading || !hasSelection}
+              style={{ marginTop: 8, padding: "8px 20px", fontSize: 14, cursor: "pointer" }}
+            >
+              {isLoading ? "Transmuting..." : "Transmute"}
+            </button>
+          )}
 
           {error && <p style={{ color: "red", marginTop: 12 }}>{error}</p>}
 
+          {/* Single result */}
           {result != null && (
             <div style={{ marginTop: 24 }}>
               <h2>Result</h2>
@@ -1240,6 +1389,55 @@ export function App() {
               ) : (
                 <pre style={codeStyle}>{JSON.stringify(result, null, 2)}</pre>
               )}
+            </div>
+          )}
+
+          {/* Compare results */}
+          {compareResults != null && (
+            <div style={{ marginTop: 24 }}>
+              <h2>Comparison</h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${Object.keys(compareResults).length}, 1fr)`,
+                  gap: 12,
+                }}
+              >
+                {Object.entries(compareResults).map(([key, val]) => {
+                  const catalystLabel = catalystPresets.find((c) => c.key === key)?.label ?? key;
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 6,
+                        padding: 12,
+                        minWidth: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#555",
+                          marginBottom: 8,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        {catalystLabel}
+                      </div>
+                      {typeof val === "string" ? (
+                        <p style={{ whiteSpace: "pre-wrap", fontSize: 13, margin: 0 }}>{val}</p>
+                      ) : (
+                        <pre style={{ ...codeStyle, margin: 0, fontSize: 12 }}>
+                          {JSON.stringify(val, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

@@ -1,3 +1,5 @@
+// Catalyst utilities
+export { resolveCatalyst } from "./catalyst.js";
 // Material utilities
 export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
 // Refiners
@@ -18,6 +20,7 @@ export type {
   MaterialPartRegistry,
   MaterialTransform,
   MaterialTransformContext,
+  NamedCatalyst,
   Recipe,
   Refiner,
   SpellOutput,

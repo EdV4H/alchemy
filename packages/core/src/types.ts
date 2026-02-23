@@ -10,6 +10,13 @@ export interface CatalystConfig {
   model?: string;
 }
 
+export interface NamedCatalyst {
+  readonly key: string;
+  readonly label: string;
+  readonly config: CatalystConfig;
+  readonly isDefault?: boolean;
+}
+
 // ──────────────────────────────────────────
 // Material (素材): LLM入力のコンテンツパーツ
 // ──────────────────────────────────────────
