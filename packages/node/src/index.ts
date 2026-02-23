@@ -73,14 +73,22 @@ export class Alchemist {
     material: TInput,
     catalysts: Record<string, CatalystConfig>,
     options?: Omit<TransmutationOptions, "catalyst">,
-  ): Promise<Record<string, TOutput>> {
-    const results = await Promise.all(
-      Object.entries(catalysts).map(async ([key, catalyst]) => {
-        const result = await this.transmute(recipe, material, { ...options, catalyst });
-        return [key, result] as const;
+  ): Promise<Record<string, TOutput | { error: Error }>> {
+    const entries = Object.entries(catalysts);
+    const settled = await Promise.allSettled(
+      entries.map(([, catalyst]) => this.transmute(recipe, material, { ...options, catalyst })),
+    );
+    return Object.fromEntries(
+      entries.map(([key], i) => {
+        const r = settled[i];
+        return [
+          key,
+          r.status === "fulfilled"
+            ? r.value
+            : { error: r.reason instanceof Error ? r.reason : new Error(String(r.reason)) },
+        ];
       }),
     );
-    return Object.fromEntries(results);
   }
 
   private collectTransforms<TInput, TOutput>(recipe: Recipe<TInput, TOutput>): MaterialTransform[] {

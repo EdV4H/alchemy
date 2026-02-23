@@ -149,7 +149,16 @@ app.post("/api/compare/:recipeId", async (c) => {
       if (config) catalysts[key] = config;
     }
     const results = await alchemist.compare(recipe, parts, catalysts, { language: body.language });
-    return c.json(results);
+    // Serialize error objects for JSON response
+    const serialized = Object.fromEntries(
+      Object.entries(results).map(([key, val]) => [
+        key,
+        val && typeof val === "object" && "error" in val && val.error instanceof Error
+          ? { error: val.error.message }
+          : val,
+      ]),
+    );
+    return c.json(serialized);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return c.json({ error: message }, 500);

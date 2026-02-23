@@ -155,6 +155,52 @@ describe("Alchemist.stream()", () => {
   });
 });
 
+describe("Alchemist.compare()", () => {
+  it("returns results from multiple catalysts", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter });
+
+    const results = await alchemist.compare(
+      {
+        id: "compare-test",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+      { a: { temperature: 0.3 }, b: { temperature: 0.9 } },
+    );
+
+    expect(results).toHaveProperty("a", "result");
+    expect(results).toHaveProperty("b", "result");
+  });
+
+  it("returns partial results when one catalyst fails", async () => {
+    let callCount = 0;
+    const transmuter: Transmuter = {
+      transmute: vi.fn().mockImplementation(async () => {
+        callCount++;
+        if (callCount === 2) throw new Error("API failure");
+        return { text: "  ok  ", usage: undefined };
+      }),
+    };
+    const alchemist = new Alchemist({ transmuter });
+
+    const results = await alchemist.compare(
+      {
+        id: "partial-test",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+      { a: { temperature: 0.3 }, b: { temperature: 0.9 } },
+    );
+
+    expect(results.a).toBe("ok");
+    expect(results.b).toEqual({ error: expect.any(Error) });
+    expect((results.b as { error: Error }).error.message).toBe("API failure");
+  });
+});
+
 describe("MaterialTransform pipeline", () => {
   it("applies global transforms then recipe transforms in order", async () => {
     const transmuter = mockTransmuter("done");
