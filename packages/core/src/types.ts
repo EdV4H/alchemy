@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 // ──────────────────────────────────────────
 // Catalyst (触媒): モデル設定・システムプロンプト
 // ──────────────────────────────────────────
@@ -49,7 +47,9 @@ export interface DocumentMaterialPart {
 
 export interface VideoMaterialPart {
   readonly type: "video";
-  readonly source: { readonly kind: "url"; readonly url: string };
+  readonly source:
+    | { readonly kind: "url"; readonly url: string }
+    | { readonly kind: "base64"; readonly mediaType: string; readonly data: string };
 }
 
 export interface DataMaterialPart {
@@ -93,10 +93,26 @@ export type MaterialTransform = (
 // Transmuter (錬成炉): LLMプロバイダアダプタ
 // ──────────────────────────────────────────
 
+export type KnownLanguage =
+  | "English"
+  | "Japanese"
+  | "Chinese"
+  | "Korean"
+  | "Spanish"
+  | "French"
+  | "German"
+  | "Portuguese"
+  | "Italian"
+  | "Russian"
+  | "Arabic"
+  | "Hindi";
+
+export type Language = KnownLanguage | (string & {});
+
 export interface TransmutationOptions {
   catalyst?: CatalystConfig;
   signal?: AbortSignal;
-  language?: string;
+  language?: Language;
 }
 
 export interface TransmutationResult {
@@ -127,17 +143,6 @@ export interface Refiner<TOutput> {
 }
 
 // ──────────────────────────────────────────
-// Tool (将来のエージェント拡張用)
-// ──────────────────────────────────────────
-
-export interface ToolDefinition {
-  name: string;
-  description: string;
-  parameters: z.ZodType;
-  execute: (params: unknown) => Promise<unknown>;
-}
-
-// ──────────────────────────────────────────
 // Recipe (レシピ): 錬成の完全な定義
 // ──────────────────────────────────────────
 
@@ -147,7 +152,6 @@ export interface Recipe<TInput, TOutput> {
   catalyst?: CatalystConfig;
   spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
-  tools?: ToolDefinition[];
   transforms?: MaterialTransform[];
 }
 

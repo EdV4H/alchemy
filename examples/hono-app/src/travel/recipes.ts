@@ -1,33 +1,8 @@
 import type { MaterialPart, Recipe } from "@EdV4H/alchemy-node";
 import { extractText, JsonRefiner, TextRefiner, truncateText } from "@EdV4H/alchemy-node";
 import { z } from "zod";
-import type { RecipeEntry, RecipeFieldMeta } from "../shared/recipes.js";
-
-// ─── Zod Introspection Helpers ──────────────────────────────────────────────
-
-function describeZodType(t: z.ZodTypeAny): string {
-  if (t instanceof z.ZodString) return "string";
-  if (t instanceof z.ZodNumber) return "number";
-  if (t instanceof z.ZodBoolean) return "boolean";
-  if (t instanceof z.ZodEnum)
-    return `enum(${(t.options as string[]).map((o) => `"${o}"`).join(" | ")})`;
-  if (t instanceof z.ZodArray) return `${describeZodType(t.element)}[]`;
-  if (t instanceof z.ZodObject) return "object";
-  return "unknown";
-}
-
-function zodToFieldMeta(schema: z.ZodObject<z.ZodRawShape>): RecipeFieldMeta[] {
-  return Object.entries(schema.shape).map(([name, field]) => {
-    const f = field as z.ZodTypeAny;
-    const inner =
-      f instanceof z.ZodArray && f.element instanceof z.ZodObject
-        ? zodToFieldMeta(f.element as z.ZodObject<z.ZodRawShape>)
-        : f instanceof z.ZodObject
-          ? zodToFieldMeta(f as z.ZodObject<z.ZodRawShape>)
-          : undefined;
-    return { name, type: describeZodType(f), children: inner };
-  });
-}
+import type { RecipeEntry } from "../shared/recipes.js";
+import { zodToFieldMeta } from "../shared/zod-helpers.js";
 
 // ─── Recipe 1: Travel Memory ──────────────────────────────────────────────
 // 旅の思い出ストーリー — text output

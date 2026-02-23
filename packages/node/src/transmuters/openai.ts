@@ -4,7 +4,7 @@ import type {
   TransmutationResult,
   Transmuter,
 } from "@EdV4H/alchemy-core";
-import { extractText, isTextOnly } from "@EdV4H/alchemy-core";
+import { extractText, isTextOnly, TransmuteError } from "@EdV4H/alchemy-core";
 import OpenAI from "openai";
 
 export interface OpenAITransmuterConfig {
@@ -132,10 +132,12 @@ export class OpenAITransmuter implements Transmuter {
         case "video":
           return {
             type: "text",
-            text: "[Video: not processed. Add videoToFrames() transform.]",
+            text: `[Video (${part.source.kind}): not processed. Add videoToFrames() transform.]`,
           };
         default:
-          throw new Error(`Unsupported material part type: ${(part as MaterialPart).type}`);
+          throw new TransmuteError(
+            `Unsupported material part type: ${(part as MaterialPart).type}`,
+          );
       }
     });
   }

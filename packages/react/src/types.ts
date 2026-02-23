@@ -1,12 +1,2 @@
-/** API に送信する素材のワイヤーフォーマット */
-export interface MaterialInput {
-  type: "text" | "image" | "audio" | "document" | "video" | "data";
-  text?: string;
-  imageUrl?: string;
-  audioUrl?: string;
-  documentText?: string;
-  videoUrl?: string;
-  dataFormat?: "csv" | "json" | "tsv";
-  dataContent?: string;
-  dataLabel?: string;
-}
+/** Re-export MaterialInput from core */
+export type { MaterialInput } from "@EdV4H/alchemy-core";

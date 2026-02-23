@@ -7,7 +7,7 @@ import type {
   Recipe,
   TransmutationOptions,
 } from "@EdV4H/alchemy-core";
-import { normalizeSpellOutput, resolveCatalyst } from "@EdV4H/alchemy-core";
+import { normalizeSpellOutput, resolveCatalyst, TransmuteError } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -48,7 +48,7 @@ export class Alchemist {
     options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
   ): AsyncGenerator<string, void, unknown> {
     if (!this.config.transmuter.stream) {
-      throw new Error(
+      throw new TransmuteError(
         "The configured Transmuter does not support streaming. " +
           "Implement the stream() method on your Transmuter.",
       );
@@ -73,14 +73,22 @@ export class Alchemist {
     material: TInput,
     catalysts: Record<string, CatalystConfig>,
     options?: Omit<TransmutationOptions, "catalyst">,
-  ): Promise<Record<string, TOutput>> {
-    const results = await Promise.all(
-      Object.entries(catalysts).map(async ([key, catalyst]) => {
-        const result = await this.transmute(recipe, material, { ...options, catalyst });
-        return [key, result] as const;
+  ): Promise<Record<string, TOutput | { error: Error }>> {
+    const entries = Object.entries(catalysts);
+    const settled = await Promise.allSettled(
+      entries.map(([, catalyst]) => this.transmute(recipe, material, { ...options, catalyst })),
+    );
+    return Object.fromEntries(
+      entries.map(([key], i) => {
+        const r = settled[i];
+        return [
+          key,
+          r.status === "fulfilled"
+            ? r.value
+            : { error: r.reason instanceof Error ? r.reason : new Error(String(r.reason)) },
+        ];
       }),
     );
-    return Object.fromEntries(results);
   }
 
   private collectTransforms<TInput, TOutput>(recipe: Recipe<TInput, TOutput>): MaterialTransform[] {
@@ -105,6 +113,7 @@ export class Alchemist {
 // Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
 export {
+  AlchemyError,
   dataToText,
   extractAllText,
   extractText,
@@ -113,8 +122,12 @@ export {
   JsonRefiner,
   normalizeSpellOutput,
   prependText,
+  RefineError,
   resolveCatalyst,
   TextRefiner,
+  TransformError,
+  TransmuteError,
+  toMaterialParts,
   truncateText,
 } from "@EdV4H/alchemy-core";
 // Node-specific transforms
