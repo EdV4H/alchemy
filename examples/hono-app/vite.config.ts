@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import devServer from "@hono/vite-dev-server";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
@@ -17,5 +18,14 @@ export default defineConfig(({ mode }) => {
         exclude: [/^(?!\/api\/).*/],
       }),
     ],
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, "index.html"),
+          common: resolve(__dirname, "common/index.html"),
+          travel: resolve(__dirname, "travel/index.html"),
+        },
+      },
+    },
   };
 });

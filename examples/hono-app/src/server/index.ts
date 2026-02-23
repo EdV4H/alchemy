@@ -10,6 +10,8 @@ import {
 import { Hono } from "hono";
 import { catalystPresets } from "../shared/catalysts.js";
 import { recipeRegistry } from "../shared/recipes.js";
+import { travelCatalystPresets } from "../travel/catalysts.js";
+import { travelRecipeRegistry } from "../travel/recipes.js";
 
 const app = new Hono();
 
@@ -17,10 +19,30 @@ const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
-// Inject Node-specific transforms at server init
+// Inject Node-specific transforms at server init (common)
 recipeRegistry["image-analysis"].transforms = [imageUrlToBase64()];
 recipeRegistry["data-analyst"].transforms = [dataToText()];
 recipeRegistry["doc-summarizer"].transforms = [documentToText(), truncateText(8000)];
+
+// Inject Node-specific transforms at server init (travel)
+travelRecipeRegistry["photo-caption"].transforms = [imageUrlToBase64()];
+travelRecipeRegistry["budget-analysis"].transforms = [dataToText()];
+travelRecipeRegistry["trip-summary"].transforms = [
+  ...(travelRecipeRegistry["trip-summary"].transforms ?? []),
+  dataToText(),
+  documentToText(),
+];
+travelRecipeRegistry["destination-guide"].transforms = [
+  ...(travelRecipeRegistry["destination-guide"].transforms ?? []),
+  documentToText(),
+];
+
+// Merge all recipes
+// biome-ignore lint/suspicious/noExplicitAny: recipe output types vary
+const allRecipes: Record<string, any> = { ...recipeRegistry, ...travelRecipeRegistry };
+
+// Merge all catalyst presets
+const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets];
 
 interface MaterialInput {
   type: "text" | "image" | "audio" | "document" | "video" | "data";
@@ -66,7 +88,7 @@ function toMaterialParts(materials: MaterialInput[]): MaterialPart[] {
 
 function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
   if (!key) return undefined;
-  return catalystPresets.find((c) => c.key === key)?.config;
+  return allCatalystPresets.find((c) => c.key === key)?.config;
 }
 
 interface TransmuteBody {
@@ -76,7 +98,7 @@ interface TransmuteBody {
 
 app.post("/api/transmute/:recipeId", async (c) => {
   const { recipeId } = c.req.param();
-  const recipe = recipeRegistry[recipeId];
+  const recipe = allRecipes[recipeId];
 
   if (!recipe) {
     return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);
@@ -107,7 +129,7 @@ interface CompareBody {
 
 app.post("/api/compare/:recipeId", async (c) => {
   const { recipeId } = c.req.param();
-  const recipe = recipeRegistry[recipeId];
+  const recipe = allRecipes[recipeId];
 
   if (!recipe) {
     return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);

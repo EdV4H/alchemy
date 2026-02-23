@@ -3,10 +3,91 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alchemy — Hono + React Demo</title>
+    <title>Alchemy — Demo Hub</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafafa;
+        color: #333;
+      }
+      .hub {
+        text-align: center;
+        padding: 60px 24px;
+      }
+      .hub h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .hub p {
+        color: #888;
+        font-size: 1.1rem;
+        margin-bottom: 48px;
+      }
+      .cards {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .card {
+        display: block;
+        width: 320px;
+        padding: 32px 24px;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background: #fff;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.2s, border-color 0.2s;
+      }
+      .card:hover {
+        border-color: #333;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      }
+      .card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+      }
+      .card h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .card .desc {
+        font-size: 0.9rem;
+        color: #888;
+        line-height: 1.5;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/client/main.tsx"></script>
+    <div class="hub">
+      <h1>Alchemy Demo</h1>
+      <p>Choose a demo to explore</p>
+      <div class="cards">
+        <a href="/common/" class="card">
+          <div class="icon">&#x2697;&#xFE0F;</div>
+          <h2>Common Demo</h2>
+          <div class="desc">
+            10 general-purpose recipes — rewrite, sentiment, translate,
+            code review, summarize, and more.
+          </div>
+        </a>
+        <a href="/travel/" class="card">
+          <div class="icon">&#x2708;&#xFE0F;</div>
+          <h2>Travel Memory Alchemy</h2>
+          <div class="desc">
+            7 travel-themed recipes — memory stories, blog posts,
+            photo captions, budget analysis, and destination guides.
+          </div>
+        </a>
+      </div>
+    </div>
   </body>
 </html>
