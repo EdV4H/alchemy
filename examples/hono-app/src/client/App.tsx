@@ -605,66 +605,63 @@ export function App() {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "16px 0" }}>
             {recipeEntries.map((entry) => {
               const active = entry.recipe.id === selectedRecipeId;
-              const showInfo = infoPopoverId === entry.recipe.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={entry.recipe.id}
+                  onClick={() => {
+                    setSelectedRecipeId(entry.recipe.id);
+                    setInfoPopoverId(null);
+                    setResult(null);
+                    setError(null);
+                  }}
                   style={{
-                    position: "relative",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 2,
+                    padding: "6px 14px",
+                    fontSize: 14,
+                    borderRadius: 20,
+                    border: active ? "2px solid #333" : "1px solid #ccc",
+                    background: active ? "#333" : "#fff",
+                    color: active ? "#fff" : "#333",
+                    cursor: "pointer",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedRecipeId(entry.recipe.id);
-                      setResult(null);
-                      setError(null);
-                    }}
-                    style={{
-                      padding: "6px 14px",
-                      fontSize: 14,
-                      borderRadius: 20,
-                      border: active ? "2px solid #333" : "1px solid #ccc",
-                      background: active ? "#333" : "#fff",
-                      color: active ? "#fff" : "#333",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {entry.icon} {entry.label}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInfoPopoverId(showInfo ? null : entry.recipe.id)}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      padding: 0,
-                      fontSize: 12,
-                      lineHeight: "20px",
-                      textAlign: "center",
-                      borderRadius: "50%",
-                      border: "1px solid #ccc",
-                      background: showInfo ? "#333" : "#fff",
-                      color: showInfo ? "#fff" : "#999",
-                      cursor: "pointer",
-                    }}
-                    title="Recipe info"
-                  >
-                    i
-                  </button>
-                  {showInfo && (
-                    <RecipeInfoPopover entry={entry} onClose={() => setInfoPopoverId(null)} />
-                  )}
-                </div>
+                  {entry.icon} {entry.label}
+                </button>
               );
             })}
           </div>
 
           {selectedEntry && (
-            <p style={{ color: "#666", margin: "4px 0 16px" }}>{selectedEntry.description}</p>
+            <div style={{ position: "relative", margin: "4px 0 16px" }}>
+              <p style={{ color: "#666", margin: 0, display: "inline" }}>
+                {selectedEntry.description}
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  setInfoPopoverId(
+                    infoPopoverId === selectedEntry.recipe.id ? null : selectedEntry.recipe.id,
+                  )
+                }
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#999",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  padding: "0 0 0 6px",
+                  verticalAlign: "baseline",
+                  textDecoration: "underline",
+                  textDecorationStyle: "dotted",
+                  textUnderlineOffset: 2,
+                }}
+              >
+                details
+              </button>
+              {infoPopoverId === selectedEntry.recipe.id && (
+                <RecipeInfoPopover entry={selectedEntry} onClose={() => setInfoPopoverId(null)} />
+              )}
+            </div>
           )}
 
           {/* Selected materials preview */}
