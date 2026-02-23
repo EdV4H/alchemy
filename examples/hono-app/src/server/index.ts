@@ -5,6 +5,7 @@ import {
   documentToText,
   imageUrlToBase64,
   OpenAITransmuter,
+  toMaterialParts,
   truncateText,
 } from "@EdV4H/alchemy-node";
 import { Hono } from "hono";
@@ -44,6 +45,10 @@ const allRecipes: Record<string, any> = { ...recipeRegistry, ...travelRecipeRegi
 // Merge all catalyst presets
 const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets];
 
+/**
+ * Server-side MaterialInput extends core MaterialInput with documentUrl support.
+ * Core toMaterialParts handles all cases except documentUrl, which is server-only.
+ */
 type ServerMaterialInput =
   | { type: "text"; text: string }
   | { type: "image"; imageUrl: string }
@@ -52,31 +57,20 @@ type ServerMaterialInput =
   | { type: "video"; videoUrl: string }
   | { type: "data"; dataFormat: "csv" | "json" | "tsv"; dataContent: string; dataLabel?: string };
 
-function toMaterialParts(materials: ServerMaterialInput[]): MaterialPart[] {
-  return materials.flatMap((m): MaterialPart[] => {
-    switch (m.type) {
-      case "text":
-        return [{ type: "text", text: m.text }];
-      case "image":
-        return [{ type: "image", source: { kind: "url", url: m.imageUrl } }];
-      case "audio":
-        return [{ type: "audio", source: { kind: "url", url: m.audioUrl } }];
-      case "document":
-        if (m.documentUrl) {
-          return [{ type: "document", source: { kind: "url", url: m.documentUrl } }];
-        }
-        if (m.documentText) {
-          return [{ type: "document", source: { kind: "text", text: m.documentText } }];
-        }
-        return [];
-      case "video":
-        return [{ type: "video", source: { kind: "url", url: m.videoUrl } }];
-      case "data":
-        return [{ type: "data", format: m.dataFormat, content: m.dataContent, label: m.dataLabel }];
-      default:
-        return [];
+function serverToMaterialParts(materials: ServerMaterialInput[]): MaterialPart[] {
+  // Handle documentUrl (server-only) separately, delegate rest to core
+  const serverHandled: MaterialPart[] = [];
+  const coreHandled: ServerMaterialInput[] = [];
+
+  for (const m of materials) {
+    if (m.type === "document" && m.documentUrl) {
+      serverHandled.push({ type: "document", source: { kind: "url", url: m.documentUrl } });
+    } else {
+      coreHandled.push(m);
     }
-  });
+  }
+
+  return [...serverHandled, ...toMaterialParts(coreHandled)];
 }
 
 function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
@@ -106,7 +100,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
   }
 
   try {
-    const parts = toMaterialParts(materials);
+    const parts = serverToMaterialParts(materials);
     const catalyst = resolveCatalystPreset(body.catalystKey);
     const result = await alchemist.transmute(recipe, parts, { catalyst, language: body.language });
     return c.json(result);
@@ -142,7 +136,7 @@ app.post("/api/compare/:recipeId", async (c) => {
   }
 
   try {
-    const parts = toMaterialParts(materials);
+    const parts = serverToMaterialParts(materials);
     const catalysts: Record<string, CatalystConfig> = {};
     for (const key of body.catalystKeys) {
       const config = resolveCatalystPreset(key);

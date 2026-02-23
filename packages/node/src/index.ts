@@ -127,6 +127,7 @@ export {
   TextRefiner,
   TransformError,
   TransmuteError,
+  toMaterialParts,
   truncateText,
 } from "@EdV4H/alchemy-core";
 // Node-specific transforms

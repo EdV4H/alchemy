@@ -4,6 +4,9 @@ export { resolveCatalyst } from "./catalyst.js";
 export { AlchemyError, RefineError, TransformError, TransmuteError } from "./errors.js";
 // Material utilities
 export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
+// MaterialInput
+export type { MaterialInput } from "./material-input.js";
+export { toMaterialParts } from "./material-input.js";
 // Refiners
 export { JsonRefiner, TextRefiner } from "./refiners.js";
 // Transforms
