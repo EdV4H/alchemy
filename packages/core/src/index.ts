@@ -27,7 +27,6 @@ export type {
   Refiner,
   SpellOutput,
   TextMaterialPart,
-  ToolDefinition,
   TransmutationOptions,
   TransmutationResult,
   Transmuter,

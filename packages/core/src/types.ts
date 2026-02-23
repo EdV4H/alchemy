@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 // ──────────────────────────────────────────
 // Catalyst (触媒): モデル設定・システムプロンプト
 // ──────────────────────────────────────────
@@ -145,17 +143,6 @@ export interface Refiner<TOutput> {
 }
 
 // ──────────────────────────────────────────
-// Tool (将来のエージェント拡張用)
-// ──────────────────────────────────────────
-
-export interface ToolDefinition {
-  name: string;
-  description: string;
-  parameters: z.ZodType;
-  execute: (params: unknown) => Promise<unknown>;
-}
-
-// ──────────────────────────────────────────
 // Recipe (レシピ): 錬成の完全な定義
 // ──────────────────────────────────────────
 
@@ -165,7 +152,6 @@ export interface Recipe<TInput, TOutput> {
   catalyst?: CatalystConfig;
   spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
-  tools?: ToolDefinition[];
   transforms?: MaterialTransform[];
 }
 
