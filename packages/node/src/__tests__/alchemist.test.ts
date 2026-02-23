@@ -1,4 +1,9 @@
-import type { MaterialPart, TransmutationResult, Transmuter } from "@EdV4H/alchemy-core";
+import type {
+  MaterialPart,
+  MaterialTransform,
+  TransmutationResult,
+  Transmuter,
+} from "@EdV4H/alchemy-core";
 import { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -124,5 +129,158 @@ describe("Alchemist.stream()", () => {
       undefined,
     );
     await expect(gen.next()).rejects.toThrow("does not support streaming");
+  });
+});
+
+describe("MaterialTransform pipeline", () => {
+  it("applies global transforms then recipe transforms in order", async () => {
+    const transmuter = mockTransmuter("done");
+    const order: string[] = [];
+
+    const globalTransform: MaterialTransform = (parts) => {
+      order.push("global");
+      return parts;
+    };
+    const recipeTransform: MaterialTransform = (parts) => {
+      order.push("recipe");
+      return parts;
+    };
+
+    const alchemist = new Alchemist({ transmuter, transforms: [globalTransform] });
+
+    await alchemist.transmute(
+      {
+        id: "transform-test",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+        transforms: [recipeTransform],
+      },
+      undefined,
+    );
+
+    expect(order).toEqual(["global", "recipe"]);
+  });
+
+  it("passes transform context with recipeId and catalyst", async () => {
+    const transmuter = mockTransmuter("done");
+    const receivedCtx: unknown[] = [];
+
+    const transform: MaterialTransform = (parts, ctx) => {
+      receivedCtx.push(ctx);
+      return parts;
+    };
+
+    const alchemist = new Alchemist({ transmuter, transforms: [transform] });
+
+    await alchemist.transmute(
+      {
+        id: "ctx-test",
+        catalyst: { temperature: 0.7 },
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+
+    expect(receivedCtx[0]).toEqual({
+      recipeId: "ctx-test",
+      catalyst: { temperature: 0.7 },
+    });
+  });
+
+  it("transforms modify parts before transmuter receives them", async () => {
+    const transmuter = mockTransmuter("result");
+    const prepend: MaterialTransform = (parts) => [{ type: "text", text: "PREFIX: " }, ...parts];
+
+    const alchemist = new Alchemist({ transmuter, transforms: [prepend] });
+
+    await alchemist.transmute(
+      {
+        id: "modify-test",
+        spell: () => "original",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+
+    const parts = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as MaterialPart[];
+    expect(parts[0]).toEqual({ type: "text", text: "PREFIX: " });
+    expect(parts[1]).toEqual({ type: "text", text: "original" });
+  });
+
+  it("supports async transforms", async () => {
+    const transmuter = mockTransmuter("result");
+    const asyncTransform: MaterialTransform = async (parts) => {
+      await new Promise((r) => setTimeout(r, 1));
+      return [...parts, { type: "text" as const, text: "async-added" }];
+    };
+
+    const alchemist = new Alchemist({ transmuter, transforms: [asyncTransform] });
+
+    await alchemist.transmute(
+      {
+        id: "async-test",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+
+    const parts = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as MaterialPart[];
+    expect(parts.some((p) => p.type === "text" && p.text === "async-added")).toBe(true);
+  });
+
+  it("skips transforms when none are configured", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter });
+
+    await alchemist.transmute(
+      {
+        id: "no-transform",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+
+    const parts = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as MaterialPart[];
+    expect(parts).toEqual([{ type: "text", text: "input" }]);
+  });
+
+  it("applies transforms in stream() as well", async () => {
+    async function* fakeStream(): AsyncGenerator<string> {
+      yield "chunk";
+    }
+
+    const transmuter: Transmuter = {
+      transmute: vi.fn(),
+      stream: vi.fn().mockImplementation(fakeStream),
+    };
+
+    const transform: MaterialTransform = (parts) => [
+      { type: "text" as const, text: "STREAM-PREFIX" },
+      ...parts,
+    ];
+
+    const alchemist = new Alchemist({ transmuter, transforms: [transform] });
+
+    const chunks: string[] = [];
+    for await (const chunk of alchemist.stream(
+      {
+        id: "stream-transform",
+        spell: () => "input",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    )) {
+      chunks.push(chunk);
+    }
+
+    const parts = (transmuter.stream as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as MaterialPart[];
+    expect(parts[0]).toEqual({ type: "text", text: "STREAM-PREFIX" });
   });
 });

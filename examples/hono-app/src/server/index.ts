@@ -1,4 +1,5 @@
-import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+import type { MaterialPart } from "@EdV4H/alchemy-node";
+import { Alchemist, imageUrlToBase64, OpenAITransmuter } from "@EdV4H/alchemy-node";
 import { Hono } from "hono";
 import { recipeRegistry } from "../shared/recipes.js";
 
@@ -8,9 +9,17 @@ const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
-interface TransmuteBody {
-  materials: string[];
+// Inject Node-specific transforms at server init
+recipeRegistry["image-analysis"].transforms = [imageUrlToBase64()];
+
+interface MaterialInput {
+  type: "text" | "image";
+  text?: string;
   imageUrl?: string;
+}
+
+interface TransmuteBody {
+  materials: MaterialInput[];
 }
 
 app.post("/api/transmute/:recipeId", async (c) => {
@@ -25,14 +34,19 @@ app.post("/api/transmute/:recipeId", async (c) => {
   const materials = body.materials;
 
   if (!Array.isArray(materials) || materials.length === 0) {
-    return c.json({ error: "materials (string[]) is required" }, 400);
+    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
   }
 
   try {
-    const combined = materials.join("\n\n---\n\n");
-    const input =
-      recipe.id === "image-analysis" ? { text: combined, imageUrl: body.imageUrl ?? "" } : combined;
-    const result = await alchemist.transmute(recipe, input);
+    // Generic MaterialInput[] → MaterialPart[] conversion
+    const parts: MaterialPart[] = materials.flatMap((m): MaterialPart[] => {
+      if (m.type === "text" && m.text) return [{ type: "text", text: m.text }];
+      if (m.type === "image" && m.imageUrl)
+        return [{ type: "image", source: { kind: "url", url: m.imageUrl } }];
+      return [];
+    });
+
+    const result = await alchemist.transmute(recipe, parts);
     return c.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

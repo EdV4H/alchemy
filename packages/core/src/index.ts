@@ -1,8 +1,9 @@
-// Refiners
-
 // Material utilities
 export { extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
+// Refiners
 export { JsonRefiner, TextRefiner } from "./refiners.js";
+// Transforms
+export { filterByType, prependText, truncateText } from "./transforms.js";
 
 // Types
 export type {
@@ -12,6 +13,8 @@ export type {
   ImageMaterialPart,
   MaterialPart,
   MaterialPartRegistry,
+  MaterialTransform,
+  MaterialTransformContext,
   Recipe,
   Refiner,
   SpellOutput,

@@ -37,6 +37,20 @@ export type MaterialPart = BuiltinMaterialPart | MaterialPartRegistry[keyof Mate
 export type SpellOutput = string | MaterialPart | MaterialPart[];
 
 // ──────────────────────────────────────────
+// MaterialTransform (素材変換): パイプライン
+// ──────────────────────────────────────────
+
+export interface MaterialTransformContext {
+  readonly catalyst?: CatalystConfig;
+  readonly recipeId: string;
+}
+
+export type MaterialTransform = (
+  parts: MaterialPart[],
+  context: MaterialTransformContext,
+) => MaterialPart[] | Promise<MaterialPart[]>;
+
+// ──────────────────────────────────────────
 // Transmuter (錬成炉): LLMプロバイダアダプタ
 // ──────────────────────────────────────────
 
@@ -94,6 +108,7 @@ export interface Recipe<TInput, TOutput> {
   spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
   tools?: ToolDefinition[];
+  transforms?: MaterialTransform[];
 }
 
 // ──────────────────────────────────────────
@@ -102,4 +117,5 @@ export interface Recipe<TInput, TOutput> {
 
 export interface AlchemistConfig {
   transmuter: Transmuter;
+  transforms?: MaterialTransform[];
 }

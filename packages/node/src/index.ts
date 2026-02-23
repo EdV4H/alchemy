@@ -1,4 +1,11 @@
-import type { AlchemistConfig, Recipe, TransmutationOptions } from "@EdV4H/alchemy-core";
+import type {
+  AlchemistConfig,
+  MaterialPart,
+  MaterialTransform,
+  MaterialTransformContext,
+  Recipe,
+  TransmutationOptions,
+} from "@EdV4H/alchemy-core";
 import { normalizeSpellOutput } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
@@ -14,7 +21,19 @@ export class Alchemist {
     options?: Omit<TransmutationOptions, "catalyst">,
   ): Promise<TOutput> {
     const spellOutput = await recipe.spell(material);
-    const parts = normalizeSpellOutput(spellOutput);
+    let parts = normalizeSpellOutput(spellOutput);
+
+    const transforms = this.collectTransforms(recipe);
+    if (transforms.length > 0) {
+      parts = await this.applyTransforms(
+        parts,
+        {
+          catalyst: recipe.catalyst,
+          recipeId: recipe.id,
+        },
+        transforms,
+      );
+    }
 
     const formatInstructions = recipe.refiner.getFormatInstructions?.();
     if (formatInstructions) {
@@ -42,12 +61,42 @@ export class Alchemist {
     }
 
     const spellOutput = await recipe.spell(material);
-    const parts = normalizeSpellOutput(spellOutput);
+    let parts = normalizeSpellOutput(spellOutput);
+
+    const transforms = this.collectTransforms(recipe);
+    if (transforms.length > 0) {
+      parts = await this.applyTransforms(
+        parts,
+        {
+          catalyst: recipe.catalyst,
+          recipeId: recipe.id,
+        },
+        transforms,
+      );
+    }
 
     yield* this.config.transmuter.stream(parts, {
       catalyst: recipe.catalyst,
       ...options,
     });
+  }
+
+  private collectTransforms<TInput, TOutput>(recipe: Recipe<TInput, TOutput>): MaterialTransform[] {
+    const global = this.config.transforms ?? [];
+    const local = recipe.transforms ?? [];
+    return [...global, ...local];
+  }
+
+  private async applyTransforms(
+    parts: MaterialPart[],
+    context: MaterialTransformContext,
+    transforms: MaterialTransform[],
+  ): Promise<MaterialPart[]> {
+    let current = parts;
+    for (const transform of transforms) {
+      current = await transform(current, context);
+    }
+    return current;
   }
 }
 
@@ -55,11 +104,16 @@ export class Alchemist {
 export type * from "@EdV4H/alchemy-core";
 export {
   extractText,
+  filterByType,
   isTextOnly,
   JsonRefiner,
   normalizeSpellOutput,
+  prependText,
   TextRefiner,
+  truncateText,
 } from "@EdV4H/alchemy-core";
+// Node-specific transforms
+export { imageUrlToBase64 } from "./transforms.js";
 export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
 // Re-export transmuters
 export { OpenAITransmuter } from "./transmuters/openai.js";
