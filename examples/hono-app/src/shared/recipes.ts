@@ -8,7 +8,7 @@ import {
   truncateText,
 } from "@EdV4H/alchemy-node";
 import { z } from "zod";
-import type { RecipeFieldMeta, RecipeMeta } from "./recipe-types.js";
+import type { RecipeMeta } from "./recipe-types.js";
 import { zodToFieldMeta } from "./zod-helpers.js";
 
 export type { RecipeFieldMeta, RecipeMeta } from "./recipe-types.js";
