@@ -16,6 +16,8 @@ export type {
   DataMaterialPart,
   DocumentMaterialPart,
   ImageMaterialPart,
+  KnownLanguage,
+  Language,
   MaterialPart,
   MaterialPartRegistry,
   MaterialTransform,

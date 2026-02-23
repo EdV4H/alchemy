@@ -95,10 +95,26 @@ export type MaterialTransform = (
 // Transmuter (錬成炉): LLMプロバイダアダプタ
 // ──────────────────────────────────────────
 
+export type KnownLanguage =
+  | "English"
+  | "Japanese"
+  | "Chinese"
+  | "Korean"
+  | "Spanish"
+  | "French"
+  | "German"
+  | "Portuguese"
+  | "Italian"
+  | "Russian"
+  | "Arabic"
+  | "Hindi";
+
+export type Language = KnownLanguage | (string & {});
+
 export interface TransmutationOptions {
   catalyst?: CatalystConfig;
   signal?: AbortSignal;
-  language?: string;
+  language?: Language;
 }
 
 export interface TransmutationResult {
