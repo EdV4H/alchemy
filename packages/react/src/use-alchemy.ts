@@ -8,7 +8,7 @@ export interface UseAlchemyOptions {
   initialRecipeId: string;
 }
 
-export interface UseAlchemyResult {
+export interface UseAlchemyResult<TOutput = unknown> {
   // Recipe
   selectedRecipeId: string;
   selectRecipe: (id: string) => void;
@@ -38,14 +38,16 @@ export interface UseAlchemyResult {
   compare: (materials: MaterialInput[]) => Promise<void>;
 
   // Results
-  result: unknown;
-  compareResults: Record<string, unknown> | null;
+  result: TOutput | null;
+  compareResults: Record<string, TOutput> | null;
   isLoading: boolean;
   error: string | null;
   resetResults: () => void;
 }
 
-export function useAlchemy(options: UseAlchemyOptions): UseAlchemyResult {
+export function useAlchemy<TOutput = unknown>(
+  options: UseAlchemyOptions,
+): UseAlchemyResult<TOutput> {
   const { initialRecipeId, baseUrl } = options;
 
   // ── Recipe ──
@@ -65,8 +67,8 @@ export function useAlchemy(options: UseAlchemyOptions): UseAlchemyResult {
   const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
 
   // ── Low-level hooks ──
-  const transmuteHook = useTransmute({ baseUrl });
-  const compareHook = useCompare({ baseUrl });
+  const transmuteHook = useTransmute<TOutput>({ baseUrl });
+  const compareHook = useCompare<TOutput>({ baseUrl });
 
   // ── Error (string) ── derived from low-level hooks or local
   const [localError, setLocalError] = useState<string | null>(null);
