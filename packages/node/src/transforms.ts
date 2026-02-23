@@ -61,31 +61,48 @@ export function documentToText(): MaterialTransform {
 }
 
 /**
- * 音声パーツをテキストに変換する（スタブ: Whisper 統合は後続 PR）
+ * 音声パーツをテキストに変換する
+ * デフォルトでは未実装のため Error を throw する。
+ * `{ stub: true }` で旧来のプレースホルダーテキスト挙動に切り替え可能。
  */
-export function audioToText(): MaterialTransform {
+export function audioToText(options?: { stub?: boolean }): MaterialTransform {
   return async (parts) => {
     return parts.map((p) => {
       if (p.type !== "audio") return p;
-      return {
-        type: "text" as const,
-        text: "[Audio transcription not available — audioToText() requires OpenAI Whisper integration (coming soon)]",
-      };
+      if (options?.stub) {
+        return {
+          type: "text" as const,
+          text: "[Audio transcription not available]",
+        };
+      }
+      throw new TransformError(
+        "audioToText() requires OpenAI Whisper integration. Use { stub: true } to suppress.",
+      );
     });
   };
 }
 
 /**
- * ビデオパーツを画像フレーム群に変換する（スタブ: ffmpeg 統合は後続 PR）
+ * ビデオパーツを画像フレーム群に変換する
+ * デフォルトでは未実装のため Error を throw する。
+ * `{ stub: true }` で旧来のプレースホルダーテキスト挙動に切り替え可能。
  */
-export function videoToFrames(_options?: { frameCount?: number }): MaterialTransform {
+export function videoToFrames(options?: {
+  frameCount?: number;
+  stub?: boolean;
+}): MaterialTransform {
   return async (parts) => {
     return parts.map((p) => {
       if (p.type !== "video") return p;
-      return {
-        type: "text" as const,
-        text: "[Video frame extraction not available — videoToFrames() requires ffmpeg (coming soon)]",
-      };
+      if (options?.stub) {
+        return {
+          type: "text" as const,
+          text: "[Video frame extraction not available]",
+        };
+      }
+      throw new TransformError(
+        "videoToFrames() requires ffmpeg integration. Use { stub: true } to suppress.",
+      );
     });
   };
 }

@@ -1,6 +1,7 @@
 import type { MaterialPart, MaterialTransformContext } from "@EdV4H/alchemy-core";
+import { TransformError } from "@EdV4H/alchemy-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { imageUrlToBase64 } from "../transforms.js";
+import { audioToText, imageUrlToBase64, videoToFrames } from "../transforms.js";
 
 const ctx: MaterialTransformContext = { recipeId: "test" };
 
@@ -75,5 +76,51 @@ describe("imageUrlToBase64", () => {
     await expect(imageUrlToBase64()(parts, ctx)).rejects.toThrow(
       "Failed to fetch image: 404 Not Found",
     );
+  });
+});
+
+describe("audioToText", () => {
+  it("throws TransformError by default for audio parts", async () => {
+    const parts: MaterialPart[] = [
+      { type: "audio", source: { kind: "url", url: "https://example.com/audio.mp3" } },
+    ];
+    await expect(audioToText()(parts, ctx)).rejects.toThrow(TransformError);
+  });
+
+  it("returns placeholder text with stub: true", async () => {
+    const parts: MaterialPart[] = [
+      { type: "audio", source: { kind: "url", url: "https://example.com/audio.mp3" } },
+    ];
+    const result = await audioToText({ stub: true })(parts, ctx);
+    expect(result).toEqual([{ type: "text", text: "[Audio transcription not available]" }]);
+  });
+
+  it("leaves non-audio parts unchanged", async () => {
+    const parts: MaterialPart[] = [{ type: "text", text: "hello" }];
+    const result = await audioToText()(parts, ctx);
+    expect(result).toEqual(parts);
+  });
+});
+
+describe("videoToFrames", () => {
+  it("throws TransformError by default for video parts", async () => {
+    const parts: MaterialPart[] = [
+      { type: "video", source: { kind: "url", url: "https://example.com/video.mp4" } },
+    ];
+    await expect(videoToFrames()(parts, ctx)).rejects.toThrow(TransformError);
+  });
+
+  it("returns placeholder text with stub: true", async () => {
+    const parts: MaterialPart[] = [
+      { type: "video", source: { kind: "url", url: "https://example.com/video.mp4" } },
+    ];
+    const result = await videoToFrames({ stub: true })(parts, ctx);
+    expect(result).toEqual([{ type: "text", text: "[Video frame extraction not available]" }]);
+  });
+
+  it("leaves non-video parts unchanged", async () => {
+    const parts: MaterialPart[] = [{ type: "text", text: "hello" }];
+    const result = await videoToFrames()(parts, ctx);
+    expect(result).toEqual(parts);
   });
 });
