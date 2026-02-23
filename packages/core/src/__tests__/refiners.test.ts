@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { RefineError } from "../errors.js";
 import { JsonRefiner, TextRefiner } from "../refiners.js";
 
 describe("TextRefiner", () => {
@@ -39,12 +40,12 @@ describe("JsonRefiner", () => {
     expect(refiner.refine(fenced)).toEqual({ name: "Carol", age: 40 });
   });
 
-  it("throws ZodError for invalid schema", () => {
-    expect(() => refiner.refine('{"name":"Dave"}')).toThrow();
+  it("throws RefineError for invalid schema", () => {
+    expect(() => refiner.refine('{"name":"Dave"}')).toThrow(RefineError);
   });
 
-  it("throws SyntaxError for malformed JSON", () => {
-    expect(() => refiner.refine("not-json")).toThrow(SyntaxError);
+  it("throws RefineError for malformed JSON", () => {
+    expect(() => refiner.refine("not-json")).toThrow(RefineError);
   });
 
   it("returns format instructions", () => {

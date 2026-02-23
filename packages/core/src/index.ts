@@ -1,5 +1,7 @@
 // Catalyst utilities
 export { resolveCatalyst } from "./catalyst.js";
+// Errors
+export { AlchemyError, RefineError, TransformError, TransmuteError } from "./errors.js";
 // Material utilities
 export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
 // Refiners

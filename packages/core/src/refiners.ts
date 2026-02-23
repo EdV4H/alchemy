@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { RefineError } from "./errors.js";
 import type { Refiner } from "./types.js";
 
 export class TextRefiner implements Refiner<string> {
@@ -21,9 +22,13 @@ export class JsonRefiner<T> implements Refiner<T> {
   }
 
   refine(rawText: string): T {
-    const cleaned = JsonRefiner.stripCodeFences(rawText);
-    const parsed = JSON.parse(cleaned);
-    return this.schema.parse(parsed);
+    try {
+      const cleaned = JsonRefiner.stripCodeFences(rawText);
+      const parsed = JSON.parse(cleaned);
+      return this.schema.parse(parsed);
+    } catch (e) {
+      throw new RefineError("Failed to refine JSON output", { cause: e });
+    }
   }
 
   getFormatInstructions(): string {

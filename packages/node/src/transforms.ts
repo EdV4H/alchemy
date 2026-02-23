@@ -1,4 +1,5 @@
 import type { MaterialPart, MaterialTransform } from "@EdV4H/alchemy-core";
+import { TransformError } from "@EdV4H/alchemy-core";
 
 /**
  * 画像 URL パーツを base64 に変換する
@@ -10,7 +11,7 @@ export function imageUrlToBase64(): MaterialTransform {
       if (part.type === "image" && part.source.kind === "url") {
         const res = await fetch(part.source.url);
         if (!res.ok) {
-          throw new Error(`Failed to fetch image: ${res.status} ${res.statusText}`);
+          throw new TransformError(`Failed to fetch image: ${res.status} ${res.statusText}`);
         }
         const buffer = Buffer.from(await res.arrayBuffer());
         const mediaType = res.headers.get("content-type") ?? "image/png";
@@ -47,7 +48,7 @@ export function documentToText(): MaterialTransform {
         } else {
           const res = await fetch(part.source.url);
           if (!res.ok) {
-            throw new Error(`Failed to fetch document: ${res.status} ${res.statusText}`);
+            throw new TransformError(`Failed to fetch document: ${res.status} ${res.statusText}`);
           }
           result.push({ type: "text", text: await res.text() });
         }

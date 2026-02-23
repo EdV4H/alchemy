@@ -7,7 +7,7 @@ import type {
   Recipe,
   TransmutationOptions,
 } from "@EdV4H/alchemy-core";
-import { normalizeSpellOutput, resolveCatalyst } from "@EdV4H/alchemy-core";
+import { normalizeSpellOutput, resolveCatalyst, TransmuteError } from "@EdV4H/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -48,7 +48,7 @@ export class Alchemist {
     options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
   ): AsyncGenerator<string, void, unknown> {
     if (!this.config.transmuter.stream) {
-      throw new Error(
+      throw new TransmuteError(
         "The configured Transmuter does not support streaming. " +
           "Implement the stream() method on your Transmuter.",
       );
@@ -105,6 +105,7 @@ export class Alchemist {
 // Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
 export {
+  AlchemyError,
   dataToText,
   extractAllText,
   extractText,
@@ -113,8 +114,11 @@ export {
   JsonRefiner,
   normalizeSpellOutput,
   prependText,
+  RefineError,
   resolveCatalyst,
   TextRefiner,
+  TransformError,
+  TransmuteError,
   truncateText,
 } from "@EdV4H/alchemy-core";
 // Node-specific transforms
