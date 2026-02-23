@@ -290,6 +290,68 @@ ${text}`;
   refiner: new JsonRefiner(ExtractionSchema),
 };
 
+// ─── Recipe 9: Data Analyst ──────────────────────────────────────────────────
+// Demo: DataMaterialPart + dataToText transform (server-side)
+
+export const DataAnalysisSchema = z.object({
+  summary: z.string(),
+  insights: z.array(z.string()),
+  anomalies: z.array(z.string()),
+  recommendations: z.array(z.string()),
+});
+
+export type DataAnalysis = z.infer<typeof DataAnalysisSchema>;
+
+export const dataAnalystRecipe: Recipe<MaterialPart[], DataAnalysis> = {
+  id: "data-analyst",
+  name: "Data Analyst",
+  catalyst: {
+    roleDefinition:
+      "You are a data analyst expert. Analyze structured data (CSV, JSON, TSV) and provide insights, identify anomalies, and suggest actionable recommendations.",
+    temperature: 0.2,
+  },
+  spell: (parts) => {
+    const text = extractText(parts);
+    return `Analyze the following data. Return a JSON object with these exact fields:
+- "summary": a concise overview of the data
+- "insights": an array of key insight strings
+- "anomalies": an array of anomaly or outlier descriptions
+- "recommendations": an array of actionable recommendation strings
+
+Data to analyze:
+
+${text}`;
+  },
+  refiner: new JsonRefiner(DataAnalysisSchema),
+};
+
+// ─── Recipe 10: Document Summarizer ─────────────────────────────────────────
+// Demo: DocumentMaterialPart + documentToText + truncateText transforms (server-side)
+
+export const docSummarizerRecipe: Recipe<MaterialPart[], Summary> = {
+  id: "doc-summarizer",
+  name: "Document Summarizer",
+  catalyst: {
+    roleDefinition:
+      "You are an expert document summarizer. Produce structured summaries that capture the essence of the document at multiple levels of detail.",
+    temperature: 0.2,
+  },
+  spell: (parts) => {
+    const text = extractText(parts);
+    return `Summarize the following document. Return a JSON object with these exact fields:
+- "oneLiner": a single-sentence summary
+- "keyPoints": an array of key point strings
+- "detailedSummary": a detailed paragraph summary
+- "wordCountOriginal": word count of the original document (number)
+- "wordCountSummary": word count of your detailedSummary (number)
+
+Document to summarize:
+
+${text}`;
+  },
+  refiner: new JsonRefiner(SummarySchema),
+};
+
 // ─── Recipe Registry ────────────────────────────────────────────────────────
 
 export interface RecipeEntry {
@@ -396,6 +458,31 @@ export const recipeEntries: RecipeEntry[] = [
       transforms: [],
       promptTemplate:
         "Extract entities, key facts, and metadata → {entities[], keyFacts[], wordCount}",
+    },
+  },
+  {
+    recipe: dataAnalystRecipe,
+    label: "Data Analyst",
+    icon: "\uD83D\uDCCA",
+    description: "Analyze structured data (CSV/JSON/TSV) for insights and anomalies",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(DataAnalysisSchema),
+      transforms: ["dataToText()"],
+      promptTemplate: "Analyze the data → {summary, insights[], anomalies[], recommendations[]}",
+    },
+  },
+  {
+    recipe: docSummarizerRecipe,
+    label: "Doc Summary",
+    icon: "\uD83D\uDCC4",
+    description: "Summarize documents with structured multi-level output",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(SummarySchema),
+      transforms: ["documentToText()", "truncateText(8000)"],
+      promptTemplate:
+        "Summarize the document → {oneLiner, keyPoints[], detailedSummary, wordCountOriginal, wordCountSummary}",
     },
   },
 ];

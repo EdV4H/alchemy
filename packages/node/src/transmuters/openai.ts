@@ -106,6 +106,28 @@ export class OpenAITransmuter implements Transmuter {
               : `data:${part.source.mediaType};base64,${part.source.data}`;
           return { type: "image_url", image_url: { url } };
         }
+        case "document":
+          return {
+            type: "text",
+            text: part.source.kind === "text" ? part.source.text : `[Document: ${part.source.url}]`,
+          };
+        case "data":
+          return {
+            type: "text",
+            text: part.label
+              ? `[${part.label}] (${part.format})\n${part.content}`
+              : `(${part.format})\n${part.content}`,
+          };
+        case "audio":
+          return {
+            type: "text",
+            text: "[Audio: not transcribed. Add audioToText() transform.]",
+          };
+        case "video":
+          return {
+            type: "text",
+            text: "[Video: not processed. Add videoToFrames() transform.]",
+          };
         default:
           throw new Error(`Unsupported material part type: ${(part as MaterialPart).type}`);
       }

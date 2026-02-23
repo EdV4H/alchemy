@@ -103,6 +103,8 @@ export class Alchemist {
 // Re-export core types and refiners
 export type * from "@EdV4H/alchemy-core";
 export {
+  dataToText,
+  extractAllText,
   extractText,
   filterByType,
   isTextOnly,
@@ -113,7 +115,12 @@ export {
   truncateText,
 } from "@EdV4H/alchemy-core";
 // Node-specific transforms
-export { imageUrlToBase64 } from "./transforms.js";
+export {
+  audioToText,
+  documentToText,
+  imageUrlToBase64,
+  videoToFrames,
+} from "./transforms.js";
 export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
 // Re-export transmuters
 export { OpenAITransmuter } from "./transmuters/openai.js";

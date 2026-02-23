@@ -20,3 +20,15 @@ export function extractText(parts: MaterialPart[]): string {
 export function isTextOnly(parts: MaterialPart[]): boolean {
   return parts.every((p) => p.type === "text");
 }
+
+export function extractAllText(parts: MaterialPart[]): string {
+  return parts
+    .map((p) => {
+      if (p.type === "text") return p.text;
+      if (p.type === "document" && p.source.kind === "text") return p.source.text;
+      if (p.type === "data") return p.content;
+      return null;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}

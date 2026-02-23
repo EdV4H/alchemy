@@ -24,3 +24,15 @@ export function prependText(text: string): MaterialTransform {
 export function filterByType(...types: MaterialPart["type"][]): MaterialTransform {
   return (parts) => parts.filter((p) => types.includes(p.type));
 }
+
+/**
+ * 構造化データパーツをテキストに変換する
+ */
+export function dataToText(): MaterialTransform {
+  return (parts) =>
+    parts.map((p) => {
+      if (p.type !== "data") return p;
+      const header = p.label ? `[${p.label}] (${p.format})` : `(${p.format})`;
+      return { type: "text" as const, text: `${header}\n${p.content}` };
+    });
+}

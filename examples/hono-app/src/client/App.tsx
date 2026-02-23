@@ -5,26 +5,42 @@ import { recipeEntries } from "../shared/recipes.js";
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface MaterialInput {
-  type: "text" | "image";
+  type: "text" | "image" | "audio" | "document" | "video" | "data";
   text?: string;
   imageUrl?: string;
+  audioUrl?: string;
+  documentText?: string;
+  videoUrl?: string;
+  dataFormat?: "csv" | "json" | "tsv";
+  dataContent?: string;
+  dataLabel?: string;
 }
 
 interface MaterialCard {
   id: string;
   icon: string;
   label: string;
-  category: "text" | "code" | "image";
+  category: "text" | "code" | "image" | "audio" | "video" | "data" | "document";
   text: string;
   imageUrl?: string;
+  audioUrl?: string;
+  videoUrl?: string;
+  dataFormat?: "csv" | "json" | "tsv";
+  dataContent?: string;
+  documentText?: string;
 }
 
 interface CustomMaterial {
   id: string;
   label: string;
-  type: "text" | "image";
+  type: "text" | "image" | "audio" | "video" | "data" | "document";
   text?: string;
   imageUrl?: string;
+  audioUrl?: string;
+  videoUrl?: string;
+  dataFormat?: "csv" | "json" | "tsv";
+  dataContent?: string;
+  documentText?: string;
 }
 
 // ─── Sample Materials ───────────────────────────────────────────────────────
@@ -116,6 +132,51 @@ const allMaterials: MaterialCard[] = [
     category: "image",
     text: "Describe the dish, ingredients, and presentation in this image.",
     imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800",
+  },
+  {
+    id: "sales-csv",
+    icon: "\uD83D\uDCCA",
+    label: "Sales CSV",
+    category: "data",
+    text: "Monthly sales data (CSV)",
+    dataFormat: "csv",
+    dataContent:
+      "month,product,units,revenue\nJan,Widget A,120,24000\nJan,Widget B,85,17000\nFeb,Widget A,95,19000\nFeb,Widget B,110,22000\nMar,Widget A,150,30000\nMar,Widget B,70,14000\nApr,Widget A,60,12000\nApr,Widget B,130,26000",
+  },
+  {
+    id: "config-json",
+    icon: "\u2699\uFE0F",
+    label: "Config JSON",
+    category: "data",
+    text: "Application configuration (JSON)",
+    dataFormat: "json",
+    dataContent:
+      '{"database":{"host":"db.example.com","port":5432,"pool":{"min":2,"max":10}},"cache":{"ttl":3600,"maxSize":1000},"logging":{"level":"info","format":"json"},"features":{"darkMode":true,"betaAccess":false}}',
+  },
+  {
+    id: "podcast-clip",
+    icon: "\uD83C\uDFA7",
+    label: "Podcast Clip",
+    category: "audio",
+    text: "Audio clip (stub: transcription not yet available)",
+    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  },
+  {
+    id: "demo-video",
+    icon: "\uD83C\uDFAC",
+    label: "Demo Video",
+    category: "video",
+    text: "Video clip (stub: frame extraction not yet available)",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    id: "tech-spec",
+    icon: "\uD83D\uDCC4",
+    label: "Technical Spec",
+    category: "document",
+    text: "A technical specification document",
+    documentText:
+      "# Authentication Service Specification\n\n## Overview\nThe authentication service handles user login, registration, and session management using JWT tokens.\n\n## Requirements\n1. Support email/password and OAuth2 (Google, GitHub) login methods\n2. JWT tokens with 15-minute access token and 7-day refresh token\n3. Rate limiting: max 5 failed attempts per IP per 15 minutes\n4. Password requirements: min 8 chars, 1 uppercase, 1 number\n\n## API Endpoints\n- POST /auth/register - Create new account\n- POST /auth/login - Authenticate and receive tokens\n- POST /auth/refresh - Refresh access token\n- POST /auth/logout - Invalidate refresh token\n\n## Security Considerations\n- All passwords hashed with bcrypt (cost factor 12)\n- Refresh tokens stored in httpOnly cookies\n- CSRF protection via double-submit cookie pattern",
   },
 ];
 
@@ -336,6 +397,379 @@ function CustomImageForm({
   );
 }
 
+function CustomDataForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (m: CustomMaterial) => void;
+  onCancel: () => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [format, setFormat] = useState<"csv" | "json" | "tsv">("csv");
+  const [content, setContent] = useState("");
+
+  return (
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="My data"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Format</div>
+        <select
+          value={format}
+          onChange={(e) => setFormat(e.target.value as "csv" | "json" | "tsv")}
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+          }}
+        >
+          <option value="csv">CSV</option>
+          <option value="json">JSON</option>
+          <option value="tsv">TSV</option>
+        </select>
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Content</div>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          placeholder="Paste your data..."
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            fontFamily: "monospace",
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            resize: "vertical",
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => {
+            if (!content.trim()) return;
+            onAdd({
+              id: `custom-data-${Date.now()}`,
+              label: label.trim() || "Custom Data",
+              type: "data",
+              dataFormat: format,
+              dataContent: content.trim(),
+            });
+          }}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#333",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+          }}
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 4,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CustomDocumentForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (m: CustomMaterial) => void;
+  onCancel: () => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [text, setText] = useState("");
+
+  return (
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="My document"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Document text</div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder="Paste your document text..."
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            resize: "vertical",
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => {
+            if (!text.trim()) return;
+            onAdd({
+              id: `custom-doc-${Date.now()}`,
+              label: label.trim() || "Custom Document",
+              type: "document",
+              documentText: text.trim(),
+            });
+          }}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#333",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+          }}
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 4,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CustomAudioForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (m: CustomMaterial) => void;
+  onCancel: () => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [url, setUrl] = useState("");
+
+  return (
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="My audio"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Audio URL</div>
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://...mp3"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => {
+            if (!url.trim()) return;
+            onAdd({
+              id: `custom-audio-${Date.now()}`,
+              label: label.trim() || "Custom Audio",
+              type: "audio",
+              audioUrl: url.trim(),
+            });
+          }}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#333",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+          }}
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 4,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CustomVideoForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (m: CustomMaterial) => void;
+  onCancel: () => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [url, setUrl] = useState("");
+
+  return (
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="My video"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Video URL</div>
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://...mp4"
+          style={{
+            width: "100%",
+            padding: "4px 6px",
+            fontSize: 13,
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            boxSizing: "border-box",
+          }}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => {
+            if (!url.trim()) return;
+            onAdd({
+              id: `custom-video-${Date.now()}`,
+              label: label.trim() || "Custom Video",
+              type: "video",
+              videoUrl: url.trim(),
+            });
+          }}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#333",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+          }}
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            padding: "4px 12px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: 4,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Recipe Info Popover ────────────────────────────────────────────────────
 
 const popoverSectionLabel: React.CSSProperties = {
@@ -508,7 +942,9 @@ export function App() {
   const [result, setResult] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>([]);
-  const [showForm, setShowForm] = useState<"text" | "image" | null>(null);
+  const [showForm, setShowForm] = useState<
+    "text" | "image" | "audio" | "video" | "data" | "document" | null
+  >(null);
   const [infoPopoverId, setInfoPopoverId] = useState<string | null>(null);
 
   const selectedEntry = recipeEntries.find((e) => e.recipe.id === selectedRecipeId);
@@ -518,7 +954,18 @@ export function App() {
     ...allMaterials,
     ...customMaterials.map((c) => ({
       ...c,
-      icon: c.type === "text" ? "\uD83D\uDCDD" : "\uD83D\uDDBC\uFE0F",
+      icon:
+        c.type === "data"
+          ? "\uD83D\uDCCA"
+          : c.type === "document"
+            ? "\uD83D\uDCC4"
+            : c.type === "audio"
+              ? "\uD83C\uDFA7"
+              : c.type === "video"
+                ? "\uD83C\uDFAC"
+                : c.type === "image"
+                  ? "\uD83D\uDDBC\uFE0F"
+                  : "\uD83D\uDCDD",
     })),
   ];
 
@@ -560,8 +1007,37 @@ export function App() {
     try {
       const materialInputs: MaterialInput[] = selectedMaterials.flatMap((m) => {
         const inputs: MaterialInput[] = [];
-        if ("text" in m && m.text) inputs.push({ type: "text", text: m.text });
-        if ("imageUrl" in m && m.imageUrl) inputs.push({ type: "image", imageUrl: m.imageUrl });
+        const category = "category" in m ? m.category : undefined;
+        if (category === "data" || ("type" in m && m.type === "data")) {
+          const dc = "dataContent" in m ? m.dataContent : undefined;
+          const df = "dataFormat" in m ? m.dataFormat : undefined;
+          if (dc && df) {
+            inputs.push({
+              type: "data",
+              dataFormat: df,
+              dataContent: dc,
+              dataLabel: m.label,
+            });
+          }
+        } else if (category === "document" || ("type" in m && m.type === "document")) {
+          const dt = "documentText" in m ? m.documentText : undefined;
+          if (dt) {
+            inputs.push({ type: "document", documentText: dt });
+          }
+        } else if (category === "audio" || ("type" in m && m.type === "audio")) {
+          const au = "audioUrl" in m ? m.audioUrl : undefined;
+          if (au) {
+            inputs.push({ type: "audio", audioUrl: au });
+          }
+        } else if (category === "video" || ("type" in m && m.type === "video")) {
+          const vu = "videoUrl" in m ? m.videoUrl : undefined;
+          if (vu) {
+            inputs.push({ type: "video", videoUrl: vu });
+          }
+        } else {
+          if ("text" in m && m.text) inputs.push({ type: "text", text: m.text });
+          if ("imageUrl" in m && m.imageUrl) inputs.push({ type: "image", imageUrl: m.imageUrl });
+        }
         return inputs;
       });
       const res = await fetch(`/api/transmute/${selectedEntry.recipe.id}`, {
@@ -588,11 +1064,11 @@ export function App() {
       {/* Two-column layout */}
       <div
         style={{
-          maxWidth: 1080,
+          maxWidth: 1280,
           margin: "0 auto",
           padding: "40px 24px",
           display: "grid",
-          gridTemplateColumns: "1fr 260px",
+          gridTemplateColumns: "1fr 420px",
           gap: 32,
           alignItems: "start",
         }}
@@ -780,7 +1256,7 @@ export function App() {
           }}
         >
           <div style={{ ...labelStyle, marginBottom: 12 }}>Material Shelf</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
             {allMaterials.map((mat) => {
               const active = selectedIds.has(mat.id);
               return (
@@ -791,19 +1267,29 @@ export function App() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    padding: "8px 10px",
+                    gap: 6,
+                    padding: "7px 8px",
                     background: active ? "#f0f0f0" : "#fff",
                     border: active ? "2px solid #333" : "1px solid #e0e0e0",
                     borderRadius: 6,
                     cursor: "pointer",
                     color: "#333",
                     textAlign: "left",
-                    fontSize: 13,
+                    fontSize: 12,
+                    overflow: "hidden",
                   }}
                 >
-                  <span style={{ fontSize: 16, flexShrink: 0 }}>{mat.icon}</span>
-                  <span style={{ fontWeight: 500 }}>{mat.label}</span>
+                  <span style={{ fontSize: 14, flexShrink: 0 }}>{mat.icon}</span>
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {mat.label}
+                  </span>
                 </button>
               );
             })}
@@ -813,11 +1299,11 @@ export function App() {
           {customMaterials.length > 0 && (
             <>
               <div style={{ ...labelStyle, marginTop: 16, marginBottom: 8 }}>Custom</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {customMaterials.map((mat) => {
                   const active = selectedIds.has(mat.id);
                   return (
-                    <div key={mat.id} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    <div key={mat.id} style={{ display: "flex", gap: 2, alignItems: "center" }}>
                       <button
                         type="button"
                         onClick={() => toggleMaterial(mat.id)}
@@ -825,21 +1311,41 @@ export function App() {
                           flex: 1,
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
-                          padding: "8px 10px",
+                          gap: 6,
+                          padding: "7px 8px",
                           background: active ? "#f0f0f0" : "#fff",
                           border: active ? "2px solid #333" : "1px solid #e0e0e0",
                           borderRadius: 6,
                           cursor: "pointer",
                           color: "#333",
                           textAlign: "left",
-                          fontSize: 13,
+                          fontSize: 12,
+                          overflow: "hidden",
                         }}
                       >
-                        <span style={{ fontSize: 16, flexShrink: 0 }}>
-                          {mat.type === "text" ? "\uD83D\uDCDD" : "\uD83D\uDDBC\uFE0F"}
+                        <span style={{ fontSize: 14, flexShrink: 0 }}>
+                          {mat.type === "data"
+                            ? "\uD83D\uDCCA"
+                            : mat.type === "document"
+                              ? "\uD83D\uDCC4"
+                              : mat.type === "audio"
+                                ? "\uD83C\uDFA7"
+                                : mat.type === "video"
+                                  ? "\uD83C\uDFAC"
+                                  : mat.type === "image"
+                                    ? "\uD83D\uDDBC\uFE0F"
+                                    : "\uD83D\uDCDD"}
                         </span>
-                        <span style={{ fontWeight: 500 }}>{mat.label}</span>
+                        <span
+                          style={{
+                            fontWeight: 500,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {mat.label}
+                        </span>
                       </button>
                       <button
                         type="button"
@@ -849,9 +1355,10 @@ export function App() {
                           border: "none",
                           color: "#999",
                           cursor: "pointer",
-                          fontSize: 16,
-                          padding: "0 4px",
+                          fontSize: 14,
+                          padding: "0 2px",
                           lineHeight: 1,
+                          flexShrink: 0,
                         }}
                         title="Remove"
                       >
@@ -866,45 +1373,52 @@ export function App() {
 
           {/* Add custom material buttons */}
           <div style={{ marginTop: 16, borderTop: "1px solid #eee", paddingTop: 12 }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button
-                type="button"
-                onClick={() => setShowForm(showForm === "text" ? null : "text")}
-                style={{
-                  flex: 1,
-                  padding: "6px 8px",
-                  fontSize: 12,
-                  cursor: "pointer",
-                  background: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: 4,
-                  color: "#555",
-                }}
-              >
-                + Add Text
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(showForm === "image" ? null : "image")}
-                style={{
-                  flex: 1,
-                  padding: "6px 8px",
-                  fontSize: 12,
-                  cursor: "pointer",
-                  background: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: 4,
-                  color: "#555",
-                }}
-              >
-                + Add Image URL
-              </button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 5 }}>
+              {(
+                [
+                  ["text", "+ Text"],
+                  ["image", "+ Image"],
+                  ["data", "+ Data"],
+                  ["document", "+ Doc"],
+                  ["audio", "+ Audio"],
+                  ["video", "+ Video"],
+                ] as const
+              ).map(([key, lbl]) => (
+                <button
+                  type="button"
+                  key={key}
+                  onClick={() => setShowForm(showForm === key ? null : key)}
+                  style={{
+                    padding: "5px 6px",
+                    fontSize: 11,
+                    cursor: "pointer",
+                    background: showForm === key ? "#f0f0f0" : "#fff",
+                    border: showForm === key ? "1px solid #999" : "1px solid #ddd",
+                    borderRadius: 4,
+                    color: "#555",
+                  }}
+                >
+                  {lbl}
+                </button>
+              ))}
             </div>
             {showForm === "text" && (
               <CustomTextForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
             )}
             {showForm === "image" && (
               <CustomImageForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
+            )}
+            {showForm === "data" && (
+              <CustomDataForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
+            )}
+            {showForm === "document" && (
+              <CustomDocumentForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
+            )}
+            {showForm === "audio" && (
+              <CustomAudioForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
+            )}
+            {showForm === "video" && (
+              <CustomVideoForm onAdd={addCustomMaterial} onCancel={() => setShowForm(null)} />
             )}
           </div>
 

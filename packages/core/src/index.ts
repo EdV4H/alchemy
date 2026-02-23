@@ -1,15 +1,18 @@
 // Material utilities
-export { extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
+export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
 // Refiners
 export { JsonRefiner, TextRefiner } from "./refiners.js";
 // Transforms
-export { filterByType, prependText, truncateText } from "./transforms.js";
+export { dataToText, filterByType, prependText, truncateText } from "./transforms.js";
 
 // Types
 export type {
   AlchemistConfig,
+  AudioMaterialPart,
   BuiltinMaterialPart,
   CatalystConfig,
+  DataMaterialPart,
+  DocumentMaterialPart,
   ImageMaterialPart,
   MaterialPart,
   MaterialPartRegistry,
@@ -23,4 +26,5 @@ export type {
   TransmutationOptions,
   TransmutationResult,
   Transmuter,
+  VideoMaterialPart,
 } from "./types.js";

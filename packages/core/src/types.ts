@@ -26,7 +26,39 @@ export interface ImageMaterialPart {
     | { readonly kind: "base64"; readonly mediaType: string; readonly data: string };
 }
 
-export type BuiltinMaterialPart = TextMaterialPart | ImageMaterialPart;
+export interface AudioMaterialPart {
+  readonly type: "audio";
+  readonly source:
+    | { readonly kind: "url"; readonly url: string }
+    | { readonly kind: "base64"; readonly mediaType: string; readonly data: string };
+}
+
+export interface DocumentMaterialPart {
+  readonly type: "document";
+  readonly source:
+    | { readonly kind: "url"; readonly url: string }
+    | { readonly kind: "text"; readonly text: string; readonly metadata?: Record<string, string> };
+}
+
+export interface VideoMaterialPart {
+  readonly type: "video";
+  readonly source: { readonly kind: "url"; readonly url: string };
+}
+
+export interface DataMaterialPart {
+  readonly type: "data";
+  readonly format: "csv" | "json" | "tsv";
+  readonly content: string;
+  readonly label?: string;
+}
+
+export type BuiltinMaterialPart =
+  | TextMaterialPart
+  | ImageMaterialPart
+  | AudioMaterialPart
+  | DocumentMaterialPart
+  | VideoMaterialPart
+  | DataMaterialPart;
 
 /** Declaration merging で拡張可能 */
 // biome-ignore lint/suspicious/noEmptyInterface: declaration merging point

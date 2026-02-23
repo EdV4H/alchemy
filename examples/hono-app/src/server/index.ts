@@ -1,5 +1,12 @@
 import type { MaterialPart } from "@EdV4H/alchemy-node";
-import { Alchemist, imageUrlToBase64, OpenAITransmuter } from "@EdV4H/alchemy-node";
+import {
+  Alchemist,
+  dataToText,
+  documentToText,
+  imageUrlToBase64,
+  OpenAITransmuter,
+  truncateText,
+} from "@EdV4H/alchemy-node";
 import { Hono } from "hono";
 import { recipeRegistry } from "../shared/recipes.js";
 
@@ -11,11 +18,19 @@ const alchemist = new Alchemist({
 
 // Inject Node-specific transforms at server init
 recipeRegistry["image-analysis"].transforms = [imageUrlToBase64()];
-
+recipeRegistry["data-analyst"].transforms = [dataToText()];
+recipeRegistry["doc-summarizer"].transforms = [documentToText(), truncateText(8000)];
 interface MaterialInput {
-  type: "text" | "image";
+  type: "text" | "image" | "audio" | "document" | "video" | "data";
   text?: string;
   imageUrl?: string;
+  audioUrl?: string;
+  documentUrl?: string;
+  documentText?: string;
+  videoUrl?: string;
+  dataFormat?: "csv" | "json" | "tsv";
+  dataContent?: string;
+  dataLabel?: string;
 }
 
 interface TransmuteBody {
@@ -40,10 +55,30 @@ app.post("/api/transmute/:recipeId", async (c) => {
   try {
     // Generic MaterialInput[] → MaterialPart[] conversion
     const parts: MaterialPart[] = materials.flatMap((m): MaterialPart[] => {
-      if (m.type === "text" && m.text) return [{ type: "text", text: m.text }];
-      if (m.type === "image" && m.imageUrl)
-        return [{ type: "image", source: { kind: "url", url: m.imageUrl } }];
-      return [];
+      switch (m.type) {
+        case "text":
+          return m.text ? [{ type: "text", text: m.text }] : [];
+        case "image":
+          return m.imageUrl ? [{ type: "image", source: { kind: "url", url: m.imageUrl } }] : [];
+        case "audio":
+          return m.audioUrl ? [{ type: "audio", source: { kind: "url", url: m.audioUrl } }] : [];
+        case "document":
+          if (m.documentUrl) {
+            return [{ type: "document", source: { kind: "url", url: m.documentUrl } }];
+          }
+          if (m.documentText) {
+            return [{ type: "document", source: { kind: "text", text: m.documentText } }];
+          }
+          return [];
+        case "video":
+          return m.videoUrl ? [{ type: "video", source: { kind: "url", url: m.videoUrl } }] : [];
+        case "data":
+          return m.dataFormat && m.dataContent
+            ? [{ type: "data", format: m.dataFormat, content: m.dataContent, label: m.dataLabel }]
+            : [];
+        default:
+          return [];
+      }
     });
 
     const result = await alchemist.transmute(recipe, parts);
