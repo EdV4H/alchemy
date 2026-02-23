@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { RecipeEntry, RecipeFieldMeta } from "../shared/recipes.js";
 import { recipeEntries } from "../shared/recipes.js";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -335,6 +336,169 @@ function CustomImageForm({
   );
 }
 
+// ─── Recipe Info Popover ────────────────────────────────────────────────────
+
+const popoverSectionLabel: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  color: "#999",
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  marginBottom: 4,
+};
+
+function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?: number }) {
+  return (
+    <>
+      <div style={{ display: "flex", gap: 6, paddingLeft: depth * 14, lineHeight: 1.5 }}>
+        <code style={{ fontSize: 12, color: "#333" }}>{field.name}</code>
+        <span style={{ fontSize: 12, color: "#999" }}>{field.type}</span>
+      </div>
+      {field.children?.map((child) => (
+        <FieldRow key={child.name} field={child} depth={depth + 1} />
+      ))}
+    </>
+  );
+}
+
+function RecipeInfoPopover({ entry, onClose }: { entry: RecipeEntry; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { meta } = entry;
+  const catalyst = entry.recipe.catalyst;
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        marginTop: 6,
+        width: 360,
+        background: "#fff",
+        border: "1px solid #ccc",
+        borderRadius: 6,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+        padding: 14,
+        zIndex: 100,
+        fontSize: 13,
+        color: "#333",
+      }}
+    >
+      {/* OUTPUT */}
+      <div style={{ marginBottom: 10 }}>
+        <div style={popoverSectionLabel}>Output</div>
+        <span
+          style={{
+            display: "inline-block",
+            padding: "2px 8px",
+            fontSize: 11,
+            fontWeight: 600,
+            borderRadius: 4,
+            background: meta.outputType === "json" ? "#e8f5e9" : "#e3f2fd",
+            color: meta.outputType === "json" ? "#2e7d32" : "#1565c0",
+          }}
+        >
+          {meta.outputType}
+        </span>
+      </div>
+
+      {/* SCHEMA */}
+      {meta.schemaFields && meta.schemaFields.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={popoverSectionLabel}>Schema</div>
+          <div
+            style={{
+              background: "#f9f9f9",
+              borderRadius: 4,
+              padding: "6px 8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {meta.schemaFields.map((field) => (
+              <FieldRow key={field.name} field={field} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CATALYST */}
+      {catalyst && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={popoverSectionLabel}>Catalyst</div>
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+            <div>
+              <span style={{ color: "#999" }}>role: </span>
+              {catalyst.roleDefinition && catalyst.roleDefinition.length > 80
+                ? `${catalyst.roleDefinition.slice(0, 80)}...`
+                : catalyst.roleDefinition}
+            </div>
+            {catalyst.temperature !== undefined && (
+              <div>
+                <span style={{ color: "#999" }}>temperature: </span>
+                {catalyst.temperature}
+              </div>
+            )}
+            {catalyst.model && (
+              <div>
+                <span style={{ color: "#999" }}>model: </span>
+                {catalyst.model}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TRANSFORMS */}
+      <div style={{ marginBottom: 10 }}>
+        <div style={popoverSectionLabel}>Transforms</div>
+        {meta.transforms.length > 0 ? (
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#555" }}>
+            {meta.transforms.map((t) => (
+              <li key={t}>
+                <code style={{ fontSize: 12 }}>{t}</code>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div style={{ fontSize: 12, color: "#aaa" }}>None</div>
+        )}
+      </div>
+
+      {/* PROMPT */}
+      <div>
+        <div style={popoverSectionLabel}>Prompt Template</div>
+        <pre
+          style={{
+            background: "#f5f5f5",
+            borderRadius: 4,
+            padding: "6px 8px",
+            fontSize: 11,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            margin: 0,
+            color: "#555",
+          }}
+        >
+          {meta.promptTemplate}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 // ─── App ────────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -345,6 +509,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>([]);
   const [showForm, setShowForm] = useState<"text" | "image" | null>(null);
+  const [infoPopoverId, setInfoPopoverId] = useState<string | null>(null);
 
   const selectedEntry = recipeEntries.find((e) => e.recipe.id === selectedRecipeId);
 
@@ -440,27 +605,60 @@ export function App() {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "16px 0" }}>
             {recipeEntries.map((entry) => {
               const active = entry.recipe.id === selectedRecipeId;
+              const showInfo = infoPopoverId === entry.recipe.id;
               return (
-                <button
-                  type="button"
+                <div
                   key={entry.recipe.id}
-                  onClick={() => {
-                    setSelectedRecipeId(entry.recipe.id);
-                    setResult(null);
-                    setError(null);
-                  }}
                   style={{
-                    padding: "6px 14px",
-                    fontSize: 14,
-                    borderRadius: 20,
-                    border: active ? "2px solid #333" : "1px solid #ccc",
-                    background: active ? "#333" : "#fff",
-                    color: active ? "#fff" : "#333",
-                    cursor: "pointer",
+                    position: "relative",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 2,
                   }}
                 >
-                  {entry.icon} {entry.label}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRecipeId(entry.recipe.id);
+                      setResult(null);
+                      setError(null);
+                    }}
+                    style={{
+                      padding: "6px 14px",
+                      fontSize: 14,
+                      borderRadius: 20,
+                      border: active ? "2px solid #333" : "1px solid #ccc",
+                      background: active ? "#333" : "#fff",
+                      color: active ? "#fff" : "#333",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {entry.icon} {entry.label}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInfoPopoverId(showInfo ? null : entry.recipe.id)}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      padding: 0,
+                      fontSize: 12,
+                      lineHeight: "20px",
+                      textAlign: "center",
+                      borderRadius: "50%",
+                      border: "1px solid #ccc",
+                      background: showInfo ? "#333" : "#fff",
+                      color: showInfo ? "#fff" : "#999",
+                      cursor: "pointer",
+                    }}
+                    title="Recipe info"
+                  >
+                    i
+                  </button>
+                  {showInfo && (
+                    <RecipeInfoPopover entry={entry} onClose={() => setInfoPopoverId(null)} />
+                  )}
+                </div>
               );
             })}
           </div>

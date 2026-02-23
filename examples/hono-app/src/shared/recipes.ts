@@ -9,6 +9,49 @@ import {
 } from "@EdV4H/alchemy-node";
 import { z } from "zod";
 
+// ─── Recipe Metadata Types ─────────────────────────────────────────────────
+
+export interface RecipeFieldMeta {
+  name: string;
+  type: string; // "string", "number", 'enum("a"|"b")', "string[]" etc.
+  children?: RecipeFieldMeta[]; // nested object fields
+}
+
+export interface RecipeMeta {
+  outputType: "text" | "json";
+  schemaFields?: RecipeFieldMeta[]; // json only
+  transforms: string[]; // human-readable e.g. "truncateText(2000)"
+  promptTemplate: string; // spell summary
+}
+
+// ─── Zod Introspection Helpers ─────────────────────────────────────────────
+
+function describeZodType(t: z.ZodTypeAny): string {
+  if (t instanceof z.ZodString) return "string";
+  if (t instanceof z.ZodNumber) return "number";
+  if (t instanceof z.ZodBoolean) return "boolean";
+  if (t instanceof z.ZodEnum)
+    return `enum(${(t.options as string[]).map((o) => `"${o}"`).join(" | ")})`;
+  if (t instanceof z.ZodArray) return `${describeZodType(t.element)}[]`;
+  if (t instanceof z.ZodObject) return "object";
+  return "unknown";
+}
+
+function zodToFieldMeta(schema: z.ZodObject<z.ZodRawShape>): RecipeFieldMeta[] {
+  return Object.entries(schema.shape).map(([name, field]) => {
+    const f = field as z.ZodTypeAny;
+    // Expand children for arrays of objects
+    const inner =
+      f instanceof z.ZodArray && f.element instanceof z.ZodObject
+        ? zodToFieldMeta(f.element as z.ZodObject<z.ZodRawShape>)
+        : // Expand children for direct objects
+          f instanceof z.ZodObject
+          ? zodToFieldMeta(f as z.ZodObject<z.ZodRawShape>)
+          : undefined;
+    return { name, type: describeZodType(f), children: inner };
+  });
+}
+
 // ─── Recipe 1: Professional Rewriter ───────────────────────────────────────
 // Demo: basic text→text with TextRefiner
 
@@ -255,6 +298,7 @@ export interface RecipeEntry {
   label: string;
   icon: string;
   description: string;
+  meta: RecipeMeta;
 }
 
 export const recipeEntries: RecipeEntry[] = [
@@ -263,48 +307,96 @@ export const recipeEntries: RecipeEntry[] = [
     label: "Rewrite",
     icon: "\u270D\uFE0F",
     description: "Rewrite text in a professional, polished style",
+    meta: {
+      outputType: "text",
+      transforms: [],
+      promptTemplate: "Rewrite the following text in a professional, polished style: ...materials",
+    },
   },
   {
     recipe: sentimentRecipe,
     label: "Sentiment",
     icon: "\uD83D\uDD2E",
     description: "Analyze sentiment, emotions, and confidence",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(SentimentSchema),
+      transforms: ["truncateText(2000)"],
+      promptTemplate:
+        "Analyze the sentiment of the following text → {sentiment, confidence, emotions, summary}",
+    },
   },
   {
     recipe: translateAdaptRecipe,
     label: "Translate",
     icon: "\uD83C\uDF0D",
     description: "Auto-detect language and translate (EN\u2194JA)",
+    meta: {
+      outputType: "text",
+      transforms: [],
+      promptTemplate: "Detect language → translate EN↔JA. Reply with translation only.",
+    },
   },
   {
     recipe: codeReviewRecipe,
     label: "Code Review",
     icon: "\uD83D\uDD0D",
     description: "Review code for bugs, anti-patterns, and style issues",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(CodeReviewSchema),
+      transforms: ['filterByType("text")'],
+      promptTemplate:
+        "Review the following code → {language, issues[], strengths[], overallScore, summary}",
+    },
   },
   {
     recipe: codeExplainRecipe,
     label: "Code Explain",
     icon: "\uD83D\uDCD6",
     description: "Explain code in detail with patterns and design decisions",
+    meta: {
+      outputType: "text",
+      transforms: ['filterByType("text")', 'prependText("Explain the following code...")'],
+      promptTemplate: "...materials (prepended with explanation instruction)",
+    },
   },
   {
     recipe: imageAnalysisRecipe,
     label: "Image Analysis",
     icon: "\uD83D\uDDBC\uFE0F",
     description: "Analyze an image from a URL",
+    meta: {
+      outputType: "text",
+      transforms: [],
+      promptTemplate: "...materials (image parts passed directly)",
+    },
   },
   {
     recipe: summarizeRecipe,
     label: "Summarize",
     icon: "\uD83D\uDCDD",
     description: "Produce structured multi-level summaries",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(SummarySchema),
+      transforms: ["truncateText(4000)"],
+      promptTemplate:
+        "Summarize the text → {oneLiner, keyPoints[], detailedSummary, wordCountOriginal, wordCountSummary}",
+    },
   },
   {
     recipe: structuredExtractRecipe,
     label: "Extract",
     icon: "\uD83D\uDDC2\uFE0F",
     description: "Extract entities, facts, and metadata as structured JSON",
+    meta: {
+      outputType: "json",
+      schemaFields: zodToFieldMeta(ExtractionSchema),
+      transforms: [],
+      promptTemplate:
+        "Extract entities, key facts, and metadata → {entities[], keyFacts[], wordCount}",
+    },
   },
 ];
 
