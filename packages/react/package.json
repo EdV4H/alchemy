@@ -16,7 +16,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "biome check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@EdV4H/alchemy-core": "workspace:*"
@@ -25,8 +26,11 @@
     "react": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.0.0",
     "@types/react": "^19.0.0",
+    "jsdom": "^26.0.0",
     "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "typescript": "^5.7.0"
   }
 }

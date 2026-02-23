@@ -1,3 +1,5 @@
+import type { MaterialInput } from "@EdV4H/alchemy-react";
+import { useAlchemy } from "@EdV4H/alchemy-react";
 import { useCallback, useState } from "react";
 import { travelCatalystPresets } from "../../travel/catalysts.js";
 import { travelRecipeEntries } from "../../travel/recipes.js";
@@ -11,7 +13,7 @@ import {
   RecipeInfoPopover,
 } from "../shared/components.js";
 import { codeStyle, labelStyle } from "../shared/styles.js";
-import type { CustomMaterial, MaterialCard, MaterialInput } from "../shared/types.js";
+import type { CustomMaterial, MaterialCard } from "../shared/types.js";
 
 // ─── Sample Materials ───────────────────────────────────────────────────────
 
@@ -185,21 +187,25 @@ const materialGroups: { header: string; filter: (m: MaterialCard) => boolean }[]
 // ─── App ────────────────────────────────────────────────────────────────────
 
 export function App() {
-  const [selectedRecipeId, setSelectedRecipeId] = useState(travelRecipeEntries[0].recipe.id);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<unknown>(null);
-  const [error, setError] = useState<string | null>(null);
+  const alchemy = useAlchemy({ initialRecipeId: travelRecipeEntries[0].recipe.id });
   const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>([]);
   const [showForm, setShowForm] = useState<
     "text" | "image" | "audio" | "video" | "data" | "document" | null
   >(null);
   const [infoPopoverId, setInfoPopoverId] = useState<string | null>(null);
-  const [selectedCatalystKey, setSelectedCatalystKey] = useState<string | null>(null);
-  const [compareMode, setCompareMode] = useState(false);
-  const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
-  const [compareResults, setCompareResults] = useState<Record<string, unknown> | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+
+  const {
+    selectedRecipeId,
+    selectedIds,
+    selectedCatalystKey,
+    selectedLanguage,
+    compareMode,
+    selectedCompareKeys,
+    result,
+    compareResults,
+    isLoading,
+    error,
+  } = alchemy;
 
   const selectedEntry = travelRecipeEntries.find((e) => e.recipe.id === selectedRecipeId);
 
@@ -224,20 +230,6 @@ export function App() {
 
   const selectedMaterials = allSelectableMaterials.filter((m) => selectedIds.has(m.id));
 
-  const toggleMaterial = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-    setResult(null);
-    setError(null);
-  };
-
   const addCustomMaterial = (m: CustomMaterial) => {
     setCustomMaterials((prev) => [...prev, m]);
     setShowForm(null);
@@ -245,11 +237,7 @@ export function App() {
 
   const removeCustomMaterial = (id: string) => {
     setCustomMaterials((prev) => prev.filter((m) => m.id !== id));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
+    alchemy.toggleMaterial(id);
   };
 
   const buildMaterialInputs = useCallback((): MaterialInput[] => {
@@ -285,75 +273,15 @@ export function App() {
     });
   }, [selectedMaterials]);
 
-  const handleTransmute = useCallback(async () => {
-    if (!selectedEntry || selectedMaterials.length === 0) return;
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-    setCompareResults(null);
-    try {
-      const materialInputs = buildMaterialInputs();
-      const res = await fetch(`/api/transmute/${selectedEntry.recipe.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          materials: materialInputs,
-          catalystKey: selectedCatalystKey ?? undefined,
-          language: selectedLanguage ?? undefined,
-        }),
-      });
-      if (!res.ok) {
-        const b = await res.text();
-        throw new Error(`${res.status}: ${b}`);
-      }
-      setResult(await res.json());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    selectedEntry,
-    selectedMaterials,
-    selectedCatalystKey,
-    selectedLanguage,
-    buildMaterialInputs,
-  ]);
+  const handleTransmute = useCallback(
+    () => alchemy.transmute(buildMaterialInputs()),
+    [alchemy.transmute, buildMaterialInputs],
+  );
 
-  const handleCompare = useCallback(async () => {
-    if (!selectedEntry || selectedMaterials.length === 0 || selectedCompareKeys.length < 2) return;
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-    setCompareResults(null);
-    try {
-      const materialInputs = buildMaterialInputs();
-      const res = await fetch(`/api/compare/${selectedEntry.recipe.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          materials: materialInputs,
-          catalystKeys: selectedCompareKeys,
-          language: selectedLanguage ?? undefined,
-        }),
-      });
-      if (!res.ok) {
-        const b = await res.text();
-        throw new Error(`${res.status}: ${b}`);
-      }
-      setCompareResults(await res.json());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    selectedEntry,
-    selectedMaterials,
-    selectedCompareKeys,
-    selectedLanguage,
-    buildMaterialInputs,
-  ]);
+  const handleCompare = useCallback(
+    () => alchemy.compare(buildMaterialInputs()),
+    [alchemy.compare, buildMaterialInputs],
+  );
 
   const hasSelection = selectedMaterials.length > 0;
 
@@ -386,14 +314,8 @@ export function App() {
                   type="button"
                   key={entry.recipe.id}
                   onClick={() => {
-                    setSelectedRecipeId(entry.recipe.id);
+                    alchemy.selectRecipe(entry.recipe.id);
                     setInfoPopoverId(null);
-                    setResult(null);
-                    setError(null);
-                    setSelectedCatalystKey(null);
-                    setCompareMode(false);
-                    setSelectedCompareKeys([]);
-                    setCompareResults(null);
                   }}
                   style={{
                     padding: "6px 14px",
@@ -453,9 +375,8 @@ export function App() {
                   type="button"
                   onClick={() => {
                     if (!compareMode) {
-                      setSelectedCatalystKey(null);
-                      setResult(null);
-                      setCompareResults(null);
+                      alchemy.selectCatalyst(null);
+                      alchemy.resetResults();
                     }
                   }}
                   style={{
@@ -483,15 +404,10 @@ export function App() {
                       key={cat.key}
                       onClick={() => {
                         if (compareMode) {
-                          setSelectedCompareKeys((prev) =>
-                            prev.includes(cat.key)
-                              ? prev.filter((k) => k !== cat.key)
-                              : [...prev, cat.key],
-                          );
+                          alchemy.toggleCompareKey(cat.key);
                         } else {
-                          setSelectedCatalystKey(cat.key);
-                          setResult(null);
-                          setCompareResults(null);
+                          alchemy.selectCatalyst(cat.key);
+                          alchemy.resetResults();
                         }
                       }}
                       style={{
@@ -513,7 +429,7 @@ export function App() {
                 <span style={{ fontSize: 12, color: "#888" }}>Language</span>
                 <select
                   value={selectedLanguage ?? ""}
-                  onChange={(e) => setSelectedLanguage(e.target.value || null)}
+                  onChange={(e) => alchemy.setLanguage(e.target.value || null)}
                   style={{
                     padding: "3px 6px",
                     fontSize: 12,
@@ -545,13 +461,10 @@ export function App() {
                     checked={compareMode}
                     onChange={(e) => {
                       const on = e.target.checked;
-                      setCompareMode(on);
-                      setResult(null);
-                      setCompareResults(null);
+                      alchemy.setCompareMode(on);
+                      alchemy.resetResults();
                       if (on) {
-                        setSelectedCompareKeys(travelCatalystPresets.map((c) => c.key));
-                      } else {
-                        setSelectedCompareKeys([]);
+                        alchemy.setCompareKeys(travelCatalystPresets.map((c) => c.key));
                       }
                     }}
                   />
@@ -578,9 +491,8 @@ export function App() {
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedIds(new Set());
-                    setResult(null);
-                    setError(null);
+                    alchemy.clearSelection();
+                    alchemy.resetResults();
                   }}
                   style={{
                     background: "none",
@@ -765,7 +677,7 @@ export function App() {
                       <button
                         type="button"
                         key={mat.id}
-                        onClick={() => toggleMaterial(mat.id)}
+                        onClick={() => alchemy.toggleMaterial(mat.id)}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -811,7 +723,7 @@ export function App() {
                     <div key={mat.id} style={{ display: "flex", gap: 2, alignItems: "center" }}>
                       <button
                         type="button"
-                        onClick={() => toggleMaterial(mat.id)}
+                        onClick={() => alchemy.toggleMaterial(mat.id)}
                         style={{
                           flex: 1,
                           display: "flex",
