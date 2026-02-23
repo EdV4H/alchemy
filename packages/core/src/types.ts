@@ -49,7 +49,9 @@ export interface DocumentMaterialPart {
 
 export interface VideoMaterialPart {
   readonly type: "video";
-  readonly source: { readonly kind: "url"; readonly url: string };
+  readonly source:
+    | { readonly kind: "url"; readonly url: string }
+    | { readonly kind: "base64"; readonly mediaType: string; readonly data: string };
 }
 
 export interface DataMaterialPart {
