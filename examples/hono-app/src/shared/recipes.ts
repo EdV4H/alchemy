@@ -8,49 +8,10 @@ import {
   truncateText,
 } from "@EdV4H/alchemy-node";
 import { z } from "zod";
+import type { RecipeFieldMeta, RecipeMeta } from "./recipe-types.js";
+import { zodToFieldMeta } from "./zod-helpers.js";
 
-// ─── Recipe Metadata Types ─────────────────────────────────────────────────
-
-export interface RecipeFieldMeta {
-  name: string;
-  type: string; // "string", "number", 'enum("a"|"b")', "string[]" etc.
-  children?: RecipeFieldMeta[]; // nested object fields
-}
-
-export interface RecipeMeta {
-  outputType: "text" | "json";
-  schemaFields?: RecipeFieldMeta[]; // json only
-  transforms: string[]; // human-readable e.g. "truncateText(2000)"
-  promptTemplate: string; // spell summary
-}
-
-// ─── Zod Introspection Helpers ─────────────────────────────────────────────
-
-function describeZodType(t: z.ZodTypeAny): string {
-  if (t instanceof z.ZodString) return "string";
-  if (t instanceof z.ZodNumber) return "number";
-  if (t instanceof z.ZodBoolean) return "boolean";
-  if (t instanceof z.ZodEnum)
-    return `enum(${(t.options as string[]).map((o) => `"${o}"`).join(" | ")})`;
-  if (t instanceof z.ZodArray) return `${describeZodType(t.element)}[]`;
-  if (t instanceof z.ZodObject) return "object";
-  return "unknown";
-}
-
-function zodToFieldMeta(schema: z.ZodObject<z.ZodRawShape>): RecipeFieldMeta[] {
-  return Object.entries(schema.shape).map(([name, field]) => {
-    const f = field as z.ZodTypeAny;
-    // Expand children for arrays of objects
-    const inner =
-      f instanceof z.ZodArray && f.element instanceof z.ZodObject
-        ? zodToFieldMeta(f.element as z.ZodObject<z.ZodRawShape>)
-        : // Expand children for direct objects
-          f instanceof z.ZodObject
-          ? zodToFieldMeta(f as z.ZodObject<z.ZodRawShape>)
-          : undefined;
-    return { name, type: describeZodType(f), children: inner };
-  });
-}
+export type { RecipeFieldMeta, RecipeMeta } from "./recipe-types.js";
 
 // ─── Recipe 1: Professional Rewriter ───────────────────────────────────────
 // Demo: basic text→text with TextRefiner
