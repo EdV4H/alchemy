@@ -5,6 +5,10 @@ export class TextRefiner implements Refiner<string> {
   refine(rawText: string): string {
     return rawText.trim();
   }
+
+  getFormatInstructions(): string {
+    return "Respond with plain text only. No JSON, no markdown formatting.";
+  }
 }
 
 export class JsonRefiner<T> implements Refiner<T> {

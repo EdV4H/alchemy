@@ -34,7 +34,10 @@ describe("Alchemist.transmute()", () => {
 
     expect(result).toBe("hello");
     expect(transmuter.transmute).toHaveBeenCalledWith(
-      [{ type: "text", text: "Summarize: long text" }],
+      [
+        { type: "text", text: "Summarize: long text" },
+        { type: "text", text: "Respond with plain text only. No JSON, no markdown formatting." },
+      ],
       expect.objectContaining({ catalyst: undefined }),
     );
   });
@@ -79,7 +82,7 @@ describe("Alchemist.transmute()", () => {
     );
 
     expect(transmuter.transmute).toHaveBeenCalledWith(
-      [{ type: "text", text: "Hello" }],
+      expect.arrayContaining([{ type: "text", text: "Hello" }]),
       expect.objectContaining({
         catalyst: { roleDefinition: "You are helpful", temperature: 0.5 },
       }),
@@ -101,7 +104,7 @@ describe("Alchemist.transmute()", () => {
     );
 
     expect(transmuter.transmute).toHaveBeenCalledWith(
-      [{ type: "text", text: "Hello" }],
+      expect.arrayContaining([{ type: "text", text: "Hello" }]),
       expect.objectContaining({ language: "Japanese" }),
     );
   });
@@ -267,7 +270,7 @@ describe("MaterialTransform pipeline", () => {
 
     const parts = (transmuter.transmute as ReturnType<typeof vi.fn>).mock
       .calls[0][0] as MaterialPart[];
-    expect(parts).toEqual([{ type: "text", text: "input" }]);
+    expect(parts[0]).toEqual({ type: "text", text: "input" });
   });
 
   it("applies transforms in stream() as well", async () => {
