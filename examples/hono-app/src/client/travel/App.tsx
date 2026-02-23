@@ -241,35 +241,36 @@ export function App() {
   };
 
   const buildMaterialInputs = useCallback((): MaterialInput[] => {
-    return selectedMaterials.flatMap((m) => {
-      const inputs: MaterialInput[] = [];
+    return selectedMaterials.flatMap((m): MaterialInput[] => {
       const category = "category" in m ? m.category : undefined;
       if (category === "data" || ("type" in m && m.type === "data")) {
         const dc = "dataContent" in m ? m.dataContent : undefined;
         const df = "dataFormat" in m ? m.dataFormat : undefined;
         if (dc && df) {
-          inputs.push({ type: "data", dataFormat: df, dataContent: dc, dataLabel: m.label });
+          return [{ type: "data", dataFormat: df, dataContent: dc, dataLabel: m.label }];
         }
       } else if (category === "document" || ("type" in m && m.type === "document")) {
         const dt = "documentText" in m ? m.documentText : undefined;
         if (dt) {
-          inputs.push({ type: "document", documentText: dt });
+          return [{ type: "document", documentText: dt }];
         }
       } else if (category === "audio" || ("type" in m && m.type === "audio")) {
         const au = "audioUrl" in m ? m.audioUrl : undefined;
         if (au) {
-          inputs.push({ type: "audio", audioUrl: au });
+          return [{ type: "audio", audioUrl: au }];
         }
       } else if (category === "video" || ("type" in m && m.type === "video")) {
         const vu = "videoUrl" in m ? m.videoUrl : undefined;
         if (vu) {
-          inputs.push({ type: "video", videoUrl: vu });
+          return [{ type: "video", videoUrl: vu }];
         }
       } else {
+        const inputs: MaterialInput[] = [];
         if ("text" in m && m.text) inputs.push({ type: "text", text: m.text });
         if ("imageUrl" in m && m.imageUrl) inputs.push({ type: "image", imageUrl: m.imageUrl });
+        return inputs;
       }
-      return inputs;
+      return [];
     });
   }, [selectedMaterials]);
 

@@ -44,28 +44,23 @@ const allRecipes: Record<string, any> = { ...recipeRegistry, ...travelRecipeRegi
 // Merge all catalyst presets
 const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets];
 
-interface MaterialInput {
-  type: "text" | "image" | "audio" | "document" | "video" | "data";
-  text?: string;
-  imageUrl?: string;
-  audioUrl?: string;
-  documentUrl?: string;
-  documentText?: string;
-  videoUrl?: string;
-  dataFormat?: "csv" | "json" | "tsv";
-  dataContent?: string;
-  dataLabel?: string;
-}
+type ServerMaterialInput =
+  | { type: "text"; text: string }
+  | { type: "image"; imageUrl: string }
+  | { type: "audio"; audioUrl: string }
+  | { type: "document"; documentUrl?: string; documentText?: string }
+  | { type: "video"; videoUrl: string }
+  | { type: "data"; dataFormat: "csv" | "json" | "tsv"; dataContent: string; dataLabel?: string };
 
-function toMaterialParts(materials: MaterialInput[]): MaterialPart[] {
+function toMaterialParts(materials: ServerMaterialInput[]): MaterialPart[] {
   return materials.flatMap((m): MaterialPart[] => {
     switch (m.type) {
       case "text":
-        return m.text ? [{ type: "text", text: m.text }] : [];
+        return [{ type: "text", text: m.text }];
       case "image":
-        return m.imageUrl ? [{ type: "image", source: { kind: "url", url: m.imageUrl } }] : [];
+        return [{ type: "image", source: { kind: "url", url: m.imageUrl } }];
       case "audio":
-        return m.audioUrl ? [{ type: "audio", source: { kind: "url", url: m.audioUrl } }] : [];
+        return [{ type: "audio", source: { kind: "url", url: m.audioUrl } }];
       case "document":
         if (m.documentUrl) {
           return [{ type: "document", source: { kind: "url", url: m.documentUrl } }];
@@ -75,11 +70,9 @@ function toMaterialParts(materials: MaterialInput[]): MaterialPart[] {
         }
         return [];
       case "video":
-        return m.videoUrl ? [{ type: "video", source: { kind: "url", url: m.videoUrl } }] : [];
+        return [{ type: "video", source: { kind: "url", url: m.videoUrl } }];
       case "data":
-        return m.dataFormat && m.dataContent
-          ? [{ type: "data", format: m.dataFormat, content: m.dataContent, label: m.dataLabel }]
-          : [];
+        return [{ type: "data", format: m.dataFormat, content: m.dataContent, label: m.dataLabel }];
       default:
         return [];
     }
@@ -92,7 +85,7 @@ function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
 }
 
 interface TransmuteBody {
-  materials: MaterialInput[];
+  materials: ServerMaterialInput[];
   catalystKey?: string;
   language?: string;
 }
@@ -124,7 +117,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
 });
 
 interface CompareBody {
-  materials: MaterialInput[];
+  materials: ServerMaterialInput[];
   catalystKeys: string[];
   language?: string;
 }
