@@ -1,0 +1,174 @@
+import { useState } from "react";
+import { RecipeSelector } from "../shared/components.js";
+import type { PlaygroundCatalyst } from "./usePlaygroundStore.js";
+
+interface CatalystEditorProps {
+  catalysts: PlaygroundCatalyst[];
+  onAdd: (catalyst: Omit<PlaygroundCatalyst, "id">) => string;
+  onUpdate: (id: string, updates: Partial<Omit<PlaygroundCatalyst, "id">>) => void;
+  onDelete: (id: string) => void;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}
+
+export function CatalystEditor({
+  catalysts,
+  onAdd,
+  onUpdate,
+  onDelete,
+  selectedId,
+  onSelect,
+}: CatalystEditorProps) {
+  const [editing, setEditing] = useState(false);
+  const selected = catalysts.find((c) => c.id === selectedId);
+
+  return (
+    <div>
+      <RecipeSelector
+        items={catalysts.map((c) => ({ id: c.id, label: c.name }))}
+        selectedId={selectedId}
+        onSelect={(id) => {
+          onSelect(id);
+          setEditing(false);
+        }}
+        onDelete={(id) => {
+          onDelete(id);
+          if (selectedId === id) {
+            const remaining = catalysts.filter((c) => c.id !== id);
+            if (remaining.length > 0) onSelect(remaining[0].id);
+            else onSelect(null);
+          }
+        }}
+        onAdd={() => {
+          const id = onAdd({
+            name: "New Catalyst",
+            roleDefinition: "You are a helpful assistant.",
+            temperature: 0.4,
+          });
+          onSelect(id);
+          setEditing(true);
+        }}
+        minItems={1}
+      />
+
+      {/* Edit selected catalyst */}
+      {selected && editing && (
+        <div
+          style={{
+            marginTop: 8,
+            border: "1px solid #e0e0e0",
+            borderRadius: 6,
+            padding: 10,
+          }}
+        >
+          <div style={{ marginBottom: 6 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Name</div>
+            <input
+              value={selected.name}
+              onChange={(e) => onUpdate(selected.id, { name: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "3px 6px",
+                fontSize: 12,
+                border: "1px solid #ddd",
+                borderRadius: 4,
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: 6 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Role Definition</div>
+            <textarea
+              value={selected.roleDefinition}
+              onChange={(e) => onUpdate(selected.id, { roleDefinition: e.target.value })}
+              rows={3}
+              style={{
+                width: "100%",
+                padding: "3px 6px",
+                fontSize: 12,
+                border: "1px solid #ddd",
+                borderRadius: 4,
+                resize: "vertical",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Temperature</div>
+              <input
+                type="number"
+                min={0}
+                max={2}
+                step={0.1}
+                value={selected.temperature}
+                onChange={(e) => onUpdate(selected.id, { temperature: Number(e.target.value) })}
+                style={{
+                  width: "100%",
+                  padding: "3px 6px",
+                  fontSize: 12,
+                  border: "1px solid #ddd",
+                  borderRadius: 4,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Model (optional)</div>
+              <input
+                value={selected.model ?? ""}
+                onChange={(e) => onUpdate(selected.id, { model: e.target.value || undefined })}
+                placeholder="e.g. gpt-4o"
+                style={{
+                  width: "100%",
+                  padding: "3px 6px",
+                  fontSize: 12,
+                  border: "1px solid #ddd",
+                  borderRadius: 4,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            style={{
+              marginTop: 8,
+              padding: "3px 10px",
+              fontSize: 11,
+              cursor: "pointer",
+              background: "#333",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+            }}
+          >
+            Done
+          </button>
+        </div>
+      )}
+
+      {selected && !editing && (
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          style={{
+            marginTop: 4,
+            padding: "2px 8px",
+            fontSize: 10,
+            cursor: "pointer",
+            background: "none",
+            border: "none",
+            color: "#999",
+            textDecoration: "underline",
+            textDecorationStyle: "dotted",
+            textUnderlineOffset: 2,
+          }}
+        >
+          edit
+        </button>
+      )}
+    </div>
+  );
+}
