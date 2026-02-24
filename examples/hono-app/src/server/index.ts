@@ -15,10 +15,11 @@ import { teamLpCatalystPresets } from "../team-lp/catalysts.js";
 import { teamLpRecipeRegistry } from "../team-lp/recipes.js";
 import { travelCatalystPresets } from "../travel/catalysts.js";
 import { travelRecipeRegistry } from "../travel/recipes.js";
+import playgroundApp from "./playground.js";
 
 const app = new Hono();
 
-const alchemist = new Alchemist({
+export const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
@@ -68,7 +69,7 @@ const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets, ...tea
  * Server-side MaterialInput extends core MaterialInput with documentUrl support.
  * Core toMaterialParts handles all cases except documentUrl, which is server-only.
  */
-type ServerMaterialInput =
+export type ServerMaterialInput =
   | { type: "text"; text: string }
   | { type: "image"; imageUrl: string }
   | { type: "audio"; audioUrl: string }
@@ -76,7 +77,7 @@ type ServerMaterialInput =
   | { type: "video"; videoUrl: string }
   | { type: "data"; dataFormat: "csv" | "json" | "tsv"; dataContent: string; dataLabel?: string };
 
-function serverToMaterialParts(materials: ServerMaterialInput[]): MaterialPart[] {
+export function serverToMaterialParts(materials: ServerMaterialInput[]): MaterialPart[] {
   // Handle documentUrl (server-only) separately, delegate rest to core
   const serverHandled: MaterialPart[] = [];
   const coreHandled: ServerMaterialInput[] = [];
@@ -177,5 +178,7 @@ app.post("/api/compare/:recipeId", async (c) => {
     return c.json({ error: message }, 500);
   }
 });
+
+app.route("/api/playground", playgroundApp);
 
 export default app;
