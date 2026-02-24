@@ -14,17 +14,17 @@ import { RecipeManager } from "./RecipeManager.js";
 import { usePlaygroundStore } from "./usePlaygroundStore.js";
 import { usePlaygroundTransmute } from "./usePlaygroundTransmute.js";
 
-const AVAILABLE_TRANSFORMS = [
-  "truncateText(4000)",
-  "truncateText(2000)",
-  "truncateText(8000)",
-  'filterByType("text")',
-  'filterByType("image")',
-  'filterByType("data")',
-  'prependText("")',
-  "dataToText()",
-  "documentToText()",
-  "imageUrlToBase64()",
+const AVAILABLE_TRANSFORMS: { value: string; desc: string }[] = [
+  { value: "truncateText(4000)", desc: "テキストを4000文字に切り詰め" },
+  { value: "truncateText(2000)", desc: "テキストを2000文字に切り詰め" },
+  { value: "truncateText(8000)", desc: "テキストを8000文字に切り詰め" },
+  { value: 'filterByType("text")', desc: "テキスト素材だけ残す" },
+  { value: 'filterByType("image")', desc: "画像素材だけ残す" },
+  { value: 'filterByType("data")', desc: "データ素材だけ残す" },
+  { value: 'prependText("")', desc: "先頭にテキストを追加" },
+  { value: "dataToText()", desc: "CSV/JSONデータをテキストに変換" },
+  { value: "documentToText()", desc: "ドキュメントをテキストに変換" },
+  { value: "imageUrlToBase64()", desc: "画像URLをBase64に変換" },
 ];
 
 export function App() {
@@ -201,7 +201,10 @@ export function App() {
 
               {/* Transforms */}
               <div>
-                <div style={{ ...labelStyle, marginBottom: 6 }}>Transforms</div>
+                <div style={{ ...labelStyle, marginBottom: 2 }}>Transforms</div>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>
+                  素材をLLMに渡す前に加工するパイプライン（上から順に適用）
+                </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                   {selectedRecipe.transforms.map((t, i) => {
                     const transformKey = `transform-${i.toString()}-${t}`;
@@ -257,8 +260,8 @@ export function App() {
                   >
                     <option value="">+ Add Transform</option>
                     {AVAILABLE_TRANSFORMS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
+                      <option key={t.value} value={t.value}>
+                        {t.value} — {t.desc}
                       </option>
                     ))}
                   </select>
