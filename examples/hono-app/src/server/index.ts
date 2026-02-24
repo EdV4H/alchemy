@@ -11,6 +11,8 @@ import {
 import { Hono } from "hono";
 import { catalystPresets } from "../shared/catalysts.js";
 import { recipeRegistry } from "../shared/recipes.js";
+import { teamLpCatalystPresets } from "../team-lp/catalysts.js";
+import { teamLpRecipeRegistry } from "../team-lp/recipes.js";
 import { travelCatalystPresets } from "../travel/catalysts.js";
 import { travelRecipeRegistry } from "../travel/recipes.js";
 
@@ -38,12 +40,29 @@ travelRecipeRegistry["destination-guide"].transforms = [
   documentToText(),
 ];
 
+// Inject Node-specific transforms at server init (team-lp)
+teamLpRecipeRegistry["team-hero"].transforms = [imageUrlToBase64()];
+teamLpRecipeRegistry["team-members"].transforms = [imageUrlToBase64()];
+teamLpRecipeRegistry["team-achievements"].transforms = [
+  ...(teamLpRecipeRegistry["team-achievements"].transforms ?? []),
+  dataToText(),
+];
+teamLpRecipeRegistry["team-projects"].transforms = [
+  ...(teamLpRecipeRegistry["team-projects"].transforms ?? []),
+  dataToText(),
+];
+teamLpRecipeRegistry["team-full-page"].transforms = [imageUrlToBase64(), dataToText()];
+
 // Merge all recipes
 // biome-ignore lint/suspicious/noExplicitAny: recipe output types vary
-const allRecipes: Record<string, any> = { ...recipeRegistry, ...travelRecipeRegistry };
+const allRecipes: Record<string, any> = {
+  ...recipeRegistry,
+  ...travelRecipeRegistry,
+  ...teamLpRecipeRegistry,
+};
 
 // Merge all catalyst presets
-const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets];
+const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets, ...teamLpCatalystPresets];
 
 /**
  * Server-side MaterialInput extends core MaterialInput with documentUrl support.

@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
           main: resolve(__dirname, "index.html"),
           common: resolve(__dirname, "common/index.html"),
           travel: resolve(__dirname, "travel/index.html"),
+          "team-lp": resolve(__dirname, "team-lp/index.html"),
         },
       },
     },
