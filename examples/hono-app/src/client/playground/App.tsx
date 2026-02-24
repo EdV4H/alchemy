@@ -4,6 +4,7 @@ import {
   MaterialShelf,
   PageShell,
   ResultPanel,
+  SelectedMaterialsPreview,
   TransmuteButton,
 } from "../shared/components.js";
 import { labelStyle } from "../shared/styles.js";
@@ -288,6 +289,20 @@ export function App() {
               </div>
             </div>
           </div>
+
+          <SelectedMaterialsPreview
+            materials={store.materials
+              .filter((m) => selectedMaterialIds.has(m.id))
+              .map((m) => ({
+                id: m.id,
+                icon: customMaterialIcon(m.type),
+                label: m.label,
+                imageUrl: m.imageUrl,
+                text: m.text ?? m.dataContent ?? m.documentText,
+              }))}
+            emptyMessage="Select materials from the shelf"
+            onClear={() => setSelectedMaterialIds(new Set())}
+          />
 
           <TransmuteButton
             onClick={handleTransmute}
