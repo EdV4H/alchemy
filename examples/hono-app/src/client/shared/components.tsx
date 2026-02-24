@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
-import { popoverSectionLabel } from "./styles.js";
-import type { CustomMaterial } from "./types.js";
+import { codeStyle, labelStyle, popoverSectionLabel } from "./styles.js";
+import type { CustomMaterial, CustomMaterialType } from "./types.js";
+import { CUSTOM_TYPE_LABELS, customMaterialIcon } from "./types.js";
 
 // ─── Custom Material Forms ──────────────────────────────────────────────────
 
@@ -572,6 +574,321 @@ export function CustomVideoForm({
   );
 }
 
+// ─── Custom Form Map ────────────────────────────────────────────────────────
+
+export const CUSTOM_FORM_MAP: Record<
+  CustomMaterialType,
+  React.ComponentType<{ onAdd: (m: CustomMaterial) => void; onCancel: () => void }>
+> = {
+  text: CustomTextForm,
+  image: CustomImageForm,
+  data: CustomDataForm,
+  document: CustomDocumentForm,
+  audio: CustomAudioForm,
+  video: CustomVideoForm,
+};
+
+// ─── Material Shelf ────────────────────────────────────────────────────────
+
+export interface MaterialShelfItem {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+const ALL_CUSTOM_TYPES: CustomMaterialType[] = [
+  "text",
+  "image",
+  "data",
+  "document",
+  "audio",
+  "video",
+];
+
+export interface MaterialShelfProps {
+  presetItems?: MaterialShelfItem[];
+  presetGroups?: { header: string; filter: (item: MaterialShelfItem) => boolean }[];
+  customItems: (CustomMaterial & { icon: string })[];
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  onAddCustom: (m: CustomMaterial) => void;
+  onDeleteCustom: (id: string) => void;
+  customMaterialTypes?: CustomMaterialType[];
+}
+
+export function MaterialShelf({
+  presetItems,
+  presetGroups,
+  customItems,
+  selectedIds,
+  onToggle,
+  onAddCustom,
+  onDeleteCustom,
+  customMaterialTypes = ALL_CUSTOM_TYPES,
+}: MaterialShelfProps) {
+  const [showForm, setShowForm] = useState<CustomMaterialType | null>(null);
+
+  const gridCols =
+    customMaterialTypes.length <= 4 ? `repeat(${customMaterialTypes.length}, 1fr)` : "1fr 1fr 1fr";
+
+  const renderItemButton = (item: MaterialShelfItem, active: boolean) => (
+    <button
+      type="button"
+      onClick={() => onToggle(item.id)}
+      style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "7px 8px",
+        background: active ? "#f0f0f0" : "#fff",
+        border: active ? "2px solid #333" : "1px solid #e0e0e0",
+        borderRadius: 6,
+        cursor: "pointer",
+        color: "#333",
+        textAlign: "left",
+        fontSize: 12,
+        overflow: "hidden",
+      }}
+    >
+      <span style={{ fontSize: 14, flexShrink: 0 }}>{item.icon}</span>
+      <span
+        style={{
+          fontWeight: 500,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {item.label}
+      </span>
+    </button>
+  );
+
+  return (
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 16 }}>
+      <div style={{ ...labelStyle, marginBottom: 12 }}>Materials</div>
+
+      {/* Preset items (grouped or flat) */}
+      {presetItems &&
+        presetItems.length > 0 &&
+        (presetGroups ? (
+          presetGroups.map((group) => {
+            const items = presetItems.filter(group.filter);
+            if (items.length === 0) return null;
+            return (
+              <div key={group.header} style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "#999",
+                    marginBottom: 6,
+                    paddingBottom: 2,
+                    borderBottom: "1px solid #f0f0f0",
+                  }}
+                >
+                  {group.header}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                  {items.map((mat) => (
+                    <div key={mat.id}>{renderItemButton(mat, selectedIds.has(mat.id))}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {presetItems.map((mat) => (
+              <div key={mat.id}>{renderItemButton(mat, selectedIds.has(mat.id))}</div>
+            ))}
+          </div>
+        ))}
+
+      {/* No materials message (only when no presets and no custom) */}
+      {(!presetItems || presetItems.length === 0) && customItems.length === 0 && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#aaa",
+            padding: "12px 0",
+            textAlign: "center",
+          }}
+        >
+          No materials yet
+        </div>
+      )}
+
+      {/* Custom items */}
+      {customItems.length > 0 && (
+        <>
+          {presetItems && presetItems.length > 0 && (
+            <div style={{ ...labelStyle, marginTop: 16, marginBottom: 8 }}>Custom</div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {customItems.map((mat) => {
+              const active = selectedIds.has(mat.id);
+              return (
+                <div key={mat.id} style={{ display: "flex", gap: 2, alignItems: "center" }}>
+                  {renderItemButton(
+                    { id: mat.id, icon: customMaterialIcon(mat.type), label: mat.label },
+                    active,
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onDeleteCustom(mat.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#999",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      padding: "0 2px",
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                    title="Remove"
+                  >
+                    &times;
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Add custom material buttons */}
+      <div style={{ marginTop: 16, borderTop: "1px solid #eee", paddingTop: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 5 }}>
+          {customMaterialTypes.map((key) => (
+            <button
+              type="button"
+              key={key}
+              onClick={() => setShowForm(showForm === key ? null : key)}
+              style={{
+                padding: "5px 6px",
+                fontSize: 11,
+                cursor: "pointer",
+                background: showForm === key ? "#f0f0f0" : "#fff",
+                border: showForm === key ? "1px solid #999" : "1px solid #ddd",
+                borderRadius: 4,
+                color: "#555",
+              }}
+            >
+              {CUSTOM_TYPE_LABELS[key]}
+            </button>
+          ))}
+        </div>
+        {showForm != null &&
+          customMaterialTypes.includes(showForm) &&
+          (() => {
+            const FormComponent = CUSTOM_FORM_MAP[showForm];
+            return (
+              <FormComponent
+                onAdd={(m) => {
+                  onAddCustom(m);
+                  setShowForm(null);
+                }}
+                onCancel={() => setShowForm(null)}
+              />
+            );
+          })()}
+      </div>
+    </div>
+  );
+}
+
+// ─── Recipe Selector ────────────────────────────────────────────────────────
+
+export interface RecipeSelectorItem {
+  id: string;
+  label: string;
+  icon?: string;
+}
+
+export interface RecipeSelectorProps {
+  items: RecipeSelectorItem[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: () => void;
+  minItems?: number;
+}
+
+export function RecipeSelector({
+  items,
+  selectedId,
+  onSelect,
+  onDelete,
+  onAdd,
+  minItems = 1,
+}: RecipeSelectorProps) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {items.map((item) => {
+        const active = item.id === selectedId;
+        return (
+          <div key={item.id} style={{ display: "flex", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => onSelect(item.id)}
+              style={{
+                padding: "6px 14px",
+                fontSize: 14,
+                borderRadius: 20,
+                border: active ? "2px solid #333" : "1px solid #ccc",
+                background: active ? "#333" : "#fff",
+                color: active ? "#fff" : "#333",
+                cursor: "pointer",
+              }}
+            >
+              {item.icon ? `${item.icon} ${item.label}` : item.label}
+            </button>
+            {onDelete && items.length > minItems && (
+              <button
+                type="button"
+                onClick={() => onDelete(item.id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#999",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  padding: "0 2px",
+                  lineHeight: 1,
+                  marginLeft: 2,
+                }}
+                title="Delete"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        );
+      })}
+      {onAdd && (
+        <button
+          type="button"
+          onClick={onAdd}
+          style={{
+            padding: "6px 14px",
+            fontSize: 14,
+            borderRadius: 20,
+            border: "1px dashed #ccc",
+            background: "#fff",
+            color: "#888",
+            cursor: "pointer",
+          }}
+        >
+          + New
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Recipe Info Popover ────────────────────────────────────────────────────
 
 export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?: number }) {
@@ -588,36 +905,16 @@ export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?:
   );
 }
 
-export function RecipeInfoPopover({ entry, onClose }: { entry: RecipeEntry; onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
+export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
   const { meta } = entry;
   const catalyst = entry.recipe.catalyst;
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
-
   return (
     <div
-      ref={ref}
       style={{
-        position: "absolute",
-        top: "100%",
-        left: 0,
-        marginTop: 6,
-        width: 360,
-        background: "#fff",
-        border: "1px solid #ccc",
+        border: "1px solid #e0e0e0",
         borderRadius: 6,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
         padding: 14,
-        zIndex: 100,
         fontSize: 13,
         color: "#333",
       }}
@@ -722,6 +1019,311 @@ export function RecipeInfoPopover({ entry, onClose }: { entry: RecipeEntry; onCl
           {meta.promptTemplate}
         </pre>
       </div>
+    </div>
+  );
+}
+
+// ─── Page Shell ─────────────────────────────────────────────────────────────
+
+export function PageShell({
+  title,
+  subtitle,
+  rightWidth = 400,
+  maxWidth = 1280,
+  left,
+  right,
+}: {
+  title: string;
+  subtitle?: string;
+  rightWidth?: number;
+  maxWidth?: number;
+  left: React.ReactNode;
+  right: React.ReactNode;
+}) {
+  return (
+    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div
+        style={{
+          maxWidth,
+          margin: "0 auto",
+          padding: "32px 24px",
+          display: "grid",
+          gridTemplateColumns: `1fr ${rightWidth}px`,
+          gap: 24,
+          alignItems: "start",
+        }}
+      >
+        <div>
+          <h1 style={{ margin: "0 0 4px" }}>{title}</h1>
+          {subtitle && (
+            <p style={{ color: "#888", margin: "0 0 16px", fontSize: 14 }}>{subtitle}</p>
+          )}
+          {left}
+        </div>
+        <div>{right}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Selected Materials Preview ─────────────────────────────────────────────
+
+export interface SelectedMaterialItem {
+  id: string;
+  icon: string;
+  label: string;
+  imageUrl?: string;
+  text?: string;
+}
+
+export function SelectedMaterialsPreview({
+  materials,
+  emptyMessage = "Select materials",
+  onClear,
+}: {
+  materials: SelectedMaterialItem[];
+  emptyMessage?: string;
+  onClear: () => void;
+}) {
+  if (materials.length === 0) {
+    return (
+      <div
+        style={{
+          border: "1px dashed #ccc",
+          borderRadius: 6,
+          padding: "28px 16px",
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: 14,
+          marginBottom: 16,
+        }}
+      >
+        {emptyMessage} &rarr;
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        border: "1px solid #e0e0e0",
+        borderRadius: 6,
+        padding: 16,
+        marginBottom: 16,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={labelStyle}>Materials ({materials.length})</span>
+        <button
+          type="button"
+          onClick={onClear}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#999",
+            cursor: "pointer",
+            fontSize: 12,
+            padding: 0,
+          }}
+        >
+          Clear all
+        </button>
+      </div>
+      {materials.map((mat) => (
+        <div key={mat.id} style={{ marginTop: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+            {mat.icon} {mat.label}
+          </div>
+          {mat.imageUrl && (
+            <img
+              src={mat.imageUrl}
+              alt="Material"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 140,
+                borderRadius: 4,
+                border: "1px solid #e0e0e0",
+                marginBottom: 6,
+                display: "block",
+              }}
+            />
+          )}
+          {mat.text && (
+            <pre style={{ ...codeStyle, margin: 0, maxHeight: 80, fontSize: 12 }}>{mat.text}</pre>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Language Select ────────────────────────────────────────────────────────
+
+export function LanguageSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        padding: "3px 6px",
+        fontSize: 12,
+        borderRadius: 4,
+        border: "1px solid #ccc",
+        background: "#fff",
+        color: "#333",
+        cursor: "pointer",
+      }}
+    >
+      <option value="">Auto</option>
+      <option value="English">English</option>
+      <option value="Japanese">日本語</option>
+      <option value="Chinese">中文</option>
+      <option value="Korean">한국어</option>
+    </select>
+  );
+}
+
+// ─── Transmute Button ───────────────────────────────────────────────────────
+
+export function TransmuteButton({
+  onClick,
+  disabled,
+  isLoading,
+  label,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  isLoading: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        padding: "10px 20px",
+        fontSize: 14,
+        fontWeight: 600,
+        cursor: disabled ? "not-allowed" : "pointer",
+        background: disabled ? "#ccc" : "#333",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      {isLoading ? "Transmuting..." : (label ?? "Transmute")}
+    </button>
+  );
+}
+
+// ─── Result Panel ───────────────────────────────────────────────────────────
+
+export function ResultPanel({
+  result,
+  isLoading,
+  error,
+  resultMode = "text",
+}: {
+  result: unknown | null;
+  isLoading: boolean;
+  error: string | null;
+  resultMode?: "text" | "html";
+}) {
+  if (isLoading) {
+    return (
+      <div style={{ padding: "24px 0", textAlign: "center", color: "#888", fontSize: 13 }}>
+        Transmuting...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div style={{ ...labelStyle, marginBottom: 6 }}>Error</div>
+        <div
+          style={{
+            ...codeStyle,
+            background: "#fff5f5",
+            color: "#c62828",
+            border: "1px solid #ffcdd2",
+          }}
+        >
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (result == null) {
+    return (
+      <div
+        style={{
+          padding: "24px 0",
+          textAlign: "center",
+          color: "#ccc",
+          fontSize: 12,
+        }}
+      >
+        Results will appear here
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ ...labelStyle, marginBottom: 6 }}>Result</div>
+      {typeof result === "string" ? (
+        resultMode === "html" ? (
+          <>
+            <div
+              style={{
+                ...codeStyle,
+                whiteSpace: "normal",
+                maxHeight: 400,
+                overflow: "auto",
+              }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: intentional HTML rendering from LLM output
+              dangerouslySetInnerHTML={{ __html: result }}
+            />
+            <details>
+              <summary style={{ cursor: "pointer", fontSize: 13, color: "#888" }}>
+                View HTML Source
+              </summary>
+              <pre style={{ ...codeStyle, marginTop: 8, fontSize: 12 }}>{result}</pre>
+            </details>
+          </>
+        ) : (
+          <div
+            style={{
+              ...codeStyle,
+              whiteSpace: "pre-wrap",
+              maxHeight: 400,
+              overflow: "auto",
+            }}
+          >
+            {result}
+          </div>
+        )
+      ) : (
+        <pre
+          style={{
+            ...codeStyle,
+            maxHeight: 400,
+            overflow: "auto",
+          }}
+        >
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
