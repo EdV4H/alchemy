@@ -1,6 +1,12 @@
 import { RecipeSelector } from "../shared/components.js";
 import type { PlaygroundRecipe } from "./usePlaygroundStore.js";
 
+const RECIPE_ICONS = ["📝", "📋", "🧪", "🔬", "⚗️", "✨", "🎯", "💡", "🔮", "📐", "🛠️", "🧩"];
+
+function randomIcon(): string {
+  return RECIPE_ICONS[Math.floor(Math.random() * RECIPE_ICONS.length)];
+}
+
 interface RecipeManagerProps {
   recipes: PlaygroundRecipe[];
   selectedId: string | null;
@@ -31,7 +37,7 @@ export function RecipeManager({
       onAdd={() => {
         const id = onAdd({
           name: "New Recipe",
-          icon: "📋",
+          icon: randomIcon(),
           promptTemplate: "Process this text:\n\n{{text}}",
           outputType: "text",
           transforms: [],
