@@ -270,55 +270,22 @@ export function App() {
             </>
           )}
 
-          <div>
-            <div style={{ ...labelStyle, marginBottom: 8 }}>Catalysts</div>
-            <CatalystEditor
-              catalysts={store.catalysts}
-              selectedId={selectedCatalystId}
-              onSelect={setSelectedCatalystId}
-              onAdd={store.addCatalyst}
-              onUpdate={store.updateCatalyst}
-              onDelete={store.deleteCatalyst}
-            />
-          </div>
-        </div>
-      }
-      right={
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <MaterialShelf
-            customItems={store.materials.map((m) => ({ ...m, icon: customMaterialIcon(m.type) }))}
-            selectedIds={selectedMaterialIds}
-            onToggle={toggleMaterial}
-            onAddCustom={store.addMaterial}
-            onDeleteCustom={handleDeleteMaterial}
-          />
-
-          {/* Catalyst + Language selectors */}
-          <div style={{ display: "flex", gap: 8, alignItems: "end" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Catalyst</div>
-              <select
-                value={selectedCatalystId ?? ""}
-                onChange={(e) => setSelectedCatalystId(e.target.value || null)}
-                style={{
-                  width: "100%",
-                  padding: "4px 6px",
-                  fontSize: 12,
-                  border: "1px solid #ddd",
-                  borderRadius: 4,
-                  background: "#fff",
-                }}
-              >
-                {store.catalysts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ width: 100 }}>
-              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Language</div>
-              <LanguageSelect value={selectedLanguage} onChange={setSelectedLanguage} />
+          {/* Catalyst + Language */}
+          <div style={{ margin: "0 0 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ ...labelStyle, margin: 0 }}>Catalyst</span>
+              <CatalystEditor
+                catalysts={store.catalysts}
+                selectedId={selectedCatalystId}
+                onSelect={setSelectedCatalystId}
+                onAdd={store.addCatalyst}
+                onUpdate={store.updateCatalyst}
+                onDelete={store.deleteCatalyst}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
+                <LanguageSelect value={selectedLanguage} onChange={setSelectedLanguage} />
+              </div>
             </div>
           </div>
 
@@ -330,6 +297,15 @@ export function App() {
 
           <ResultPanel result={result} isLoading={isLoading} error={error} />
         </div>
+      }
+      right={
+        <MaterialShelf
+          customItems={store.materials.map((m) => ({ ...m, icon: customMaterialIcon(m.type) }))}
+          selectedIds={selectedMaterialIds}
+          onToggle={toggleMaterial}
+          onAddCustom={store.addMaterial}
+          onDeleteCustom={handleDeleteMaterial}
+        />
       }
     />
   );
