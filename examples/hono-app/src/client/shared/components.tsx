@@ -1208,6 +1208,7 @@ export function TransmuteButton({
       onClick={onClick}
       disabled={disabled}
       style={{
+        width: "100%",
         padding: "10px 20px",
         fontSize: 14,
         fontWeight: 600,
