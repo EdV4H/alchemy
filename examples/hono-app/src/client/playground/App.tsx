@@ -105,6 +105,11 @@ export function App() {
     [selectedRecipe, store.updateRecipe],
   );
 
+  const materialsWithIcons = store.materials.map((m) => ({
+    ...m,
+    icon: customMaterialIcon(m.type),
+  }));
+
   const hasSelectedMaterials =
     selectedMaterialIds.size > 0 && store.materials.some((m) => selectedMaterialIds.has(m.id));
 
@@ -269,11 +274,11 @@ export function App() {
           </div>
 
           <SelectedMaterialsPreview
-            materials={store.materials
+            materials={materialsWithIcons
               .filter((m) => selectedMaterialIds.has(m.id))
               .map((m) => ({
                 id: m.id,
-                icon: customMaterialIcon(m.type),
+                icon: m.icon,
                 label: m.label,
                 imageUrl: m.imageUrl,
                 text: m.text ?? m.dataContent ?? m.documentText,
@@ -293,7 +298,7 @@ export function App() {
       }
       right={
         <MaterialShelf
-          customItems={store.materials.map((m) => ({ ...m, icon: customMaterialIcon(m.type) }))}
+          customItems={materialsWithIcons}
           selectedIds={selectedMaterialIds}
           onToggle={toggleMaterial}
           onAddCustom={store.addMaterial}
