@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { RecipeSelector } from "../shared/components.js";
+import {
+  fieldLabelStyle,
+  fieldWrapperStyle,
+  inputStyle,
+  primaryButtonStyle,
+  textareaStyle,
+} from "../shared/styles.js";
 import type { PlaygroundCatalyst } from "./usePlaygroundStore.js";
 
 interface CatalystEditorProps {
@@ -61,41 +68,26 @@ export function CatalystEditor({
             padding: 10,
           }}
         >
-          <div style={{ marginBottom: 6 }}>
-            <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Name</div>
+          <div style={fieldWrapperStyle}>
+            <div style={fieldLabelStyle}>Name</div>
             <input
               value={selected.name}
               onChange={(e) => onUpdate(selected.id, { name: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "3px 6px",
-                fontSize: 12,
-                border: "1px solid #ddd",
-                borderRadius: 4,
-                boxSizing: "border-box",
-              }}
+              style={inputStyle}
             />
           </div>
-          <div style={{ marginBottom: 6 }}>
-            <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Role Definition</div>
+          <div style={fieldWrapperStyle}>
+            <div style={fieldLabelStyle}>Role Definition</div>
             <textarea
               value={selected.roleDefinition}
               onChange={(e) => onUpdate(selected.id, { roleDefinition: e.target.value })}
               rows={3}
-              style={{
-                width: "100%",
-                padding: "3px 6px",
-                fontSize: 12,
-                border: "1px solid #ddd",
-                borderRadius: 4,
-                resize: "vertical",
-                boxSizing: "border-box",
-              }}
+              style={textareaStyle}
             />
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Temperature</div>
+              <div style={fieldLabelStyle}>Temperature</div>
               <input
                 type="number"
                 min={0}
@@ -103,46 +95,23 @@ export function CatalystEditor({
                 step={0.1}
                 value={selected.temperature}
                 onChange={(e) => onUpdate(selected.id, { temperature: Number(e.target.value) })}
-                style={{
-                  width: "100%",
-                  padding: "3px 6px",
-                  fontSize: 12,
-                  border: "1px solid #ddd",
-                  borderRadius: 4,
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Model (optional)</div>
+              <div style={fieldLabelStyle}>Model (optional)</div>
               <input
                 value={selected.model ?? ""}
                 onChange={(e) => onUpdate(selected.id, { model: e.target.value || undefined })}
                 placeholder="e.g. gpt-4o"
-                style={{
-                  width: "100%",
-                  padding: "3px 6px",
-                  fontSize: 12,
-                  border: "1px solid #ddd",
-                  borderRadius: 4,
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
           </div>
           <button
             type="button"
             onClick={() => setEditing(false)}
-            style={{
-              marginTop: 8,
-              padding: "3px 10px",
-              fontSize: 11,
-              cursor: "pointer",
-              background: "#333",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-            }}
+            style={{ ...primaryButtonStyle, marginTop: 8 }}
           >
             Done
           </button>

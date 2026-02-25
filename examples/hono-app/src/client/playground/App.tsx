@@ -7,7 +7,7 @@ import {
   SelectedMaterialsPreview,
   TransmuteButton,
 } from "../shared/components.js";
-import { labelStyle } from "../shared/styles.js";
+import { fieldLabelStyle, inputStyle, labelStyle, selectStyle } from "../shared/styles.js";
 import { customMaterialIcon } from "../shared/types.js";
 import { CatalystEditor } from "./CatalystEditor.js";
 import { CodeEditor } from "./CodeEditor.js";
@@ -134,42 +134,27 @@ export function App() {
               {/* Icon + Recipe name + output type */}
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                 <div style={{ width: 50 }}>
-                  <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Icon</div>
+                  <div style={fieldLabelStyle}>Icon</div>
                   <input
                     value={selectedRecipe.icon ?? ""}
                     onChange={(e) =>
                       store.updateRecipe(selectedRecipe.id, { icon: e.target.value })
                     }
-                    style={{
-                      width: "100%",
-                      padding: "5px 8px",
-                      fontSize: 13,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                      textAlign: "center",
-                    }}
+                    style={{ ...inputStyle, textAlign: "center" }}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Recipe Name</div>
+                  <div style={fieldLabelStyle}>Recipe Name</div>
                   <input
                     value={selectedRecipe.name}
                     onChange={(e) =>
                       store.updateRecipe(selectedRecipe.id, { name: e.target.value })
                     }
-                    style={{
-                      width: "100%",
-                      padding: "5px 8px",
-                      fontSize: 13,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                    }}
+                    style={inputStyle}
                   />
                 </div>
                 <div style={{ width: 100 }}>
-                  <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Output</div>
+                  <div style={fieldLabelStyle}>Output</div>
                   <select
                     value={selectedRecipe.outputType}
                     onChange={(e) =>
@@ -177,14 +162,7 @@ export function App() {
                         outputType: e.target.value as "text" | "json",
                       })
                     }
-                    style={{
-                      width: "100%",
-                      padding: "5px 8px",
-                      fontSize: 13,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      background: "#fff",
-                    }}
+                    style={selectStyle}
                   >
                     <option value="text">text</option>
                     <option value="json">json</option>

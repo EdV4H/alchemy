@@ -1,94 +1,116 @@
 import type React from "react";
 import { useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
-import { codeStyle, labelStyle, popoverSectionLabel } from "./styles.js";
+import {
+  cardStyle,
+  codeStyle,
+  deleteButtonStyle,
+  fieldLabelStyle,
+  fieldWrapperStyle,
+  inputStyle,
+  labelStyle,
+  popoverSectionLabel,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+  selectStyle,
+  textareaStyle,
+} from "./styles.js";
 import type { CustomMaterial, CustomMaterialType } from "./types.js";
 import { CUSTOM_TYPE_LABELS, customMaterialIcon } from "./types.js";
 
 // ─── Custom Material Forms ──────────────────────────────────────────────────
 
-export function CustomTextForm({
+interface CustomFormField {
+  key: string;
+  label: string;
+  type: "input" | "textarea" | "select";
+  placeholder?: string;
+  rows?: number;
+  monospace?: boolean;
+  options?: { value: string; label: string }[];
+}
+
+interface CustomFormConfig {
+  materialType: CustomMaterial["type"];
+  defaultLabel: string;
+  fields: CustomFormField[];
+  buildMaterial: (id: string, label: string, values: Record<string, string>) => CustomMaterial;
+  validate: (values: Record<string, string>) => boolean;
+}
+
+function CustomMaterialForm({
+  config,
   onAdd,
   onCancel,
 }: {
+  config: CustomFormConfig;
   onAdd: (m: CustomMaterial) => void;
   onCancel: () => void;
 }) {
   const [label, setLabel] = useState("");
-  const [text, setText] = useState("");
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(config.fields.map((f) => [f.key, f.options?.[0]?.value ?? ""])),
+  );
+
+  const setValue = (key: string, value: string) => setValues((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+    <div style={cardStyle}>
+      <div style={fieldWrapperStyle}>
+        <div style={fieldLabelStyle}>Label</div>
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="My text"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
+          placeholder={`My ${config.materialType}`}
+          style={inputStyle}
         />
       </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Text</div>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={3}
-          placeholder="Enter your text..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
+      {config.fields.map((field) => (
+        <div key={field.key} style={fieldWrapperStyle}>
+          <div style={fieldLabelStyle}>{field.label}</div>
+          {field.type === "textarea" ? (
+            <textarea
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              rows={field.rows ?? 3}
+              placeholder={field.placeholder}
+              style={{ ...textareaStyle, ...(field.monospace ? { fontFamily: "monospace" } : {}) }}
+            />
+          ) : field.type === "select" ? (
+            <select
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              style={selectStyle}
+            >
+              {field.options?.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              placeholder={field.placeholder}
+              style={inputStyle}
+            />
+          )}
+        </div>
+      ))}
       <div style={{ display: "flex", gap: 6 }}>
         <button
           type="button"
           onClick={() => {
-            if (!text.trim()) return;
-            onAdd({
-              id: `custom-text-${Date.now()}`,
-              label: label.trim() || "Custom Text",
-              type: "text",
-              text: text.trim(),
-            });
+            if (!config.validate(values)) return;
+            const id = `custom-${config.materialType}-${Date.now()}`;
+            onAdd(config.buildMaterial(id, label.trim() || config.defaultLabel, values));
           }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
+          style={primaryButtonStyle}
         >
           Add
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
+        <button type="button" onClick={onCancel} style={secondaryButtonStyle}>
           Cancel
         </button>
       </div>
@@ -96,496 +118,96 @@ export function CustomTextForm({
   );
 }
 
-export function CustomImageForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My image"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Prompt</div>
-        <input
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe what to analyze..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Image URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-image-${Date.now()}`,
-              label: label.trim() || "Custom Image",
-              type: "image",
-              text: prompt.trim() || undefined,
-              imageUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomDataForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [format, setFormat] = useState<"csv" | "json" | "tsv">("csv");
-  const [content, setContent] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My data"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Format</div>
-        <select
-          value={format}
-          onChange={(e) => setFormat(e.target.value as "csv" | "json" | "tsv")}
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-          }}
-        >
-          <option value="csv">CSV</option>
-          <option value="json">JSON</option>
-          <option value="tsv">TSV</option>
-        </select>
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Content</div>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={4}
-          placeholder="Paste your data..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            fontFamily: "monospace",
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!content.trim()) return;
-            onAdd({
-              id: `custom-data-${Date.now()}`,
-              label: label.trim() || "Custom Data",
-              type: "data",
-              dataFormat: format,
-              dataContent: content.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomDocumentForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [text, setText] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My document"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Document text</div>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={5}
-          placeholder="Paste your document text..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!text.trim()) return;
-            onAdd({
-              id: `custom-doc-${Date.now()}`,
-              label: label.trim() || "Custom Document",
-              type: "document",
-              documentText: text.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomAudioForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My audio"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Audio URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://...mp3"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-audio-${Date.now()}`,
-              label: label.trim() || "Custom Audio",
-              type: "audio",
-              audioUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomVideoForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My video"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Video URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://...mp4"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-video-${Date.now()}`,
-              label: label.trim() || "Custom Video",
-              type: "video",
-              videoUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Custom Form Map ────────────────────────────────────────────────────────
-
-export const CUSTOM_FORM_MAP: Record<
-  CustomMaterialType,
-  React.ComponentType<{ onAdd: (m: CustomMaterial) => void; onCancel: () => void }>
-> = {
-  text: CustomTextForm,
-  image: CustomImageForm,
-  data: CustomDataForm,
-  document: CustomDocumentForm,
-  audio: CustomAudioForm,
-  video: CustomVideoForm,
+const FORM_CONFIGS: Record<CustomMaterialType, CustomFormConfig> = {
+  text: {
+    materialType: "text",
+    defaultLabel: "Custom Text",
+    fields: [{ key: "text", label: "Text", type: "textarea", placeholder: "Enter your text..." }],
+    validate: (v) => !!v.text?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "text", text: v.text.trim() }),
+  },
+  image: {
+    materialType: "image",
+    defaultLabel: "Custom Image",
+    fields: [
+      { key: "prompt", label: "Prompt", type: "input", placeholder: "Describe what to analyze..." },
+      { key: "url", label: "Image URL", type: "input", placeholder: "https://..." },
+    ],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "image",
+      text: v.prompt.trim() || undefined,
+      imageUrl: v.url.trim(),
+    }),
+  },
+  data: {
+    materialType: "data",
+    defaultLabel: "Custom Data",
+    fields: [
+      {
+        key: "format",
+        label: "Format",
+        type: "select",
+        options: [
+          { value: "csv", label: "CSV" },
+          { value: "json", label: "JSON" },
+          { value: "tsv", label: "TSV" },
+        ],
+      },
+      {
+        key: "content",
+        label: "Content",
+        type: "textarea",
+        rows: 4,
+        placeholder: "Paste your data...",
+        monospace: true,
+      },
+    ],
+    validate: (v) => !!v.content?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "data",
+      dataFormat: v.format as "csv" | "json" | "tsv",
+      dataContent: v.content.trim(),
+    }),
+  },
+  document: {
+    materialType: "document",
+    defaultLabel: "Custom Document",
+    fields: [
+      {
+        key: "text",
+        label: "Document text",
+        type: "textarea",
+        rows: 5,
+        placeholder: "Paste your document text...",
+      },
+    ],
+    validate: (v) => !!v.text?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "document",
+      documentText: v.text.trim(),
+    }),
+  },
+  audio: {
+    materialType: "audio",
+    defaultLabel: "Custom Audio",
+    fields: [{ key: "url", label: "Audio URL", type: "input", placeholder: "https://...mp3" }],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "audio", audioUrl: v.url.trim() }),
+  },
+  video: {
+    materialType: "video",
+    defaultLabel: "Custom Video",
+    fields: [{ key: "url", label: "Video URL", type: "input", placeholder: "https://...mp4" }],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "video", videoUrl: v.url.trim() }),
+  },
 };
 
 // ─── Material Shelf ────────────────────────────────────────────────────────
@@ -738,16 +360,7 @@ export function MaterialShelf({
                   <button
                     type="button"
                     onClick={() => onDeleteCustom(mat.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#999",
-                      cursor: "pointer",
-                      fontSize: 14,
-                      padding: "0 2px",
-                      lineHeight: 1,
-                      flexShrink: 0,
-                    }}
+                    style={{ ...deleteButtonStyle, flexShrink: 0 }}
                     title="Remove"
                   >
                     &times;
@@ -781,20 +394,16 @@ export function MaterialShelf({
             </button>
           ))}
         </div>
-        {showForm != null &&
-          customMaterialTypes.includes(showForm) &&
-          (() => {
-            const FormComponent = CUSTOM_FORM_MAP[showForm];
-            return (
-              <FormComponent
-                onAdd={(m) => {
-                  onAddCustom(m);
-                  setShowForm(null);
-                }}
-                onCancel={() => setShowForm(null)}
-              />
-            );
-          })()}
+        {showForm != null && customMaterialTypes.includes(showForm) && (
+          <CustomMaterialForm
+            config={FORM_CONFIGS[showForm]}
+            onAdd={(m) => {
+              onAddCustom(m);
+              setShowForm(null);
+            }}
+            onCancel={() => setShowForm(null)}
+          />
+        )}
       </div>
     </div>
   );
@@ -850,16 +459,7 @@ export function RecipeSelector({
               <button
                 type="button"
                 onClick={() => onDelete(item.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#999",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  padding: "0 2px",
-                  lineHeight: 1,
-                  marginLeft: 2,
-                }}
+                style={{ ...deleteButtonStyle, marginLeft: 2 }}
                 title="Delete"
               >
                 &times;
@@ -889,7 +489,7 @@ export function RecipeSelector({
   );
 }
 
-// ─── Recipe Info Popover ────────────────────────────────────────────────────
+// ─── Recipe Info Detail ─────────────────────────────────────────────────────
 
 export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?: number }) {
   return (
