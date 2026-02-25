@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RecipeSelector } from "../shared/components.js";
+import { handleDeleteWithFallback, RecipeSelector } from "../shared/components.js";
 import {
   fieldLabelStyle,
   fieldWrapperStyle,
@@ -38,14 +38,7 @@ export function CatalystEditor({
           onSelect(id);
           setEditing(false);
         }}
-        onDelete={(id) => {
-          onDelete(id);
-          if (selectedId === id) {
-            const remaining = catalysts.filter((c) => c.id !== id);
-            if (remaining.length > 0) onSelect(remaining[0].id);
-            else onSelect(null);
-          }
-        }}
+        onDelete={(id) => handleDeleteWithFallback(catalysts, id, selectedId, onDelete, onSelect)}
         onAdd={() => {
           const id = onAdd({
             name: "New Catalyst",

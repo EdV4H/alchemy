@@ -1,4 +1,4 @@
-import { RecipeSelector } from "../shared/components.js";
+import { handleDeleteWithFallback, RecipeSelector } from "../shared/components.js";
 import type { PlaygroundRecipe } from "./usePlaygroundStore.js";
 
 const RECIPE_ICONS = ["📝", "📋", "🧪", "🔬", "⚗️", "✨", "🎯", "💡", "🔮", "📐", "🛠️", "🧩"];
@@ -27,13 +27,11 @@ export function RecipeManager({
       items={recipes.map((r) => ({ id: r.id, label: r.name, icon: r.icon }))}
       selectedId={selectedId}
       onSelect={onSelect}
-      onDelete={(id) => {
-        onDelete(id);
-        if (selectedId === id) {
-          const remaining = recipes.filter((r) => r.id !== id);
-          if (remaining.length > 0) onSelect(remaining[0].id);
-        }
-      }}
+      onDelete={(id) =>
+        handleDeleteWithFallback(recipes, id, selectedId, onDelete, (next) => {
+          if (next) onSelect(next);
+        })
+      }
       onAdd={() => {
         const id = onAdd({
           name: "New Recipe",

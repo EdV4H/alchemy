@@ -409,6 +409,23 @@ export function MaterialShelf({
   );
 }
 
+// ─── List Selection Helper ──────────────────────────────────────────────────
+
+/** Handle delete with auto-fallback: if deleted item is selected, select next remaining. */
+export function handleDeleteWithFallback<T extends { id: string }>(
+  items: T[],
+  deletedId: string,
+  selectedId: string | null,
+  onDelete: (id: string) => void,
+  onSelect: (id: string | null) => void,
+) {
+  onDelete(deletedId);
+  if (selectedId === deletedId) {
+    const remaining = items.filter((item) => item.id !== deletedId);
+    onSelect(remaining.length > 0 ? remaining[0].id : null);
+  }
+}
+
 // ─── Recipe Selector ────────────────────────────────────────────────────────
 
 export interface RecipeSelectorItem {
