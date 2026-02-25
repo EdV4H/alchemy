@@ -7,7 +7,13 @@ import {
   SelectedMaterialsPreview,
   TransmuteButton,
 } from "../shared/components.js";
-import { fieldLabelStyle, inputStyle, labelStyle, selectStyle } from "../shared/styles.js";
+import {
+  deleteButtonStyle,
+  fieldLabelStyle,
+  inputStyle,
+  labelStyle,
+  selectStyle,
+} from "../shared/styles.js";
 import { customMaterialIcon } from "../shared/types.js";
 import { CatalystEditor } from "./CatalystEditor.js";
 import { CodeEditor } from "./CodeEditor.js";
@@ -199,15 +205,7 @@ export function App() {
                         <button
                           type="button"
                           onClick={() => handleRemoveTransform(i)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#999",
-                            cursor: "pointer",
-                            fontSize: 12,
-                            padding: 0,
-                            lineHeight: 1,
-                          }}
+                          style={{ ...deleteButtonStyle, fontSize: 12, padding: 0 }}
                         >
                           &times;
                         </button>
