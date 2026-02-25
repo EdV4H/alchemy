@@ -1,7 +1,6 @@
 import { handleDeleteWithFallback, RecipeSelector } from "../shared/components.js";
+import { RECIPE_ICONS } from "./constants.js";
 import type { PlaygroundRecipe } from "./usePlaygroundStore.js";
-
-const RECIPE_ICONS = ["📝", "📋", "🧪", "🔬", "⚗️", "✨", "🎯", "💡", "🔮", "📐", "🛠️", "🧩"];
 
 function randomIcon(): string {
   return RECIPE_ICONS[Math.floor(Math.random() * RECIPE_ICONS.length)];
