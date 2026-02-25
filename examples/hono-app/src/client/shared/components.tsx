@@ -1,92 +1,116 @@
-import { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
-import { popoverSectionLabel } from "./styles.js";
-import type { CustomMaterial } from "./types.js";
+import {
+  cardStyle,
+  codeStyle,
+  deleteButtonStyle,
+  fieldLabelStyle,
+  fieldWrapperStyle,
+  inputStyle,
+  labelStyle,
+  popoverSectionLabel,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+  selectStyle,
+  textareaStyle,
+} from "./styles.js";
+import type { CustomMaterial, CustomMaterialType } from "./types.js";
+import { CUSTOM_TYPE_LABELS, customMaterialIcon } from "./types.js";
 
 // ─── Custom Material Forms ──────────────────────────────────────────────────
 
-export function CustomTextForm({
+interface CustomFormField {
+  key: string;
+  label: string;
+  type: "input" | "textarea" | "select";
+  placeholder?: string;
+  rows?: number;
+  monospace?: boolean;
+  options?: { value: string; label: string }[];
+}
+
+interface CustomFormConfig {
+  materialType: CustomMaterial["type"];
+  defaultLabel: string;
+  fields: CustomFormField[];
+  buildMaterial: (id: string, label: string, values: Record<string, string>) => CustomMaterial;
+  validate: (values: Record<string, string>) => boolean;
+}
+
+function CustomMaterialForm({
+  config,
   onAdd,
   onCancel,
 }: {
+  config: CustomFormConfig;
   onAdd: (m: CustomMaterial) => void;
   onCancel: () => void;
 }) {
   const [label, setLabel] = useState("");
-  const [text, setText] = useState("");
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(config.fields.map((f) => [f.key, f.options?.[0]?.value ?? ""])),
+  );
+
+  const setValue = (key: string, value: string) => setValues((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
+    <div style={cardStyle}>
+      <div style={fieldWrapperStyle}>
+        <div style={fieldLabelStyle}>Label</div>
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="My text"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
+          placeholder={`My ${config.materialType}`}
+          style={inputStyle}
         />
       </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Text</div>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={3}
-          placeholder="Enter your text..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
+      {config.fields.map((field) => (
+        <div key={field.key} style={fieldWrapperStyle}>
+          <div style={fieldLabelStyle}>{field.label}</div>
+          {field.type === "textarea" ? (
+            <textarea
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              rows={field.rows ?? 3}
+              placeholder={field.placeholder}
+              style={{ ...textareaStyle, ...(field.monospace ? { fontFamily: "monospace" } : {}) }}
+            />
+          ) : field.type === "select" ? (
+            <select
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              style={selectStyle}
+            >
+              {field.options?.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={values[field.key]}
+              onChange={(e) => setValue(field.key, e.target.value)}
+              placeholder={field.placeholder}
+              style={inputStyle}
+            />
+          )}
+        </div>
+      ))}
       <div style={{ display: "flex", gap: 6 }}>
         <button
           type="button"
           onClick={() => {
-            if (!text.trim()) return;
-            onAdd({
-              id: `custom-text-${Date.now()}`,
-              label: label.trim() || "Custom Text",
-              type: "text",
-              text: text.trim(),
-            });
+            if (!config.validate(values)) return;
+            const id = `custom-${config.materialType}-${Date.now()}`;
+            onAdd(config.buildMaterial(id, label.trim() || config.defaultLabel, values));
           }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
+          style={primaryButtonStyle}
         >
           Add
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
+        <button type="button" onClick={onCancel} style={secondaryButtonStyle}>
           Cancel
         </button>
       </div>
@@ -94,485 +118,395 @@ export function CustomTextForm({
   );
 }
 
-export function CustomImageForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [url, setUrl] = useState("");
+const FORM_CONFIGS: Record<CustomMaterialType, CustomFormConfig> = {
+  text: {
+    materialType: "text",
+    defaultLabel: "Custom Text",
+    fields: [{ key: "text", label: "Text", type: "textarea", placeholder: "Enter your text..." }],
+    validate: (v) => !!v.text?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "text", text: v.text.trim() }),
+  },
+  image: {
+    materialType: "image",
+    defaultLabel: "Custom Image",
+    fields: [
+      { key: "prompt", label: "Prompt", type: "input", placeholder: "Describe what to analyze..." },
+      { key: "url", label: "Image URL", type: "input", placeholder: "https://..." },
+    ],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "image",
+      text: v.prompt.trim() || undefined,
+      imageUrl: v.url.trim(),
+    }),
+  },
+  data: {
+    materialType: "data",
+    defaultLabel: "Custom Data",
+    fields: [
+      {
+        key: "format",
+        label: "Format",
+        type: "select",
+        options: [
+          { value: "csv", label: "CSV" },
+          { value: "json", label: "JSON" },
+          { value: "tsv", label: "TSV" },
+        ],
+      },
+      {
+        key: "content",
+        label: "Content",
+        type: "textarea",
+        rows: 4,
+        placeholder: "Paste your data...",
+        monospace: true,
+      },
+    ],
+    validate: (v) => !!v.content?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "data",
+      dataFormat: v.format as "csv" | "json" | "tsv",
+      dataContent: v.content.trim(),
+    }),
+  },
+  document: {
+    materialType: "document",
+    defaultLabel: "Custom Document",
+    fields: [
+      {
+        key: "text",
+        label: "Document text",
+        type: "textarea",
+        rows: 5,
+        placeholder: "Paste your document text...",
+      },
+    ],
+    validate: (v) => !!v.text?.trim(),
+    buildMaterial: (id, label, v) => ({
+      id,
+      label,
+      type: "document",
+      documentText: v.text.trim(),
+    }),
+  },
+  audio: {
+    materialType: "audio",
+    defaultLabel: "Custom Audio",
+    fields: [{ key: "url", label: "Audio URL", type: "input", placeholder: "https://...mp3" }],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "audio", audioUrl: v.url.trim() }),
+  },
+  video: {
+    materialType: "video",
+    defaultLabel: "Custom Video",
+    fields: [{ key: "url", label: "Video URL", type: "input", placeholder: "https://...mp4" }],
+    validate: (v) => !!v.url?.trim(),
+    buildMaterial: (id, label, v) => ({ id, label, type: "video", videoUrl: v.url.trim() }),
+  },
+};
+
+// ─── Material Shelf ────────────────────────────────────────────────────────
+
+export interface MaterialShelfItem {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+const ALL_CUSTOM_TYPES: CustomMaterialType[] = [
+  "text",
+  "image",
+  "data",
+  "document",
+  "audio",
+  "video",
+];
+
+export interface MaterialShelfProps {
+  presetItems?: MaterialShelfItem[];
+  presetGroups?: { header: string; filter: (item: MaterialShelfItem) => boolean }[];
+  customItems: (CustomMaterial & { icon: string })[];
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  onAddCustom: (m: CustomMaterial) => void;
+  onDeleteCustom: (id: string) => void;
+  customMaterialTypes?: CustomMaterialType[];
+}
+
+export function MaterialShelf({
+  presetItems,
+  presetGroups,
+  customItems,
+  selectedIds,
+  onToggle,
+  onAddCustom,
+  onDeleteCustom,
+  customMaterialTypes = ALL_CUSTOM_TYPES,
+}: MaterialShelfProps) {
+  const [showForm, setShowForm] = useState<CustomMaterialType | null>(null);
+
+  const gridCols =
+    customMaterialTypes.length <= 4 ? `repeat(${customMaterialTypes.length}, 1fr)` : "1fr 1fr 1fr";
+
+  const renderItemButton = (item: MaterialShelfItem, active: boolean) => (
+    <button
+      type="button"
+      onClick={() => onToggle(item.id)}
+      style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "7px 8px",
+        background: active ? "#f0f0f0" : "#fff",
+        border: active ? "2px solid #333" : "1px solid #e0e0e0",
+        borderRadius: 6,
+        cursor: "pointer",
+        color: "#333",
+        textAlign: "left",
+        fontSize: 12,
+        overflow: "hidden",
+      }}
+    >
+      <span style={{ fontSize: 14, flexShrink: 0 }}>{item.icon}</span>
+      <span
+        style={{
+          fontWeight: 500,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {item.label}
+      </span>
+    </button>
+  );
 
   return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My image"
+    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 16 }}>
+      <div style={{ ...labelStyle, marginBottom: 12 }}>Materials</div>
+
+      {/* Preset items (grouped or flat) */}
+      {presetItems &&
+        presetItems.length > 0 &&
+        (presetGroups ? (
+          presetGroups.map((group) => {
+            const items = presetItems.filter(group.filter);
+            if (items.length === 0) return null;
+            return (
+              <div key={group.header} style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "#999",
+                    marginBottom: 6,
+                    paddingBottom: 2,
+                    borderBottom: "1px solid #f0f0f0",
+                  }}
+                >
+                  {group.header}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                  {items.map((mat) => (
+                    <div key={mat.id}>{renderItemButton(mat, selectedIds.has(mat.id))}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {presetItems.map((mat) => (
+              <div key={mat.id}>{renderItemButton(mat, selectedIds.has(mat.id))}</div>
+            ))}
+          </div>
+        ))}
+
+      {/* No materials message (only when no presets and no custom) */}
+      {(!presetItems || presetItems.length === 0) && customItems.length === 0 && (
+        <div
           style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Prompt</div>
-        <input
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe what to analyze..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Image URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-image-${Date.now()}`,
-              label: label.trim() || "Custom Image",
-              type: "image",
-              text: prompt.trim() || undefined,
-              imageUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
             fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
+            color: "#aaa",
+            padding: "12px 0",
+            textAlign: "center",
           }}
         >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
+          No materials yet
+        </div>
+      )}
+
+      {/* Custom items */}
+      {customItems.length > 0 && (
+        <>
+          {presetItems && presetItems.length > 0 && (
+            <div style={{ ...labelStyle, marginTop: 16, marginBottom: 8 }}>Custom</div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {customItems.map((mat) => {
+              const active = selectedIds.has(mat.id);
+              return (
+                <div key={mat.id} style={{ display: "flex", gap: 2, alignItems: "center" }}>
+                  {renderItemButton(
+                    { id: mat.id, icon: customMaterialIcon(mat.type), label: mat.label },
+                    active,
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onDeleteCustom(mat.id)}
+                    style={{ ...deleteButtonStyle, flexShrink: 0 }}
+                    title="Remove"
+                  >
+                    &times;
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Add custom material buttons */}
+      <div style={{ marginTop: 16, borderTop: "1px solid #eee", paddingTop: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 5 }}>
+          {customMaterialTypes.map((key) => (
+            <button
+              type="button"
+              key={key}
+              onClick={() => setShowForm(showForm === key ? null : key)}
+              style={{
+                padding: "5px 6px",
+                fontSize: 11,
+                cursor: "pointer",
+                background: showForm === key ? "#f0f0f0" : "#fff",
+                border: showForm === key ? "1px solid #999" : "1px solid #ddd",
+                borderRadius: 4,
+                color: "#555",
+              }}
+            >
+              {CUSTOM_TYPE_LABELS[key]}
+            </button>
+          ))}
+        </div>
+        {showForm != null && customMaterialTypes.includes(showForm) && (
+          <CustomMaterialForm
+            config={FORM_CONFIGS[showForm]}
+            onAdd={(m) => {
+              onAddCustom(m);
+              setShowForm(null);
+            }}
+            onCancel={() => setShowForm(null)}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-export function CustomDataForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [format, setFormat] = useState<"csv" | "json" | "tsv">("csv");
-  const [content, setContent] = useState("");
+// ─── List Selection Helper ──────────────────────────────────────────────────
 
+/** Handle delete with auto-fallback: if deleted item is selected, select next remaining. */
+export function handleDeleteWithFallback<T extends { id: string }>(
+  items: T[],
+  deletedId: string,
+  selectedId: string | null,
+  onDelete: (id: string) => void,
+  onSelect: (id: string | null) => void,
+) {
+  onDelete(deletedId);
+  if (selectedId === deletedId) {
+    const remaining = items.filter((item) => item.id !== deletedId);
+    onSelect(remaining.length > 0 ? remaining[0].id : null);
+  }
+}
+
+// ─── Recipe Selector ────────────────────────────────────────────────────────
+
+export interface RecipeSelectorItem {
+  id: string;
+  label: string;
+  icon?: string;
+}
+
+export interface RecipeSelectorProps {
+  items: RecipeSelectorItem[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: () => void;
+  minItems?: number;
+}
+
+export function RecipeSelector({
+  items,
+  selectedId,
+  onSelect,
+  onDelete,
+  onAdd,
+  minItems = 1,
+}: RecipeSelectorProps) {
   return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My data"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Format</div>
-        <select
-          value={format}
-          onChange={(e) => setFormat(e.target.value as "csv" | "json" | "tsv")}
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-          }}
-        >
-          <option value="csv">CSV</option>
-          <option value="json">JSON</option>
-          <option value="tsv">TSV</option>
-        </select>
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Content</div>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={4}
-          placeholder="Paste your data..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            fontFamily: "monospace",
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {items.map((item) => {
+        const active = item.id === selectedId;
+        return (
+          <div key={item.id} style={{ display: "flex", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => onSelect(item.id)}
+              style={{
+                padding: "6px 14px",
+                fontSize: 14,
+                borderRadius: 20,
+                border: active ? "2px solid #333" : "1px solid #ccc",
+                background: active ? "#333" : "#fff",
+                color: active ? "#fff" : "#333",
+                cursor: "pointer",
+              }}
+            >
+              {item.icon ? `${item.icon} ${item.label}` : item.label}
+            </button>
+            {onDelete && items.length > minItems && (
+              <button
+                type="button"
+                onClick={() => onDelete(item.id)}
+                style={{ ...deleteButtonStyle, marginLeft: 2 }}
+                title="Delete"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        );
+      })}
+      {onAdd && (
         <button
           type="button"
-          onClick={() => {
-            if (!content.trim()) return;
-            onAdd({
-              id: `custom-data-${Date.now()}`,
-              label: label.trim() || "Custom Data",
-              type: "data",
-              dataFormat: format,
-              dataContent: content.trim(),
-            });
-          }}
+          onClick={onAdd}
           style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
+            padding: "6px 14px",
+            fontSize: 14,
+            borderRadius: 20,
+            border: "1px dashed #ccc",
             background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
+            color: "#888",
+            cursor: "pointer",
           }}
         >
-          Cancel
+          + New
         </button>
-      </div>
+      )}
     </div>
   );
 }
 
-export function CustomDocumentForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [text, setText] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My document"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Document text</div>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={5}
-          placeholder="Paste your document text..."
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!text.trim()) return;
-            onAdd({
-              id: `custom-doc-${Date.now()}`,
-              label: label.trim() || "Custom Document",
-              type: "document",
-              documentText: text.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomAudioForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My audio"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Audio URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://...mp3"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-audio-${Date.now()}`,
-              label: label.trim() || "Custom Audio",
-              type: "audio",
-              audioUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function CustomVideoForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (m: CustomMaterial) => void;
-  onCancel: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <div style={{ border: "1px solid #e0e0e0", borderRadius: 6, padding: 12, marginTop: 8 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Label</div>
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="My video"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Video URL</div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://...mp4"
-          style={{
-            width: "100%",
-            padding: "4px 6px",
-            fontSize: 13,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => {
-            if (!url.trim()) return;
-            onAdd({
-              id: `custom-video-${Date.now()}`,
-              label: label.trim() || "Custom Video",
-              type: "video",
-              videoUrl: url.trim(),
-            });
-          }}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#333",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-          }}
-        >
-          Add
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            padding: "4px 12px",
-            fontSize: 12,
-            cursor: "pointer",
-            background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Recipe Info Popover ────────────────────────────────────────────────────
+// ─── Recipe Info Detail ─────────────────────────────────────────────────────
 
 export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?: number }) {
   return (
@@ -588,36 +522,16 @@ export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?:
   );
 }
 
-export function RecipeInfoPopover({ entry, onClose }: { entry: RecipeEntry; onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
+export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
   const { meta } = entry;
   const catalyst = entry.recipe.catalyst;
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
-
   return (
     <div
-      ref={ref}
       style={{
-        position: "absolute",
-        top: "100%",
-        left: 0,
-        marginTop: 6,
-        width: 360,
-        background: "#fff",
-        border: "1px solid #ccc",
+        border: "1px solid #e0e0e0",
         borderRadius: 6,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
         padding: 14,
-        zIndex: 100,
         fontSize: 13,
         color: "#333",
       }}
@@ -722,6 +636,312 @@ export function RecipeInfoPopover({ entry, onClose }: { entry: RecipeEntry; onCl
           {meta.promptTemplate}
         </pre>
       </div>
+    </div>
+  );
+}
+
+// ─── Page Shell ─────────────────────────────────────────────────────────────
+
+export function PageShell({
+  title,
+  subtitle,
+  rightWidth = 400,
+  maxWidth = 1280,
+  left,
+  right,
+}: {
+  title: string;
+  subtitle?: string;
+  rightWidth?: number;
+  maxWidth?: number;
+  left: React.ReactNode;
+  right: React.ReactNode;
+}) {
+  return (
+    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div
+        style={{
+          maxWidth,
+          margin: "0 auto",
+          padding: "32px 24px",
+          display: "grid",
+          gridTemplateColumns: `1fr ${rightWidth}px`,
+          gap: 24,
+          alignItems: "start",
+        }}
+      >
+        <div>
+          <h1 style={{ margin: "0 0 4px" }}>{title}</h1>
+          {subtitle && (
+            <p style={{ color: "#888", margin: "0 0 16px", fontSize: 14 }}>{subtitle}</p>
+          )}
+          {left}
+        </div>
+        <div>{right}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Selected Materials Preview ─────────────────────────────────────────────
+
+export interface SelectedMaterialItem {
+  id: string;
+  icon: string;
+  label: string;
+  imageUrl?: string;
+  text?: string;
+}
+
+export function SelectedMaterialsPreview({
+  materials,
+  emptyMessage = "Select materials",
+  onClear,
+}: {
+  materials: SelectedMaterialItem[];
+  emptyMessage?: string;
+  onClear: () => void;
+}) {
+  if (materials.length === 0) {
+    return (
+      <div
+        style={{
+          border: "1px dashed #ccc",
+          borderRadius: 6,
+          padding: "28px 16px",
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: 14,
+          marginBottom: 16,
+        }}
+      >
+        {emptyMessage} &rarr;
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        border: "1px solid #e0e0e0",
+        borderRadius: 6,
+        padding: 16,
+        marginBottom: 16,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={labelStyle}>Materials ({materials.length})</span>
+        <button
+          type="button"
+          onClick={onClear}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#999",
+            cursor: "pointer",
+            fontSize: 12,
+            padding: 0,
+          }}
+        >
+          Clear all
+        </button>
+      </div>
+      {materials.map((mat) => (
+        <div key={mat.id} style={{ marginTop: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+            {mat.icon} {mat.label}
+          </div>
+          {mat.imageUrl && (
+            <img
+              src={mat.imageUrl}
+              alt="Material"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 140,
+                borderRadius: 4,
+                border: "1px solid #e0e0e0",
+                marginBottom: 6,
+                display: "block",
+              }}
+            />
+          )}
+          {mat.text && (
+            <pre style={{ ...codeStyle, margin: 0, maxHeight: 80, fontSize: 12 }}>{mat.text}</pre>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Language Select ────────────────────────────────────────────────────────
+
+export function LanguageSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        padding: "3px 6px",
+        fontSize: 12,
+        borderRadius: 4,
+        border: "1px solid #ccc",
+        background: "#fff",
+        color: "#333",
+        cursor: "pointer",
+      }}
+    >
+      <option value="">Auto</option>
+      <option value="English">English</option>
+      <option value="Japanese">日本語</option>
+      <option value="Chinese">中文</option>
+      <option value="Korean">한국어</option>
+    </select>
+  );
+}
+
+// ─── Transmute Button ───────────────────────────────────────────────────────
+
+export function TransmuteButton({
+  onClick,
+  disabled,
+  isLoading,
+  label,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  isLoading: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: "100%",
+        padding: "10px 20px",
+        fontSize: 14,
+        fontWeight: 600,
+        cursor: disabled ? "not-allowed" : "pointer",
+        background: disabled ? "#ccc" : "#333",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      {isLoading ? "Transmuting..." : (label ?? "Transmute")}
+    </button>
+  );
+}
+
+// ─── Result Panel ───────────────────────────────────────────────────────────
+
+export function ResultPanel({
+  result,
+  isLoading,
+  error,
+  resultMode = "text",
+}: {
+  result: unknown | null;
+  isLoading: boolean;
+  error: string | null;
+  resultMode?: "text" | "html";
+}) {
+  if (isLoading) {
+    return (
+      <div style={{ padding: "24px 0", textAlign: "center", color: "#888", fontSize: 13 }}>
+        Transmuting...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div style={{ ...labelStyle, marginBottom: 6 }}>Error</div>
+        <div
+          style={{
+            ...codeStyle,
+            background: "#fff5f5",
+            color: "#c62828",
+            border: "1px solid #ffcdd2",
+          }}
+        >
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (result == null) {
+    return (
+      <div
+        style={{
+          padding: "24px 0",
+          textAlign: "center",
+          color: "#ccc",
+          fontSize: 12,
+        }}
+      >
+        Results will appear here
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ ...labelStyle, marginBottom: 6 }}>Result</div>
+      {typeof result === "string" ? (
+        resultMode === "html" ? (
+          <>
+            <div
+              style={{
+                ...codeStyle,
+                whiteSpace: "normal",
+                maxHeight: 400,
+                overflow: "auto",
+              }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: intentional HTML rendering from LLM output
+              dangerouslySetInnerHTML={{ __html: result }}
+            />
+            <details>
+              <summary style={{ cursor: "pointer", fontSize: 13, color: "#888" }}>
+                View HTML Source
+              </summary>
+              <pre style={{ ...codeStyle, marginTop: 8, fontSize: 12 }}>{result}</pre>
+            </details>
+          </>
+        ) : (
+          <div
+            style={{
+              ...codeStyle,
+              whiteSpace: "pre-wrap",
+              maxHeight: 400,
+              overflow: "auto",
+            }}
+          >
+            {result}
+          </div>
+        )
+      ) : (
+        <pre
+          style={{
+            ...codeStyle,
+            maxHeight: 400,
+            overflow: "auto",
+          }}
+        >
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
