@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples — Alchemy</title>
+  <link rel="icon" href="../favicon.svg" />
+  <script type="module" src="../src/main.ts"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/alchemy/" class="header-logo">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 2L12 12H8L14 20L12 30H20L18 20L24 12H20L16 2Z" fill="url(#g)"/><defs><linearGradient id="g" x1="8" y1="2" x2="24" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient></defs></svg>
+        <span>Alchemy</span>
+      </a>
+      <nav class="header-nav">
+        <a href="/alchemy/getting-started/">Getting Started</a>
+        <a href="/alchemy/concepts/">Concepts</a>
+        <a href="/alchemy/api/">API</a>
+        <a href="/alchemy/examples/" class="active">Examples</a>
+      </nav>
+      <div class="header-actions">
+        <a href="https://github.com/EdV4H/alchemy" class="github-link" target="_blank" rel="noopener">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <div class="sidebar-backdrop"></div>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Guide</div>
+        <a href="/alchemy/getting-started/" class="sidebar-link">Getting Started</a>
+        <a href="/alchemy/concepts/" class="sidebar-link">Concepts</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Reference</div>
+        <a href="/alchemy/api/" class="sidebar-link">API Reference</a>
+        <a href="/alchemy/examples/" class="sidebar-link">Examples</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Examples</div>
+        <a href="#simple-text" class="sidebar-link sub">Simple Text</a>
+        <a href="#structured-json" class="sidebar-link sub">Structured JSON</a>
+        <a href="#multimodal" class="sidebar-link sub">Multimodal Input</a>
+        <a href="#streaming" class="sidebar-link sub">Streaming</a>
+        <a href="#compare" class="sidebar-link sub">A/B Comparison</a>
+        <a href="#react-ui" class="sidebar-link sub">React UI</a>
+      </div>
+    </aside>
+
+    <main class="doc-main">
+      <div class="doc-content">
+        <div class="page-header">
+          <h1>Examples</h1>
+          <p class="subtitle">Real-world code examples demonstrating Alchemy patterns.</p>
+        </div>
+
+        <div class="callout callout-info">
+          <strong>Full Examples</strong>
+          <p>Complete runnable examples are available in the <a href="https://github.com/EdV4H/alchemy/tree/main/examples" target="_blank" rel="noopener">examples/</a> directory on GitHub.</p>
+        </div>
+
+        <!-- Example 1 -->
+        <h2 id="simple-text">Simple Text Translation</h2>
+        <p>The most basic use case — send text, get text back.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter({
+    apiKey: process.env.OPENAI_API_KEY,
+  }),
+});
+
+const result = await alchemist.transmute({
+  recipe: {
+    spell: { output: "Translate this text to Japanese" },
+    catalyst: {
+      temperature: 0.3,
+      roleDefinition: "You are a professional translator",
+    },
+  },
+  materials: [
+    { type: "text", text: "The quick brown fox jumps over the lazy dog." },
+  ],
+});
+
+console.log(result.output);
+// → "素早い茶色の狐が怠けた犬を飛び越える。"</code></pre>
+        </div>
+
+        <!-- Example 2 -->
+        <h2 id="structured-json">Structured JSON Output</h2>
+        <p>Use Zod schemas to get validated, type-safe JSON responses from the LLM.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
+import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+import { z } from "zod";
+
+const ProductSchema = z.object({
+  name: z.string(),
+  tagline: z.string().max(100),
+  features: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+  })).min(3).max(5),
+  targetAudience: z.string(),
+  tone: z.enum(["professional", "casual", "playful"]),
+});
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter(),
+});
+
+const result = await alchemist.transmute({
+  recipe: {
+    spell: { output: "Generate a product description based on these notes" },
+    refiner: new JsonRefiner(ProductSchema),
+    catalyst: { temperature: 0.7, model: "gpt-4o" },
+  },
+  materials: [
+    { type: "text", text: "Note-taking app for developers, markdown support, git integration" },
+  ],
+});
+
+// result.output is fully typed!
+console.log(result.output.name);        // "DevNotes"
+console.log(result.output.features[0]); // { title: "...", description: "..." }</code></pre>
+        </div>
+
+        <!-- Example 3 -->
+        <h2 id="multimodal">Multimodal Input</h2>
+        <p>Combine text, images, and data in a single request.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { JsonRefiner, dataToText } from "@EdV4H/alchemy-core";
+import { Alchemist, OpenAITransmuter, imageUrlToBase64 } from "@EdV4H/alchemy-node";
+import { z } from "zod";
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter({ defaultModel: "gpt-4o" }),
+  transforms: [
+    imageUrlToBase64(),  // Convert image URLs to base64 for API
+    dataToText(),        // Convert CSV/JSON data to readable text
+  ],
+});
+
+const AnalysisSchema = z.object({
+  chartDescription: z.string(),
+  trend: z.enum(["up", "down", "stable"]),
+  insights: z.array(z.string()),
+  dataHighlights: z.array(z.string()),
+});
+
+const result = await alchemist.transmute({
+  recipe: {
+    spell: { output: "Analyze this chart and its underlying data" },
+    refiner: new JsonRefiner(AnalysisSchema),
+  },
+  materials: [
+    { type: "text", text: "Q4 2024 Sales Report" },
+    { type: "image", imageUrl: "https://example.com/sales-chart.png" },
+    {
+      type: "data",
+      dataFormat: "csv",
+      dataContent: "month,revenue\nOct,45000\nNov,52000\nDec,61000",
+      dataLabel: "Monthly Revenue",
+    },
+  ],
+});
+
+console.log(result.output.trend);     // "up"
+console.log(result.output.insights);  // ["Revenue grew 35% over Q4", ...]</code></pre>
+        </div>
+
+        <!-- Example 4 -->
+        <h2 id="streaming">Streaming Responses</h2>
+        <p>Get progressive output for long-form content generation.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter(),
+});
+
+// Stream a long response
+const stream = alchemist.stream({
+  recipe: {
+    spell: {
+      output: "Write a detailed tutorial about building REST APIs with Hono",
+    },
+    catalyst: {
+      temperature: 0.6,
+      model: "gpt-4o",
+      roleDefinition: "You are a senior developer writing a technical blog post",
+    },
+  },
+  materials: [
+    { type: "text", text: "Target audience: intermediate TypeScript developers" },
+  ],
+});
+
+// Process chunks as they arrive
+let fullText = "";
+for await (const chunk of stream) {
+  process.stdout.write(chunk);
+  fullText += chunk;
+}
+
+console.log(`\n\nTotal length: ${fullText.length} characters`);</code></pre>
+        </div>
+
+        <!-- Example 5 -->
+        <h2 id="compare">A/B Catalyst Comparison</h2>
+        <p>Run the same recipe with different model configurations in parallel.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
+import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+import { z } from "zod";
+
+const CopySchema = z.object({
+  headline: z.string(),
+  body: z.string(),
+  cta: z.string(),
+});
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter(),
+});
+
+const recipe = {
+  spell: { output: "Write marketing copy for this product" },
+  refiner: new JsonRefiner(CopySchema),
+};
+
+const materials = [
+  { type: "text" as const, text: "AI-powered code review tool for teams" },
+];
+
+// Compare creative vs. precise catalysts
+const results = await alchemist.compare({
+  recipe,
+  materials,
+  catalysts: [
+    { temperature: 0.9, model: "gpt-4o", roleDefinition: "You are a creative copywriter" },
+    { temperature: 0.2, model: "gpt-4o-mini", roleDefinition: "You are a concise technical writer" },
+  ],
+});
+
+// Both run in parallel via Promise.allSettled
+for (const [index, result] of results.entries()) {
+  if (result.status === "fulfilled") {
+    console.log(`Catalyst ${index}:`, result.value.output.headline);
+  }
+}</code></pre>
+        </div>
+
+        <!-- Example 6 -->
+        <h2 id="react-ui">React UI with useAlchemy</h2>
+        <p>Build an interactive LLM-powered UI with the <code>useAlchemy</code> hook.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">tsx</span>
+          </div>
+          <pre><code class="language-tsx">import { useAlchemy } from "@EdV4H/alchemy-react";
+import type { MaterialInput } from "@EdV4H/alchemy-react";
+
+function TranslatorApp() {
+  const {
+    transmute,
+    result,
+    isLoading,
+    error,
+    selectCatalyst,
+    selectedCatalystKey,
+  } = useAlchemy&lt;{ translation: string; language: string }&gt;({
+    initialRecipeId: "translate",
+    baseUrl: "/api",
+  });
+
+  const handleTranslate = async (text: string, targetLang: string) => {
+    const materials: MaterialInput[] = [
+      { type: "text", text },
+    ];
+
+    // Set language before transmuting
+    selectCatalyst(targetLang);
+    await transmute(materials);
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;textarea
+        placeholder="Enter text to translate..."
+        onKeyDown={(e) =&gt; {
+          if (e.key === "Enter" &amp;&amp; e.metaKey) {
+            handleTranslate(e.currentTarget.value, "ja");
+          }
+        }}
+      /&gt;
+
+      &lt;div className="catalysts"&gt;
+        {["ja", "fr", "de", "es"].map((lang) =&gt; (
+          &lt;button
+            key={lang}
+            onClick={() =&gt; selectCatalyst(lang)}
+            data-active={selectedCatalystKey === lang}
+          &gt;
+            {lang.toUpperCase()}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+
+      {isLoading &amp;&amp; &lt;p&gt;Translating...&lt;/p&gt;}
+      {error &amp;&amp; &lt;p className="error"&gt;{error}&lt;/p&gt;}
+      {result &amp;&amp; (
+        &lt;div className="result"&gt;
+          &lt;p&gt;{result.translation}&lt;/p&gt;
+          &lt;small&gt;Language: {result.language}&lt;/small&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Live Demo</strong>
+          <p>Check out the <a href="https://github.com/EdV4H/alchemy/tree/main/examples/hono-app" target="_blank" rel="noopener">hono-app example</a> for a full-stack demo with React frontend and Hono backend, including a playground, travel assistant, and team landing page generator.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
