@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { MaterialInput } from "./types.js";
 import { useCompare } from "./use-compare.js";
+import type { PromptPreview } from "./use-transmute.js";
 import { useTransmute } from "./use-transmute.js";
 
 export interface UseAlchemyOptions {
@@ -37,11 +38,14 @@ export interface UseAlchemyResult<TOutput = unknown> {
   // Actions
   transmute: (materials: MaterialInput[]) => Promise<void>;
   compare: (materials: MaterialInput[]) => Promise<void>;
+  preview: (materials: MaterialInput[]) => Promise<PromptPreview | undefined>;
 
   // Results
   result: TOutput | null;
   compareResults: Record<string, TOutput> | null;
+  previewResult: PromptPreview | null;
   isLoading: boolean;
+  isPreviewLoading: boolean;
   error: string | null;
   resetResults: () => void;
 }
@@ -76,6 +80,7 @@ export function useAlchemy<TOutput = unknown>(
 
   // ── Derived state ──
   const isLoading = transmuteHook.isLoading || compareHook.isLoading;
+  const isPreviewLoading = transmuteHook.isPreviewLoading;
   const error = localError ?? transmuteHook.error?.message ?? compareHook.error?.message ?? null;
 
   // ── Recipe selection resets catalyst/compare/results ──
@@ -174,6 +179,17 @@ export function useAlchemy<TOutput = unknown>(
     ],
   );
 
+  // ── Preview ──
+  const preview = useCallback(
+    async (materials: MaterialInput[]) => {
+      return transmuteHook.preview(selectedRecipeId, materials, {
+        catalystKey: selectedCatalystKey ?? undefined,
+        language: selectedLanguage ?? undefined,
+      });
+    },
+    [selectedRecipeId, selectedCatalystKey, selectedLanguage, transmuteHook.preview],
+  );
+
   // ── Reset ──
   const resetResults = useCallback(() => {
     setLocalError(null);
@@ -198,9 +214,12 @@ export function useAlchemy<TOutput = unknown>(
     setCompareKeys,
     transmute,
     compare,
+    preview,
     result: transmuteHook.data,
     compareResults: compareHook.data,
+    previewResult: transmuteHook.previewData,
     isLoading,
+    isPreviewLoading,
     error,
     resetResults,
   };

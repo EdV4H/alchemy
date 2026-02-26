@@ -15,10 +15,17 @@ interface UsePlaygroundTransmuteOptions {
   headers?: Record<string, string>;
 }
 
+interface PromptPreviewData {
+  system?: string;
+  user: string;
+}
+
 interface UsePlaygroundTransmuteResult {
   transmute: (payload: PlaygroundTransmutePayload) => Promise<void>;
+  preview: (payload: PlaygroundTransmutePayload) => Promise<PromptPreviewData>;
   result: unknown | null;
   isLoading: boolean;
+  isPreviewLoading: boolean;
   error: string | null;
   reset: () => void;
 }
@@ -51,8 +58,10 @@ export function usePlaygroundTransmute(
   const extraHeaders = options?.headers;
   const [result, setResult] = useState<unknown | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
 
   const transmute = useCallback(
     async (payload: PlaygroundTransmutePayload) => {
@@ -106,12 +115,58 @@ export function usePlaygroundTransmute(
     [extraHeaders],
   );
 
+  const preview = useCallback(
+    async (payload: PlaygroundTransmutePayload): Promise<PromptPreviewData> => {
+      previewAbortRef.current?.abort();
+      const controller = new AbortController();
+      previewAbortRef.current = controller;
+
+      setIsPreviewLoading(true);
+      try {
+        const body = {
+          materials: payload.materials.map(materialToServerInput),
+          recipe: {
+            promptTemplate: payload.promptTemplate,
+            outputType: payload.outputType,
+            transforms: payload.transforms,
+          },
+          catalyst: payload.catalyst
+            ? {
+                roleDefinition: payload.catalyst.roleDefinition,
+                temperature: payload.catalyst.temperature,
+                model: payload.catalyst.model || undefined,
+              }
+            : undefined,
+          language: payload.language || undefined,
+        };
+
+        const res = await fetch("/api/playground/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...extraHeaders },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error ?? `Server error (${res.status})`);
+        }
+        return data as PromptPreviewData;
+      } finally {
+        setIsPreviewLoading(false);
+      }
+    },
+    [extraHeaders],
+  );
+
   const reset = useCallback(() => {
     abortRef.current?.abort();
+    previewAbortRef.current?.abort();
     setResult(null);
     setError(null);
     setIsLoading(false);
+    setIsPreviewLoading(false);
   }, []);
 
-  return { transmute, result, isLoading, error, reset };
+  return { transmute, preview, result, isLoading, isPreviewLoading, error, reset };
 }
