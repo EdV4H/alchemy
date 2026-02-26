@@ -1,4 +1,4 @@
-import type { CatalystConfig, MaterialPart } from "@EdV4H/alchemy-node";
+import type { CatalystConfig, MaterialPart, MaterialTransform } from "@EdV4H/alchemy-node";
 import {
   Alchemist,
   AnthropicTransmuter,
@@ -6,6 +6,7 @@ import {
   documentToText,
   GoogleTransmuter,
   imageUrlToBase64,
+  normalizeSpellOutput,
   OpenAITransmuter,
   toMaterialParts,
   truncateText,
@@ -223,6 +224,111 @@ app.post("/api/compare/:recipeId", async (c) => {
       ]),
     );
     return c.json(serialized);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: message }, 500);
+  }
+});
+
+// ─── Prompt Preview ──────────────────────────────────────────────────────────
+
+export interface PromptPreview {
+  system?: string;
+  user: string;
+}
+
+function materialPartToText(part: MaterialPart): string {
+  switch (part.type) {
+    case "text":
+      return part.text;
+    case "image":
+      return part.source.kind === "url"
+        ? `[Image: ${part.source.url}]`
+        : `[Image: base64 ${part.source.mediaType}]`;
+    case "audio":
+      return part.source.kind === "url"
+        ? `[Audio: ${part.source.url}]`
+        : `[Audio: base64 ${part.source.mediaType}]`;
+    case "document":
+      return part.source.kind === "url" ? `[Document: ${part.source.url}]` : part.source.text;
+    case "video":
+      return part.source.kind === "url"
+        ? `[Video: ${part.source.url}]`
+        : `[Video: base64 ${part.source.mediaType}]`;
+    case "data":
+      return `[Data: ${part.label ?? part.format}]\n${part.content}`;
+    default:
+      return "[Unknown part]";
+  }
+}
+
+export async function buildPromptPreview(
+  parts: MaterialPart[],
+  recipe: {
+    id: string;
+    catalyst?: CatalystConfig;
+    // biome-ignore lint/suspicious/noExplicitAny: spell input varies
+    spell: (material: any) => any;
+    transforms?: MaterialTransform[];
+    refiner: { getFormatInstructions?(): string };
+  },
+  options: { catalyst?: CatalystConfig; language?: string },
+): Promise<PromptPreview> {
+  // 1. Run spell
+  const spellOutput = await recipe.spell(parts);
+  let materialParts = normalizeSpellOutput(spellOutput);
+
+  // 2. Apply transforms
+  const transforms = recipe.transforms ?? [];
+  for (const transform of transforms) {
+    materialParts = await transform(materialParts, {
+      catalyst: options.catalyst ?? recipe.catalyst,
+      recipeId: recipe.id,
+    });
+  }
+
+  // 3. Append format instructions
+  const formatInstructions = recipe.refiner.getFormatInstructions?.();
+  if (formatInstructions) {
+    materialParts.push({ type: "text", text: formatInstructions });
+  }
+
+  // 4. Build user prompt text
+  const user = materialParts.map(materialPartToText).join("\n\n");
+
+  // 5. Build system prompt
+  const catalyst = options.catalyst ?? recipe.catalyst;
+  const systemParts: string[] = [];
+  if (catalyst?.roleDefinition) systemParts.push(catalyst.roleDefinition);
+  if (options.language) systemParts.push(`Respond in ${options.language}.`);
+  const system = systemParts.length > 0 ? systemParts.join("\n") : undefined;
+
+  return { system, user };
+}
+
+app.post("/api/preview/:recipeId", async (c) => {
+  const { recipeId } = c.req.param();
+  const recipe = allRecipes[recipeId];
+
+  if (!recipe) {
+    return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);
+  }
+
+  const body = await c.req.json<TransmuteBody>();
+  const materials = body.materials;
+
+  if (!Array.isArray(materials) || materials.length === 0) {
+    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
+  }
+
+  try {
+    const parts = serverToMaterialParts(materials);
+    const catalyst = resolveCatalystPreset(body.catalystKey);
+    const preview = await buildPromptPreview(parts, recipe, {
+      catalyst,
+      language: body.language,
+    });
+    return c.json(preview);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return c.json({ error: message }, 500);

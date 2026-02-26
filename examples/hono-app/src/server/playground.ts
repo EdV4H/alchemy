@@ -15,7 +15,7 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import type { ServerMaterialInput } from "./index.js";
-import { resolveAlchemist, serverToMaterialParts } from "./index.js";
+import { buildPromptPreview, resolveAlchemist, serverToMaterialParts } from "./index.js";
 
 type Bindings = {
   OPENAI_API_KEY?: string;
@@ -151,6 +151,56 @@ app.post("/transmute", async (c) => {
       language: body.language,
     });
     return c.json(result);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: message }, 500);
+  }
+});
+
+// ─── Preview Endpoint ────────────────────────────────────────────────────────
+
+app.post("/preview", async (c) => {
+  const body = await c.req.json<PlaygroundTransmuteBody>();
+
+  if (!Array.isArray(body.materials) || body.materials.length === 0) {
+    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
+  }
+
+  if (!body.recipe?.promptTemplate) {
+    return c.json({ error: "recipe.promptTemplate is required" }, 400);
+  }
+
+  let spell: (parts: MaterialPart[]) => string;
+  try {
+    spell = buildSpellFromTemplate(body.recipe.promptTemplate);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: `Template error: ${message}` }, 400);
+  }
+
+  let transforms: MaterialTransform[] = [];
+  if (body.recipe.transforms && body.recipe.transforms.length > 0) {
+    try {
+      transforms = body.recipe.transforms.map(parseTransform);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return c.json({ error: `Transform error: ${message}` }, 400);
+    }
+  }
+
+  const refiner =
+    body.recipe.outputType === "json"
+      ? new JsonRefiner(z.record(z.string(), z.unknown()))
+      : new TextRefiner();
+
+  try {
+    const parts = serverToMaterialParts(body.materials);
+    const preview = await buildPromptPreview(
+      parts,
+      { id: "playground", spell, refiner, transforms },
+      { catalyst: body.catalyst, language: body.language },
+    );
+    return c.json(preview);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return c.json({ error: message }, 500);
