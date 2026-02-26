@@ -1,8 +1,10 @@
 import type { CatalystConfig, MaterialPart } from "@EdV4H/alchemy-node";
 import {
   Alchemist,
+  AnthropicTransmuter,
   dataToText,
   documentToText,
+  GoogleTransmuter,
   imageUrlToBase64,
   OpenAITransmuter,
   toMaterialParts,
@@ -18,22 +20,55 @@ import { travelCatalystPresets } from "../travel/catalysts.js";
 import { travelRecipeRegistry } from "../travel/recipes.js";
 import playgroundApp from "./playground.js";
 
-type Bindings = { OPENAI_API_KEY?: string };
+type Bindings = {
+  OPENAI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
+  GOOGLE_API_KEY?: string;
+};
 const app = new Hono<{ Bindings: Bindings }>();
 
 /**
  * Resolve Alchemist per request.
- * Priority: X-OpenAI-API-Key header > OPENAI_API_KEY env > error
+ * Uses X-Transmuter-Provider header to select provider (default: openai).
+ * Each provider reads its own API key header.
  */
 export function resolveAlchemist(c: Context<{ Bindings: Bindings }>): Alchemist {
-  const headerKey = c.req.header("X-OpenAI-API-Key");
-  const apiKey = headerKey || c.env?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "OpenAI API key is required. Set it via the UI or OPENAI_API_KEY environment variable.",
-    );
+  const provider = c.req.header("X-Transmuter-Provider") ?? "openai";
+
+  switch (provider) {
+    case "anthropic": {
+      const apiKey =
+        c.req.header("X-Anthropic-API-Key") ||
+        c.env?.ANTHROPIC_API_KEY ||
+        process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "Anthropic API key is required. Set it via the UI or ANTHROPIC_API_KEY environment variable.",
+        );
+      }
+      return new Alchemist({ transmuter: new AnthropicTransmuter({ apiKey }) });
+    }
+    case "google": {
+      const apiKey =
+        c.req.header("X-Google-API-Key") || c.env?.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "Google API key is required. Set it via the UI or GOOGLE_API_KEY environment variable.",
+        );
+      }
+      return new Alchemist({ transmuter: new GoogleTransmuter({ apiKey }) });
+    }
+    default: {
+      const apiKey =
+        c.req.header("X-OpenAI-API-Key") || c.env?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "OpenAI API key is required. Set it via the UI or OPENAI_API_KEY environment variable.",
+        );
+      }
+      return new Alchemist({ transmuter: new OpenAITransmuter({ apiKey }) });
+    }
   }
-  return new Alchemist({ transmuter: new OpenAITransmuter({ apiKey }) });
 }
 
 // Inject Node-specific transforms at server init (common)

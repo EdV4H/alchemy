@@ -17,7 +17,11 @@ import { z } from "zod";
 import type { ServerMaterialInput } from "./index.js";
 import { resolveAlchemist, serverToMaterialParts } from "./index.js";
 
-type Bindings = { OPENAI_API_KEY?: string };
+type Bindings = {
+  OPENAI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
+  GOOGLE_API_KEY?: string;
+};
 const app = new Hono<{ Bindings: Bindings }>();
 
 // ─── Transform registry ─────────────────────────────────────────────────────

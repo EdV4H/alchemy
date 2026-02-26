@@ -1,17 +1,66 @@
 import { useState } from "react";
 import { inputStyle } from "./styles.js";
+import type { TransmuterProvider } from "./useApiKeyStore.js";
 import { useApiKeyStore } from "./useApiKeyStore.js";
 
+const providerConfig: Record<
+  TransmuterProvider,
+  { label: string; placeholder: string; color: string; bgColor: string; borderColor: string }
+> = {
+  openai: {
+    label: "OpenAI",
+    placeholder: "sk-...",
+    color: "#2e7d32",
+    bgColor: "#e8f5e9",
+    borderColor: "#4caf50",
+  },
+  anthropic: {
+    label: "Anthropic",
+    placeholder: "sk-ant-...",
+    color: "#e65100",
+    bgColor: "#fff3e0",
+    borderColor: "#ff9800",
+  },
+  google: {
+    label: "Google",
+    placeholder: "AI...",
+    color: "#1565c0",
+    bgColor: "#e3f2fd",
+    borderColor: "#2196f3",
+  },
+};
+
 export function ApiKeyInput() {
-  const { apiKey, setApiKey, clearApiKey } = useApiKeyStore();
+  const { provider, setProvider, apiKey, setApiKey, clearApiKey } = useApiKeyStore();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(apiKey);
 
   const hasKey = apiKey.length > 0;
-  const masked = hasKey ? `sk-...${apiKey.slice(-4)}` : "";
+  const config = providerConfig[provider];
+  const masked = hasKey ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "";
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+      {/* Provider selector */}
+      <select
+        value={provider}
+        onChange={(e) => setProvider(e.target.value as TransmuterProvider)}
+        style={{
+          padding: "4px 6px",
+          fontSize: 12,
+          borderRadius: 4,
+          border: `1px solid ${config.borderColor}`,
+          background: config.bgColor,
+          color: config.color,
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="google">Google</option>
+      </select>
+
       <button
         type="button"
         onClick={() => {
@@ -22,9 +71,9 @@ export function ApiKeyInput() {
           padding: "4px 10px",
           fontSize: 12,
           borderRadius: 4,
-          border: hasKey ? "1px solid #4caf50" : "1px solid #ff9800",
-          background: hasKey ? "#e8f5e9" : "#fff3e0",
-          color: hasKey ? "#2e7d32" : "#e65100",
+          border: hasKey ? `1px solid ${config.borderColor}` : "1px solid #ff9800",
+          background: hasKey ? config.bgColor : "#fff3e0",
+          color: hasKey ? config.color : "#e65100",
           cursor: "pointer",
         }}
       >
@@ -47,12 +96,12 @@ export function ApiKeyInput() {
             minWidth: 280,
           }}
         >
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 6 }}>OpenAI API Key</div>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 6 }}>{config.label} API Key</div>
           <input
             type="password"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="sk-..."
+            placeholder={config.placeholder}
             style={{ ...inputStyle, marginBottom: 8 }}
           />
           <div style={{ display: "flex", gap: 6 }}>
