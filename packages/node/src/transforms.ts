@@ -13,11 +13,16 @@ export function imageUrlToBase64(): MaterialTransform {
         if (!res.ok) {
           throw new TransformError(`Failed to fetch image: ${res.status} ${res.statusText}`);
         }
-        const buffer = Buffer.from(await res.arrayBuffer());
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
         const mediaType = res.headers.get("content-type") ?? "image/png";
         result.push({
           type: "image",
-          source: { kind: "base64", mediaType, data: buffer.toString("base64") },
+          source: { kind: "base64", mediaType, data: base64 },
         });
       } else {
         result.push(part);
