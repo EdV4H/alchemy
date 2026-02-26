@@ -1,6 +1,25 @@
 {
-  "name": "@EdV4H/alchemy-react",
+  "name": "@edv4h/alchemy-react",
   "version": "0.0.0",
+  "description": "React hooks for Alchemy — headless UI primitives for LLM-powered components",
+  "license": "MIT",
+  "author": "EdV4H",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdV4H/alchemy.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/EdV4H/alchemy#readme",
+  "bugs": "https://github.com/EdV4H/alchemy/issues",
+  "keywords": [
+    "alchemy",
+    "llm",
+    "prompt-engineering",
+    "ai",
+    "react",
+    "hooks",
+    "typescript"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,6 +32,13 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "biome check .",
@@ -20,7 +46,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@EdV4H/alchemy-core": "workspace:*"
+    "@edv4h/alchemy-core": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"

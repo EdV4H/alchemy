@@ -1,5 +1,5 @@
-import type { MaterialPart, MaterialTransform } from "@EdV4H/alchemy-core";
-import { TransformError } from "@EdV4H/alchemy-core";
+import type { MaterialPart, MaterialTransform } from "@edv4h/alchemy-core";
+import { TransformError } from "@edv4h/alchemy-core";
 
 /**
  * 画像 URL パーツを base64 に変換する

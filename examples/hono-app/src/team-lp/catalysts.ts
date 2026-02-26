@@ -1,4 +1,4 @@
-import type { NamedCatalyst } from "@EdV4H/alchemy-node";
+import type { NamedCatalyst } from "@edv4h/alchemy-node";
 
 /** チームLP用カタリストプリセット */
 export const teamLpCatalystPresets: NamedCatalyst[] = [

@@ -129,7 +129,7 @@ const materials = [
   prependText,
   filterByType,
   dataToText,
-} from "@EdV4H/alchemy-core";
+} from "@edv4h/alchemy-core";
 
 // Built-in transforms
 const alchemist = new Alchemist({
@@ -172,7 +172,7 @@ const recipe = {
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import type { CatalystConfig, NamedCatalyst } from "@EdV4H/alchemy-core";
+          <pre><code class="language-ts">import type { CatalystConfig, NamedCatalyst } from "@edv4h/alchemy-core";
 
 // Inline catalyst
 const catalyst: CatalystConfig = {
@@ -235,7 +235,7 @@ const catalysts: Record&lt;string, NamedCatalyst&gt; = {
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
+          <pre><code class="language-ts">import { JsonRefiner } from "@edv4h/alchemy-core";
 import { z } from "zod";
 
 const refiner = new JsonRefiner(z.object({
@@ -259,7 +259,7 @@ const refiner = new JsonRefiner(z.object({
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import type { Recipe } from "@EdV4H/alchemy-core";
+          <pre><code class="language-ts">import type { Recipe } from "@edv4h/alchemy-core";
 
 const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&gt; = {
   spell: { output: "Summarize this text" },
@@ -284,7 +284,7 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter({ apiKey: "..." }),

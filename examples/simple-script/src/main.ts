@@ -1,5 +1,5 @@
-import type { MaterialPart, Refiner, TextMaterialPart } from "@EdV4H/alchemy-node";
-import { Alchemist, JsonRefiner, OpenAITransmuter, TextRefiner } from "@EdV4H/alchemy-node";
+import type { MaterialPart, Refiner, TextMaterialPart } from "@edv4h/alchemy-node";
+import { Alchemist, JsonRefiner, OpenAITransmuter, TextRefiner } from "@edv4h/alchemy-node";
 import { z } from "zod";
 
 // ─── Setup ───────────────────────────────────────────────────────────────────

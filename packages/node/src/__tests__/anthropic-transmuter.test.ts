@@ -1,4 +1,4 @@
-import type { MaterialPart } from "@EdV4H/alchemy-core";
+import type { MaterialPart } from "@edv4h/alchemy-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockCreate = vi.fn();

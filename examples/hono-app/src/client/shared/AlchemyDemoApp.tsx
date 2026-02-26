@@ -1,6 +1,6 @@
-import type { NamedCatalyst } from "@EdV4H/alchemy-node";
-import type { MaterialInput } from "@EdV4H/alchemy-react";
-import { useAlchemy } from "@EdV4H/alchemy-react";
+import type { NamedCatalyst } from "@edv4h/alchemy-node";
+import type { MaterialInput } from "@edv4h/alchemy-react";
+import { useAlchemy } from "@edv4h/alchemy-react";
 import { useCallback, useState } from "react";
 import type { RecipeEntry } from "../../shared/recipes.js";
 import { ApiKeyInput } from "./ApiKeyInput.js";

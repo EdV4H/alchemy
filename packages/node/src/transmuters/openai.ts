@@ -3,8 +3,8 @@ import type {
   TransmutationOptions,
   TransmutationResult,
   Transmuter,
-} from "@EdV4H/alchemy-core";
-import { extractText, isTextOnly, TransmuteError } from "@EdV4H/alchemy-core";
+} from "@edv4h/alchemy-core";
+import { extractText, isTextOnly, TransmuteError } from "@edv4h/alchemy-core";
 import OpenAI from "openai";
 
 export interface OpenAITransmuterConfig {

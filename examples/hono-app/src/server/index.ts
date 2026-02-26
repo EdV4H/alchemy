@@ -1,4 +1,4 @@
-import type { CatalystConfig, MaterialPart, MaterialTransform } from "@EdV4H/alchemy-node";
+import type { CatalystConfig, MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
 import {
   Alchemist,
   AnthropicTransmuter,
@@ -10,7 +10,7 @@ import {
   OpenAITransmuter,
   toMaterialParts,
   truncateText,
-} from "@EdV4H/alchemy-node";
+} from "@edv4h/alchemy-node";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { catalystPresets } from "../shared/catalysts.js";

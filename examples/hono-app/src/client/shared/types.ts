@@ -1,4 +1,4 @@
-export type { MaterialInput } from "@EdV4H/alchemy-react";
+export type { MaterialInput } from "@edv4h/alchemy-react";
 
 export interface MaterialCard {
   id: string;

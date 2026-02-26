@@ -1,4 +1,4 @@
-import type { MaterialPart, Recipe } from "@EdV4H/alchemy-node";
+import type { MaterialPart, Recipe } from "@edv4h/alchemy-node";
 import {
   extractText,
   filterByType,
@@ -6,7 +6,7 @@ import {
   prependText,
   TextRefiner,
   truncateText,
-} from "@EdV4H/alchemy-node";
+} from "@edv4h/alchemy-node";
 import { z } from "zod";
 import type { RecipeMeta } from "./recipe-types.js";
 import { zodToFieldMeta } from "./zod-helpers.js";

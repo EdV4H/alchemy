@@ -1,4 +1,4 @@
-import type { NamedCatalyst } from "@EdV4H/alchemy-node";
+import type { NamedCatalyst } from "@edv4h/alchemy-node";
 
 /** 全レシピ共通のカタリストプリセット */
 export const catalystPresets: NamedCatalyst[] = [

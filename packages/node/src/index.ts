@@ -6,8 +6,8 @@ import type {
   MaterialTransformContext,
   Recipe,
   TransmutationOptions,
-} from "@EdV4H/alchemy-core";
-import { normalizeSpellOutput, resolveCatalyst, TransmuteError } from "@EdV4H/alchemy-core";
+} from "@edv4h/alchemy-core";
+import { normalizeSpellOutput, resolveCatalyst, TransmuteError } from "@edv4h/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -111,7 +111,7 @@ export class Alchemist {
 }
 
 // Re-export core types and refiners
-export type * from "@EdV4H/alchemy-core";
+export type * from "@edv4h/alchemy-core";
 export {
   AlchemyError,
   dataToText,
@@ -129,7 +129,7 @@ export {
   TransmuteError,
   toMaterialParts,
   truncateText,
-} from "@EdV4H/alchemy-core";
+} from "@edv4h/alchemy-core";
 // Node-specific transforms
 export {
   audioToText,

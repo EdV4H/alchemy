@@ -1,6 +1,23 @@
 {
-  "name": "@EdV4H/alchemy-core",
+  "name": "@edv4h/alchemy-core",
   "version": "0.0.0",
+  "description": "Core primitives for Alchemy — a type-safe LLM prompt engineering toolkit",
+  "license": "MIT",
+  "author": "EdV4H",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdV4H/alchemy.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/EdV4H/alchemy#readme",
+  "bugs": "https://github.com/EdV4H/alchemy/issues",
+  "keywords": [
+    "alchemy",
+    "llm",
+    "prompt-engineering",
+    "ai",
+    "typescript"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,6 +30,13 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "biome check .",

@@ -1,11 +1,11 @@
+import Anthropic from "@anthropic-ai/sdk";
 import type {
   MaterialPart,
   TransmutationOptions,
   TransmutationResult,
   Transmuter,
-} from "@EdV4H/alchemy-core";
-import { extractText, isTextOnly, TransmuteError } from "@EdV4H/alchemy-core";
-import Anthropic from "@anthropic-ai/sdk";
+} from "@edv4h/alchemy-core";
+import { extractText, isTextOnly, TransmuteError } from "@edv4h/alchemy-core";
 
 export interface AnthropicTransmuterConfig {
   apiKey?: string;

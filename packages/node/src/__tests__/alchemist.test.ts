@@ -3,8 +3,8 @@ import type {
   MaterialTransform,
   TransmutationResult,
   Transmuter,
-} from "@EdV4H/alchemy-core";
-import { JsonRefiner, TextRefiner } from "@EdV4H/alchemy-core";
+} from "@edv4h/alchemy-core";
+import { JsonRefiner, TextRefiner } from "@edv4h/alchemy-core";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Alchemist } from "../index.js";
