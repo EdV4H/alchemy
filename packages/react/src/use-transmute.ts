@@ -3,6 +3,7 @@ import type { MaterialInput } from "./types.js";
 
 export interface UseTransmuteOptions {
   baseUrl?: string;
+  headers?: Record<string, string>;
 }
 
 export interface UseTransmuteResult<TOutput = unknown> {
@@ -21,6 +22,7 @@ export function useTransmute<TOutput = unknown>(
   options?: UseTransmuteOptions,
 ): UseTransmuteResult<TOutput> {
   const baseUrl = options?.baseUrl ?? "";
+  const extraHeaders = options?.headers;
   const [data, setData] = useState<TOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -41,7 +43,7 @@ export function useTransmute<TOutput = unknown>(
       try {
         const res = await fetch(`${baseUrl}/api/transmute/${recipeId}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...extraHeaders },
           body: JSON.stringify({
             materials,
             catalystKey: opts?.catalystKey,
@@ -65,7 +67,7 @@ export function useTransmute<TOutput = unknown>(
         setIsLoading(false);
       }
     },
-    [baseUrl],
+    [baseUrl, extraHeaders],
   );
 
   const reset = useCallback(() => {

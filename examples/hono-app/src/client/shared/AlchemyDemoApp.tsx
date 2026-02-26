@@ -3,6 +3,7 @@ import type { MaterialInput } from "@EdV4H/alchemy-react";
 import { useAlchemy } from "@EdV4H/alchemy-react";
 import { useCallback, useState } from "react";
 import type { RecipeEntry } from "../../shared/recipes.js";
+import { ApiKeyInput } from "./ApiKeyInput.js";
 import {
   LanguageSelect,
   MaterialShelf,
@@ -17,6 +18,7 @@ import {
 import { labelStyle } from "./styles.js";
 import type { CustomMaterial, MaterialCard } from "./types.js";
 import { type CustomMaterialType, customMaterialIcon } from "./types.js";
+import { useApiKeyStore } from "./useApiKeyStore.js";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -45,7 +47,8 @@ export function AlchemyDemoApp({
   customMaterialTypes,
   resultMode = "text",
 }: AlchemyDemoConfig) {
-  const alchemy = useAlchemy({ initialRecipeId: recipeEntries[0].recipe.id });
+  const { headers } = useApiKeyStore();
+  const alchemy = useAlchemy({ initialRecipeId: recipeEntries[0].recipe.id, headers });
   const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>([]);
 
   const {
@@ -140,6 +143,7 @@ export function AlchemyDemoApp({
     <PageShell
       title={title}
       subtitle={subtitle}
+      headerExtra={<ApiKeyInput />}
       rightWidth={420}
       left={
         <>

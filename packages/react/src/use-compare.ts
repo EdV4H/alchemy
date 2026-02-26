@@ -3,6 +3,7 @@ import type { MaterialInput } from "./types.js";
 
 export interface UseCompareOptions {
   baseUrl?: string;
+  headers?: Record<string, string>;
 }
 
 export interface UseCompareResult<TOutput = unknown> {
@@ -22,6 +23,7 @@ export function useCompare<TOutput = unknown>(
   options?: UseCompareOptions,
 ): UseCompareResult<TOutput> {
   const baseUrl = options?.baseUrl ?? "";
+  const extraHeaders = options?.headers;
   const [data, setData] = useState<Record<string, TOutput> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -43,7 +45,7 @@ export function useCompare<TOutput = unknown>(
       try {
         const res = await fetch(`${baseUrl}/api/compare/${recipeId}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...extraHeaders },
           body: JSON.stringify({
             materials,
             catalystKeys,
@@ -67,7 +69,7 @@ export function useCompare<TOutput = unknown>(
         setIsLoading(false);
       }
     },
-    [baseUrl],
+    [baseUrl, extraHeaders],
   );
 
   const reset = useCallback(() => {
