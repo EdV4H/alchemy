@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concepts — Alchemy</title>
+  <link rel="icon" href="../favicon.svg" />
+  <script type="module" src="../src/main.ts"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/alchemy/" class="header-logo">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 2L12 12H8L14 20L12 30H20L18 20L24 12H20L16 2Z" fill="url(#g)"/><defs><linearGradient id="g" x1="8" y1="2" x2="24" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient></defs></svg>
+        <span>Alchemy</span>
+      </a>
+      <nav class="header-nav">
+        <a href="/alchemy/getting-started/">Getting Started</a>
+        <a href="/alchemy/concepts/" class="active">Concepts</a>
+        <a href="/alchemy/api/">API</a>
+        <a href="/alchemy/examples/">Examples</a>
+      </nav>
+      <div class="header-actions">
+        <a href="https://github.com/EdV4H/alchemy" class="github-link" target="_blank" rel="noopener">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <div class="sidebar-backdrop"></div>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Guide</div>
+        <a href="/alchemy/getting-started/" class="sidebar-link">Getting Started</a>
+        <a href="/alchemy/concepts/" class="sidebar-link">Concepts</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Reference</div>
+        <a href="/alchemy/api/" class="sidebar-link">API Reference</a>
+        <a href="/alchemy/examples/" class="sidebar-link">Examples</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">On this page</div>
+        <a href="#overview" class="sidebar-link sub">Overview</a>
+        <a href="#material" class="sidebar-link sub">Material</a>
+        <a href="#transform" class="sidebar-link sub">Transform</a>
+        <a href="#spell" class="sidebar-link sub">Spell</a>
+        <a href="#catalyst" class="sidebar-link sub">Catalyst</a>
+        <a href="#transmuter" class="sidebar-link sub">Transmuter</a>
+        <a href="#refiner" class="sidebar-link sub">Refiner</a>
+        <a href="#recipe" class="sidebar-link sub">Recipe</a>
+        <a href="#alchemist" class="sidebar-link sub">Alchemist</a>
+      </div>
+    </aside>
+
+    <main class="doc-main">
+      <div class="doc-content">
+        <div class="page-header">
+          <h1>Concepts</h1>
+          <p class="subtitle">Understand the alchemical metaphors that power the Alchemy framework.</p>
+        </div>
+
+        <h2 id="overview">Overview</h2>
+        <p>Alchemy uses alchemical metaphors to describe the process of transforming inputs through an LLM into structured outputs. Each concept maps to a specific responsibility in the pipeline:</p>
+
+        <table>
+          <thead>
+            <tr><th>Concept</th><th>Role</th><th>Analogy</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Material</strong></td><td>Input content</td><td>Raw ingredients</td></tr>
+            <tr><td><strong>Transform</strong></td><td>Preprocessing pipeline</td><td>Preparation step</td></tr>
+            <tr><td><strong>Spell</strong></td><td>The prompt / instruction</td><td>Incantation</td></tr>
+            <tr><td><strong>Catalyst</strong></td><td>Model configuration</td><td>Reaction conditions</td></tr>
+            <tr><td><strong>Transmuter</strong></td><td>LLM provider adapter</td><td>The furnace</td></tr>
+            <tr><td><strong>Refiner</strong></td><td>Output parser / validator</td><td>Purification</td></tr>
+            <tr><td><strong>Recipe</strong></td><td>Complete formula</td><td>Alchemical formula</td></tr>
+            <tr><td><strong>Alchemist</strong></td><td>Orchestrator</td><td>The alchemist</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="material">Material</h2>
+        <p>Materials are the inputs to your recipes. Alchemy supports six built-in material types, making it natively multimodal:</p>
+
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Description</th><th>Key Fields</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>text</code></td><td>Plain text content</td><td><code>text</code></td></tr>
+            <tr><td><code>image</code></td><td>Image via URL or base64</td><td><code>imageUrl</code></td></tr>
+            <tr><td><code>audio</code></td><td>Audio content</td><td><code>audioUrl</code></td></tr>
+            <tr><td><code>document</code></td><td>Document text</td><td><code>documentText</code></td></tr>
+            <tr><td><code>video</code></td><td>Video content</td><td><code>videoUrl</code></td></tr>
+            <tr><td><code>data</code></td><td>Structured data (CSV, JSON, TSV)</td><td><code>dataFormat</code>, <code>dataContent</code></td></tr>
+          </tbody>
+        </table>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">// Multiple material types in a single request
+const materials = [
+  { type: "text", text: "Analyze this chart and data" },
+  { type: "image", imageUrl: "https://example.com/chart.png" },
+  { type: "data", dataFormat: "csv", dataContent: "name,value\nA,10\nB,20" },
+];</code></pre>
+        </div>
+
+        <p>The <code>MaterialPartRegistry</code> interface allows you to extend Material with custom types for domain-specific needs.</p>
+
+        <h2 id="transform">Transform</h2>
+        <p>Transforms are preprocessing functions that modify materials before they reach the LLM. They run in the pipeline between input and the transmuter.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import {
+  truncateText,
+  prependText,
+  filterByType,
+  dataToText,
+} from "@EdV4H/alchemy-core";
+
+// Built-in transforms
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter({ apiKey: "..." }),
+  transforms: [
+    truncateText(4000),     // Limit text length
+    dataToText(),           // Convert data parts to readable text
+  ],
+});</code></pre>
+        </div>
+
+        <p><strong>Node.js-specific transforms</strong> are also available:</p>
+        <ul>
+          <li><code>imageUrlToBase64()</code> — Fetches remote images and converts to base64</li>
+          <li><code>documentToText()</code> — Extracts text from documents</li>
+          <li><code>audioToText()</code> — Audio transcription (requires Whisper integration)</li>
+          <li><code>videoToFrames()</code> — Video frame extraction (requires ffmpeg)</li>
+        </ul>
+
+        <h2 id="spell">Spell</h2>
+        <p>A Spell is the prompt instruction — it tells the LLM what to do with the materials. Defined as part of the <code>SpellOutput</code> type, it can be a simple string or an array of material parts:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">// Simple text spell
+const recipe = {
+  spell: { output: "Summarize this document in 3 sentences" },
+  // ...
+};
+
+// The spell is appended to the materials before transmutation</code></pre>
+        </div>
+
+        <h2 id="catalyst">Catalyst</h2>
+        <p>A Catalyst configures how the LLM behaves — temperature, model selection, and system role. Think of it as the "reaction conditions" for transmutation.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import type { CatalystConfig, NamedCatalyst } from "@EdV4H/alchemy-core";
+
+// Inline catalyst
+const catalyst: CatalystConfig = {
+  temperature: 0.7,
+  model: "gpt-4o",
+  roleDefinition: "You are a professional translator",
+};
+
+// Named catalysts for A/B testing
+const catalysts: Record&lt;string, NamedCatalyst&gt; = {
+  creative: { name: "Creative", temperature: 0.9, model: "gpt-4o" },
+  precise:  { name: "Precise",  temperature: 0.1, model: "gpt-4o-mini" },
+};</code></pre>
+        </div>
+
+        <p>Catalysts can be defined at three levels (highest priority wins):</p>
+        <ol>
+          <li><strong>Override</strong> — passed at transmute time</li>
+          <li><strong>Recipe</strong> — defined in the recipe</li>
+          <li><strong>Default</strong> — set on the Alchemist instance</li>
+        </ol>
+
+        <h2 id="transmuter">Transmuter</h2>
+        <p>A Transmuter is the LLM provider adapter — it translates Alchemy's internal format into API calls. The Transmuter interface has two methods:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">interface Transmuter {
+  transmute(
+    materials: MaterialPart[],
+    options: TransmutationOptions,
+  ): Promise&lt;TransmutationResult&gt;;
+
+  stream(
+    materials: MaterialPart[],
+    options: TransmutationOptions,
+  ): AsyncGenerator&lt;string&gt;;
+}</code></pre>
+        </div>
+
+        <p>Alchemy ships with <code>OpenAITransmuter</code> for the OpenAI Chat Completions API. You can implement custom transmuters for any LLM provider (Anthropic, Google, local models, etc.).</p>
+
+        <div class="callout callout-tip">
+          <strong>Custom Transmuter</strong>
+          <p>Implement the <code>Transmuter</code> interface to add support for any LLM. Map <code>MaterialPart[]</code> to your provider's message format and return a <code>TransmutationResult</code>.</p>
+        </div>
+
+        <h2 id="refiner">Refiner</h2>
+        <p>Refiners parse and validate the raw LLM output into your desired format. Alchemy includes two built-in refiners:</p>
+
+        <h3>TextRefiner</h3>
+        <p>Simply trims whitespace from the output text.</p>
+
+        <h3>JsonRefiner</h3>
+        <p>The most powerful refiner — validates output against a Zod schema:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
+import { z } from "zod";
+
+const refiner = new JsonRefiner(z.object({
+  title: z.string(),
+  tags: z.array(z.string()),
+  score: z.number().min(0).max(100),
+}));
+
+// The refiner:
+// 1. Adds format instructions to the prompt automatically
+// 2. Strips markdown code fences from the response
+// 3. Parses JSON
+// 4. Validates against the Zod schema
+// 5. Returns a fully typed object</code></pre>
+        </div>
+
+        <h2 id="recipe">Recipe</h2>
+        <p>A Recipe combines all the above into a single, reusable formula:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import type { Recipe } from "@EdV4H/alchemy-core";
+
+const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&gt; = {
+  spell: { output: "Summarize this text" },
+  refiner: new JsonRefiner(z.object({
+    summary: z.string(),
+    bullets: z.array(z.string()),
+  })),
+  catalyst: {
+    temperature: 0.3,
+    model: "gpt-4o-mini",
+  },
+  transforms: [truncateText(8000)],
+};</code></pre>
+        </div>
+
+        <p>Recipes are generic over <code>TInput</code> and <code>TOutput</code>, giving you end-to-end type safety from input to output.</p>
+
+        <h2 id="alchemist">Alchemist</h2>
+        <p>The Alchemist is the main orchestrator. It wires everything together and executes the transmutation pipeline:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter({ apiKey: "..." }),
+  transforms: [dataToText()],  // Global transforms
+});
+
+// Three ways to use the Alchemist:
+
+// 1. transmute — single execution
+const result = await alchemist.transmute({ recipe, materials });
+
+// 2. stream — progressive output
+for await (const chunk of alchemist.stream({ recipe, materials })) {
+  process.stdout.write(chunk);
+}
+
+// 3. compare — A/B test with multiple catalysts
+const comparison = await alchemist.compare({
+  recipe,
+  materials,
+  catalysts: [catalyst1, catalyst2],
+});
+// Returns results from all catalysts via Promise.allSettled</code></pre>
+        </div>
+
+        <div class="callout callout-info">
+          <strong>Pipeline Order</strong>
+          <p>Material &rarr; Global Transforms &rarr; Recipe Transforms &rarr; Spell + Format Instructions &rarr; Transmuter &rarr; Refiner &rarr; Typed Output</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

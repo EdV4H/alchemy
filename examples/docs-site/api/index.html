@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference — Alchemy</title>
+  <link rel="icon" href="../favicon.svg" />
+  <script type="module" src="../src/main.ts"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/alchemy/" class="header-logo">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 2L12 12H8L14 20L12 30H20L18 20L24 12H20L16 2Z" fill="url(#g)"/><defs><linearGradient id="g" x1="8" y1="2" x2="24" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient></defs></svg>
+        <span>Alchemy</span>
+      </a>
+      <nav class="header-nav">
+        <a href="/alchemy/getting-started/">Getting Started</a>
+        <a href="/alchemy/concepts/">Concepts</a>
+        <a href="/alchemy/api/" class="active">API</a>
+        <a href="/alchemy/examples/">Examples</a>
+      </nav>
+      <div class="header-actions">
+        <a href="https://github.com/EdV4H/alchemy" class="github-link" target="_blank" rel="noopener">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <div class="sidebar-backdrop"></div>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Guide</div>
+        <a href="/alchemy/getting-started/" class="sidebar-link">Getting Started</a>
+        <a href="/alchemy/concepts/" class="sidebar-link">Concepts</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Reference</div>
+        <a href="/alchemy/api/" class="sidebar-link">API Reference</a>
+        <a href="/alchemy/examples/" class="sidebar-link">Examples</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Packages</div>
+        <a href="#core" class="sidebar-link sub">@EdV4H/alchemy-core</a>
+        <a href="#node" class="sidebar-link sub">@EdV4H/alchemy-node</a>
+        <a href="#react" class="sidebar-link sub">@EdV4H/alchemy-react</a>
+      </div>
+    </aside>
+
+    <main class="doc-main">
+      <div class="doc-content">
+        <div class="page-header">
+          <h1>API Reference</h1>
+          <p class="subtitle">Complete API documentation for all Alchemy packages.</p>
+        </div>
+
+        <!-- ============================== -->
+        <!-- CORE -->
+        <!-- ============================== -->
+        <h2 id="core">@EdV4H/alchemy-core</h2>
+        <p>Core types, refiners, material utilities, and transform helpers. Zero runtime dependencies beyond Zod.</p>
+
+        <h3 id="core-types">Types</h3>
+
+        <h4 id="catalystconfig"><code>CatalystConfig</code></h4>
+        <p>Model configuration for transmutation.</p>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
+            <tr><td><code>model</code></td><td><code>string?</code></td><td>Model identifier override</td></tr>
+            <tr><td><code>roleDefinition</code></td><td><code>string?</code></td><td>System prompt / role definition</td></tr>
+            <tr><td><code>language</code></td><td><code>string?</code></td><td>Output language instruction</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="namedcatalyst"><code>NamedCatalyst</code></h4>
+        <p>Extends <code>CatalystConfig</code> with a <code>name: string</code> for display purposes (e.g., A/B testing UI).</p>
+
+        <h4 id="materialpart"><code>MaterialPart</code></h4>
+        <p>Discriminated union of all material types. Built-in types:</p>
+        <table class="param-table">
+          <thead><tr><th>Type</th><th>Key Fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>TextMaterialPart</code></td><td><code>{ type: "text"; text: string }</code></td></tr>
+            <tr><td><code>ImageMaterialPart</code></td><td><code>{ type: "image"; imageUrl: string; imageBase64?: string }</code></td></tr>
+            <tr><td><code>AudioMaterialPart</code></td><td><code>{ type: "audio"; audioUrl: string }</code></td></tr>
+            <tr><td><code>DocumentMaterialPart</code></td><td><code>{ type: "document"; documentText?: string }</code></td></tr>
+            <tr><td><code>VideoMaterialPart</code></td><td><code>{ type: "video"; videoUrl: string }</code></td></tr>
+            <tr><td><code>DataMaterialPart</code></td><td><code>{ type: "data"; dataFormat: "csv"|"json"|"tsv"; dataContent: string }</code></td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="materialinput"><code>MaterialInput</code></h4>
+        <p>Wire-format for API requests. Same structure as <code>MaterialPart</code> but used for client-to-server communication. Convert with <code>toMaterialParts()</code>.</p>
+
+        <h4 id="transmuter-type"><code>Transmuter</code></h4>
+        <p>Interface for LLM provider adapters.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">interface Transmuter {
+  transmute(
+    materials: MaterialPart[],
+    options: TransmutationOptions,
+  ): Promise&lt;TransmutationResult&gt;;
+
+  stream(
+    materials: MaterialPart[],
+    options: TransmutationOptions,
+  ): AsyncGenerator&lt;string&gt;;
+}</code></pre>
+        </div>
+
+        <h4 id="transmutationoptions"><code>TransmutationOptions</code></h4>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Model configuration</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="transmutationresult"><code>TransmutationResult</code></h4>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>text</code></td><td><code>string</code></td><td>Raw text output from LLM</td></tr>
+            <tr><td><code>usage</code></td><td><code>{ promptTokens: number; completionTokens: number }?</code></td><td>Token usage</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="refiner-type"><code>Refiner&lt;TOutput&gt;</code></h4>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>refine</code></td><td><code>(raw: string) =&gt; TOutput</code></td><td>Parse raw LLM output</td></tr>
+            <tr><td><code>formatInstructions</code></td><td><code>() =&gt; string?</code></td><td>Instructions appended to prompt</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="recipe-type"><code>Recipe&lt;TInput, TOutput&gt;</code></h4>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>spell</code></td><td><code>SpellOutput</code></td><td>The prompt instruction</td></tr>
+            <tr><td><code>refiner</code></td><td><code>Refiner&lt;TOutput&gt;?</code></td><td>Output parser/validator</td></tr>
+            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Model configuration</td></tr>
+            <tr><td><code>transforms</code></td><td><code>MaterialTransform[]?</code></td><td>Recipe-specific transforms</td></tr>
+          </tbody>
+        </table>
+
+        <hr class="section-divider" />
+
+        <h3 id="core-refiners">Refiners</h3>
+
+        <h4 id="textrefiner"><code>TextRefiner</code></h4>
+        <p>Trims whitespace from the raw output. Returns <code>string</code>.</p>
+
+        <h4 id="jsonrefiner"><code>JsonRefiner&lt;T&gt;</code></h4>
+        <p>Validates output against a Zod schema.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">new JsonRefiner(schema: ZodType&lt;T&gt;)
+
+// Behavior:
+// 1. Strips markdown code fences (```json ... ```)
+// 2. Parses JSON
+// 3. Validates against schema
+// 4. Returns typed T
+// 5. formatInstructions() returns JSON schema description</code></pre>
+        </div>
+
+        <hr class="section-divider" />
+
+        <h3 id="core-utilities">Material Utilities</h3>
+        <table class="param-table">
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>normalizeSpellOutput(output)</code></td><td>Converts string/single part to <code>MaterialPart[]</code></td></tr>
+            <tr><td><code>extractText(parts)</code></td><td>Extracts text parts from materials</td></tr>
+            <tr><td><code>isTextOnly(parts)</code></td><td>Returns <code>true</code> if all parts are text</td></tr>
+            <tr><td><code>extractAllText(parts)</code></td><td>Extracts all extractable text including documents</td></tr>
+            <tr><td><code>toMaterialParts(inputs)</code></td><td>Converts <code>MaterialInput[]</code> to <code>MaterialPart[]</code></td></tr>
+          </tbody>
+        </table>
+
+        <hr class="section-divider" />
+
+        <h3 id="core-transforms">Transforms</h3>
+        <table class="param-table">
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>truncateText(maxLength)</code></td><td>Truncates text parts to max length</td></tr>
+            <tr><td><code>prependText(text)</code></td><td>Adds text at the beginning of materials</td></tr>
+            <tr><td><code>filterByType(...types)</code></td><td>Keeps only specified material types</td></tr>
+            <tr><td><code>dataToText()</code></td><td>Converts data parts to text representation</td></tr>
+          </tbody>
+        </table>
+
+        <hr class="section-divider" />
+
+        <h3 id="core-errors">Errors</h3>
+        <table class="param-table">
+          <thead><tr><th>Class</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>AlchemyError</code></td><td>Base error class</td></tr>
+            <tr><td><code>TransmuteError</code></td><td>LLM API call failure</td></tr>
+            <tr><td><code>RefineError</code></td><td>Output parsing/validation failure</td></tr>
+            <tr><td><code>TransformError</code></td><td>Material transform failure</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================== -->
+        <!-- NODE -->
+        <!-- ============================== -->
+        <h2 id="node">@EdV4H/alchemy-node</h2>
+        <p>Node.js-specific implementations. Depends on <code>@EdV4H/alchemy-core</code> and <code>openai</code>.</p>
+
+        <h3 id="alchemist-class"><code>Alchemist</code></h3>
+        <p>Main orchestrator class.</p>
+
+        <h4>Constructor</h4>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">new Alchemist(config: AlchemistConfig)
+
+interface AlchemistConfig {
+  transmuter: Transmuter;
+  transforms?: MaterialTransform[];
+  defaultCatalyst?: CatalystConfig;
+}</code></pre>
+        </div>
+
+        <h4>Methods</h4>
+
+        <p><strong><code>transmute&lt;TInput, TOutput&gt;(params)</code></strong></p>
+        <p>Execute a recipe with materials and return the result.</p>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>recipe</code></td><td><code>Recipe&lt;TInput, TOutput&gt;</code></td><td>The recipe to execute</td></tr>
+            <tr><td><code>materials</code></td><td><code>MaterialPart[]</code></td><td>Input materials</td></tr>
+            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Override catalyst</td></tr>
+          </tbody>
+        </table>
+        <p>Returns: <code>Promise&lt;{ output: TOutput; usage?: TokenUsage }&gt;</code></p>
+
+        <p><strong><code>stream&lt;TInput&gt;(params)</code></strong></p>
+        <p>Stream the response progressively.</p>
+        <p>Returns: <code>AsyncGenerator&lt;string&gt;</code></p>
+
+        <p><strong><code>compare&lt;TInput, TOutput&gt;(params)</code></strong></p>
+        <p>Execute the same recipe with multiple catalysts in parallel.</p>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>recipe</code></td><td><code>Recipe&lt;TInput, TOutput&gt;</code></td><td>The recipe to execute</td></tr>
+            <tr><td><code>materials</code></td><td><code>MaterialPart[]</code></td><td>Input materials</td></tr>
+            <tr><td><code>catalysts</code></td><td><code>CatalystConfig[]</code></td><td>Catalysts to compare</td></tr>
+          </tbody>
+        </table>
+        <p>Uses <code>Promise.allSettled</code> internally — all catalysts run in parallel.</p>
+
+        <hr class="section-divider" />
+
+        <h3 id="openaitransmuter"><code>OpenAITransmuter</code></h3>
+        <p>OpenAI Chat Completions API transmuter.</p>
+
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">new OpenAITransmuter(config?: OpenAITransmuterConfig)
+
+interface OpenAITransmuterConfig {
+  apiKey?: string;       // Defaults to OPENAI_API_KEY env var
+  defaultModel?: string; // Defaults to "gpt-4o-mini"
+  baseURL?: string;      // Custom API endpoint
+}</code></pre>
+        </div>
+
+        <p>Material type mapping:</p>
+        <table class="param-table">
+          <thead><tr><th>Material Type</th><th>OpenAI Format</th></tr></thead>
+          <tbody>
+            <tr><td><code>text</code></td><td>Text content</td></tr>
+            <tr><td><code>image</code></td><td>Image URL or base64</td></tr>
+            <tr><td><code>document</code></td><td>Text content or placeholder</td></tr>
+            <tr><td><code>data</code></td><td>Formatted text with label</td></tr>
+            <tr><td><code>audio</code> / <code>video</code></td><td>Placeholder text</td></tr>
+          </tbody>
+        </table>
+
+        <hr class="section-divider" />
+
+        <h3 id="node-transforms">Node Transforms</h3>
+        <table class="param-table">
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>imageUrlToBase64()</code></td><td>Fetches remote images and converts to base64</td></tr>
+            <tr><td><code>documentToText()</code></td><td>Extracts text from document parts</td></tr>
+            <tr><td><code>audioToText(options?)</code></td><td>Audio transcription (stub available)</td></tr>
+            <tr><td><code>videoToFrames(options?)</code></td><td>Video frame extraction (stub available)</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================== -->
+        <!-- REACT -->
+        <!-- ============================== -->
+        <h2 id="react">@EdV4H/alchemy-react</h2>
+        <p>React hooks for building LLM-powered UIs. Peer dependency: <code>react@^18 || ^19</code>.</p>
+
+        <h3 id="usetransmute"><code>useTransmute&lt;TOutput&gt;</code></h3>
+        <p>Low-level hook for single recipe execution.</p>
+
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">const {
+  transmute,  // (recipeId, materials, options?) => Promise
+  data,       // TOutput | null
+  isLoading,  // boolean
+  error,      // Error | null
+  reset,      // () => void
+} = useTransmute&lt;TOutput&gt;({
+  baseUrl?: string;
+  headers?: Record&lt;string, string&gt;;
+});</code></pre>
+        </div>
+
+        <p>Calls <code>POST /api/transmute/{recipeId}</code> with materials in the body. Supports request cancellation via AbortSignal.</p>
+
+        <hr class="section-divider" />
+
+        <h3 id="usecompare"><code>useCompare&lt;TOutput&gt;</code></h3>
+        <p>Low-level hook for comparing multiple catalysts.</p>
+
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">const {
+  compare,  // (recipeId, materials, catalystKeys, options?) => Promise
+  data,     // Record&lt;string, TOutput&gt; | null
+  isLoading,
+  error,
+  reset,
+} = useCompare&lt;TOutput&gt;({
+  baseUrl?: string;
+  headers?: Record&lt;string, string&gt;;
+});</code></pre>
+        </div>
+
+        <p>Calls <code>POST /api/compare/{recipeId}</code> with materials and catalyst keys.</p>
+
+        <hr class="section-divider" />
+
+        <h3 id="usealchemy"><code>useAlchemy&lt;TOutput&gt;</code></h3>
+        <p>High-level orchestration hook combining <code>useTransmute</code> and <code>useCompare</code> with full state management.</p>
+
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
+          <pre><code class="language-ts">const {
+  // Recipe selection
+  selectedRecipeId,
+  selectRecipe,
+
+  // Material selection (ID-based)
+  selectedIds,
+  toggleMaterial,
+  clearSelection,
+
+  // Catalyst
+  selectedCatalystKey,
+  selectCatalyst,
+
+  // Language
+  selectedLanguage,
+  setLanguage,
+
+  // Compare mode
+  compareMode,
+  setCompareMode,
+  selectedCompareKeys,
+  toggleCompareKey,
+  setCompareKeys,
+
+  // Actions
+  transmute,       // (materials) => Promise
+  compare,         // (materials) => Promise
+
+  // Results
+  result,          // TOutput | null
+  compareResults,  // Record&lt;string, TOutput&gt; | null
+  isLoading,
+  error,
+  resetResults,
+} = useAlchemy&lt;TOutput&gt;({
+  baseUrl?: string;
+  headers?: Record&lt;string, string&gt;;
+  initialRecipeId: string;
+});</code></pre>
+        </div>
+
+        <div class="callout callout-info">
+          <strong>State Reset Behavior</strong>
+          <p>Changing the recipe resets catalyst, compare mode, and results. Toggling materials resets results but preserves recipe and catalyst selection.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
