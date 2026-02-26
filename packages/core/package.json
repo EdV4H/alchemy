@@ -1,6 +1,6 @@
 {
   "name": "@edv4h/alchemy-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Core primitives for Alchemy — a type-safe LLM prompt engineering toolkit",
   "license": "MIT",
   "author": "EdV4H",

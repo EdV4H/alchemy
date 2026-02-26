@@ -1,6 +1,6 @@
 {
   "name": "@edv4h/alchemy-react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "React hooks for Alchemy — headless UI primitives for LLM-powered components",
   "license": "MIT",
   "author": "EdV4H",
