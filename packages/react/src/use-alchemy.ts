@@ -5,6 +5,7 @@ import { useTransmute } from "./use-transmute.js";
 
 export interface UseAlchemyOptions {
   baseUrl?: string;
+  headers?: Record<string, string>;
   initialRecipeId: string;
 }
 
@@ -48,7 +49,7 @@ export interface UseAlchemyResult<TOutput = unknown> {
 export function useAlchemy<TOutput = unknown>(
   options: UseAlchemyOptions,
 ): UseAlchemyResult<TOutput> {
-  const { initialRecipeId, baseUrl } = options;
+  const { initialRecipeId, baseUrl, headers } = options;
 
   // ── Recipe ──
   const [selectedRecipeId, setSelectedRecipeId] = useState(initialRecipeId);
@@ -67,8 +68,8 @@ export function useAlchemy<TOutput = unknown>(
   const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
 
   // ── Low-level hooks ──
-  const transmuteHook = useTransmute<TOutput>({ baseUrl });
-  const compareHook = useCompare<TOutput>({ baseUrl });
+  const transmuteHook = useTransmute<TOutput>({ baseUrl, headers });
+  const compareHook = useCompare<TOutput>({ baseUrl, headers });
 
   // ── Error (string) ── derived from low-level hooks or local
   const [localError, setLocalError] = useState<string | null>(null);

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { ApiKeyInput } from "../shared/ApiKeyInput.js";
 import {
   LanguageSelect,
   MaterialShelf,
@@ -15,6 +16,7 @@ import {
   selectStyle,
 } from "../shared/styles.js";
 import { customMaterialIcon } from "../shared/types.js";
+import { useApiKeyStore } from "../shared/useApiKeyStore.js";
 import { CatalystEditor } from "./CatalystEditor.js";
 import { CodeEditor } from "./CodeEditor.js";
 import { AVAILABLE_TRANSFORMS } from "./constants.js";
@@ -24,7 +26,8 @@ import { usePlaygroundTransmute } from "./usePlaygroundTransmute.js";
 
 export function App() {
   const store = usePlaygroundStore();
-  const { transmute, result, isLoading, error, reset } = usePlaygroundTransmute();
+  const { headers } = useApiKeyStore();
+  const { transmute, result, isLoading, error, reset } = usePlaygroundTransmute({ headers });
 
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(store.recipes[0]?.id ?? "");
   const [selectedCatalystId, setSelectedCatalystId] = useState<string | null>(
@@ -111,6 +114,7 @@ export function App() {
     <PageShell
       title="Playground"
       subtitle="Write custom recipes, configure catalysts, and transmute materials"
+      headerExtra={<ApiKeyInput />}
       rightWidth={380}
       left={
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

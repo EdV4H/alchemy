@@ -645,6 +645,7 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
 export function PageShell({
   title,
   subtitle,
+  headerExtra,
   rightWidth = 400,
   maxWidth = 1280,
   left,
@@ -652,6 +653,7 @@ export function PageShell({
 }: {
   title: string;
   subtitle?: string;
+  headerExtra?: React.ReactNode;
   rightWidth?: number;
   maxWidth?: number;
   left: React.ReactNode;
@@ -671,7 +673,17 @@ export function PageShell({
         }}
       >
         <div>
-          <h1 style={{ margin: "0 0 4px" }}>{title}</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 4,
+            }}
+          >
+            <h1 style={{ margin: 0 }}>{title}</h1>
+            {headerExtra}
+          </div>
           {subtitle && (
             <p style={{ color: "#888", margin: "0 0 16px", fontSize: 14 }}>{subtitle}</p>
           )}

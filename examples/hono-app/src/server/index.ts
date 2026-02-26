@@ -8,6 +8,7 @@ import {
   toMaterialParts,
   truncateText,
 } from "@EdV4H/alchemy-node";
+import type { Context } from "hono";
 import { Hono } from "hono";
 import { catalystPresets } from "../shared/catalysts.js";
 import { recipeRegistry } from "../shared/recipes.js";
@@ -17,11 +18,23 @@ import { travelCatalystPresets } from "../travel/catalysts.js";
 import { travelRecipeRegistry } from "../travel/recipes.js";
 import playgroundApp from "./playground.js";
 
-const app = new Hono();
+type Bindings = { OPENAI_API_KEY?: string };
+const app = new Hono<{ Bindings: Bindings }>();
 
-export const alchemist = new Alchemist({
-  transmuter: new OpenAITransmuter(),
-});
+/**
+ * Resolve Alchemist per request.
+ * Priority: X-OpenAI-API-Key header > OPENAI_API_KEY env > error
+ */
+export function resolveAlchemist(c: Context<{ Bindings: Bindings }>): Alchemist {
+  const headerKey = c.req.header("X-OpenAI-API-Key");
+  const apiKey = headerKey || c.env?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "OpenAI API key is required. Set it via the UI or OPENAI_API_KEY environment variable.",
+    );
+  }
+  return new Alchemist({ transmuter: new OpenAITransmuter({ apiKey }) });
+}
 
 // Inject Node-specific transforms at server init (common)
 recipeRegistry["image-analysis"].transforms = [imageUrlToBase64()];
@@ -120,6 +133,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
   }
 
   try {
+    const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
     const catalyst = resolveCatalystPreset(body.catalystKey);
     const result = await alchemist.transmute(recipe, parts, { catalyst, language: body.language });
@@ -156,6 +170,7 @@ app.post("/api/compare/:recipeId", async (c) => {
   }
 
   try {
+    const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
     const catalysts: Record<string, CatalystConfig> = {};
     for (const key of body.catalystKeys) {
