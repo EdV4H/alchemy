@@ -1,5 +1,12 @@
 {
   "version": 1,
-  "include": ["/api/*"],
-  "exclude": ["/*"]
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/playground/*",
+    "/travel/*",
+    "/team-lp/*",
+    "/index.html",
+    "/favicon.ico"
+  ]
 }
