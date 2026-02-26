@@ -15,9 +15,10 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import type { ServerMaterialInput } from "./index.js";
-import { alchemist, serverToMaterialParts } from "./index.js";
+import { resolveAlchemist, serverToMaterialParts } from "./index.js";
 
-const app = new Hono();
+type Bindings = { OPENAI_API_KEY?: string };
+const app = new Hono<{ Bindings: Bindings }>();
 
 // ─── Transform registry ─────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ app.post("/transmute", async (c) => {
   };
 
   try {
+    const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(body.materials);
     const result = await alchemist.transmute(recipe, parts, {
       catalyst: body.catalyst,
