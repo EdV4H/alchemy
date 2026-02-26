@@ -1,5 +1,5 @@
-import type { MaterialPart, Recipe } from "@EdV4H/alchemy-node";
-import { extractText, JsonRefiner, TextRefiner, truncateText } from "@EdV4H/alchemy-node";
+import type { MaterialPart, Recipe } from "@edv4h/alchemy-node";
+import { extractText, JsonRefiner, TextRefiner, truncateText } from "@edv4h/alchemy-node";
 import { z } from "zod";
 import type { RecipeEntry } from "../shared/recipes.js";
 import { zodToFieldMeta } from "../shared/zod-helpers.js";

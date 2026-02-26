@@ -1,2 +1,2 @@
 /** Re-export MaterialInput from core */
-export type { MaterialInput } from "@EdV4H/alchemy-core";
+export type { MaterialInput } from "@edv4h/alchemy-core";

@@ -1,4 +1,4 @@
-import type { NamedCatalyst } from "@EdV4H/alchemy-node";
+import type { NamedCatalyst } from "@edv4h/alchemy-node";
 
 /** 旅行テーマ用カタリストプリセット */
 export const travelCatalystPresets: NamedCatalyst[] = [

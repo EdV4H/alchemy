@@ -1,5 +1,5 @@
-import type { MaterialPart, MaterialTransformContext } from "@EdV4H/alchemy-core";
-import { TransformError } from "@EdV4H/alchemy-core";
+import type { MaterialPart, MaterialTransformContext } from "@edv4h/alchemy-core";
+import { TransformError } from "@edv4h/alchemy-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { audioToText, imageUrlToBase64, videoToFrames } from "../transforms.js";
 

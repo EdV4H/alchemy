@@ -1,4 +1,4 @@
-import type { CatalystConfig, MaterialPart, MaterialTransform } from "@EdV4H/alchemy-node";
+import type { CatalystConfig, MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
 import {
   dataToText,
   documentToText,
@@ -11,7 +11,7 @@ import {
   prependText,
   TextRefiner,
   truncateText,
-} from "@EdV4H/alchemy-node";
+} from "@edv4h/alchemy-node";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { ServerMaterialInput } from "./index.js";

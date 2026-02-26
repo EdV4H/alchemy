@@ -77,7 +77,7 @@
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter({
@@ -110,8 +110,8 @@ console.log(result.output);
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
-import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { JsonRefiner } from "@edv4h/alchemy-core";
+import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
 import { z } from "zod";
 
 const ProductSchema = z.object({
@@ -153,8 +153,8 @@ console.log(result.output.features[0]); // { title: "...", description: "..." }<
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { JsonRefiner, dataToText } from "@EdV4H/alchemy-core";
-import { Alchemist, OpenAITransmuter, imageUrlToBase64 } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { JsonRefiner, dataToText } from "@edv4h/alchemy-core";
+import { Alchemist, OpenAITransmuter, imageUrlToBase64 } from "@edv4h/alchemy-node";
 import { z } from "zod";
 
 const alchemist = new Alchemist({
@@ -201,7 +201,7 @@ console.log(result.output.insights);  // ["Revenue grew 35% over Q4", ...]</code
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
@@ -242,8 +242,8 @@ console.log(`\n\nTotal length: ${fullText.length} characters`);</code></pre>
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { JsonRefiner } from "@EdV4H/alchemy-core";
-import { Alchemist, OpenAITransmuter } from "@EdV4H/alchemy-node";
+          <pre><code class="language-ts">import { JsonRefiner } from "@edv4h/alchemy-core";
+import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
 import { z } from "zod";
 
 const CopySchema = z.object({
@@ -291,8 +291,8 @@ for (const [index, result] of results.entries()) {
           <div class="code-block-header">
             <span class="code-block-lang">tsx</span>
           </div>
-          <pre><code class="language-tsx">import { useAlchemy } from "@EdV4H/alchemy-react";
-import type { MaterialInput } from "@EdV4H/alchemy-react";
+          <pre><code class="language-tsx">import { useAlchemy } from "@edv4h/alchemy-react";
+import type { MaterialInput } from "@edv4h/alchemy-react";
 
 function TranslatorApp() {
   const {

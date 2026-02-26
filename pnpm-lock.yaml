@@ -44,10 +44,10 @@ importers:
 
   examples/hono-app:
     dependencies:
-      '@EdV4H/alchemy-node':
+      '@edv4h/alchemy-node':
         specifier: workspace:*
         version: link:../../packages/node
-      '@EdV4H/alchemy-react':
+      '@edv4h/alchemy-react':
         specifier: workspace:*
         version: link:../../packages/react
       hono:
@@ -87,7 +87,7 @@ importers:
 
   examples/simple-script:
     dependencies:
-      '@EdV4H/alchemy-node':
+      '@edv4h/alchemy-node':
         specifier: workspace:*
         version: link:../../packages/node
       zod:
@@ -113,12 +113,12 @@ importers:
 
   packages/node:
     dependencies:
-      '@EdV4H/alchemy-core':
-        specifier: workspace:*
-        version: link:../core
       '@anthropic-ai/sdk':
         specifier: ^0.39.0
         version: 0.39.0
+      '@edv4h/alchemy-core':
+        specifier: workspace:*
+        version: link:../core
       '@google/generative-ai':
         specifier: ^0.24.0
         version: 0.24.1
@@ -138,7 +138,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@EdV4H/alchemy-core':
+      '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

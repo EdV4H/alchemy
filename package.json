@@ -13,6 +13,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "changeset": "changeset",
+    "version": "changeset version",
     "release": "changeset publish"
   },
   "devDependencies": {

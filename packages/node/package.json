@@ -1,6 +1,27 @@
 {
-  "name": "@EdV4H/alchemy-node",
+  "name": "@edv4h/alchemy-node",
   "version": "0.0.0",
+  "description": "Node.js runtime for Alchemy — LLM transmuters for OpenAI, Anthropic, and Google",
+  "license": "MIT",
+  "author": "EdV4H",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdV4H/alchemy.git",
+    "directory": "packages/node"
+  },
+  "homepage": "https://github.com/EdV4H/alchemy#readme",
+  "bugs": "https://github.com/EdV4H/alchemy/issues",
+  "keywords": [
+    "alchemy",
+    "llm",
+    "prompt-engineering",
+    "ai",
+    "openai",
+    "anthropic",
+    "google",
+    "node",
+    "typescript"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,6 +34,13 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "biome check .",
@@ -20,7 +48,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@EdV4H/alchemy-core": "workspace:*",
+    "@edv4h/alchemy-core": "workspace:*",
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/generative-ai": "^0.24.0",
     "openai": "^4.100.0"

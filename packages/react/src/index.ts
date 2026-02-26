@@ -1,5 +1,5 @@
 // Re-export core types for convenience
-export type * from "@EdV4H/alchemy-core";
+export type * from "@edv4h/alchemy-core";
 // Types
 export type { MaterialInput } from "./types.js";
 export type { UseAlchemyOptions, UseAlchemyResult } from "./use-alchemy.js";

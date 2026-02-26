@@ -10,8 +10,8 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@EdV4H/alchemy-node": "workspace:*",
-    "@EdV4H/alchemy-react": "workspace:*",
+    "@edv4h/alchemy-node": "workspace:*",
+    "@edv4h/alchemy-react": "workspace:*",
     "hono": "^4.7.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
