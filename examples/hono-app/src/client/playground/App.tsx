@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { ApiKeyInput } from "../shared/ApiKeyInput.js";
+import { CopyPromptButton } from "../shared/CopyPromptButton.js";
 import {
   LanguageSelect,
   MaterialShelf,
@@ -27,7 +28,9 @@ import { usePlaygroundTransmute } from "./usePlaygroundTransmute.js";
 export function App() {
   const store = usePlaygroundStore();
   const { headers } = useApiKeyStore();
-  const { transmute, result, isLoading, error, reset } = usePlaygroundTransmute({ headers });
+  const { transmute, preview, result, isLoading, error, reset } = usePlaygroundTransmute({
+    headers,
+  });
 
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(store.recipes[0]?.id ?? "");
   const [selectedCatalystId, setSelectedCatalystId] = useState<string | null>(
@@ -80,6 +83,28 @@ export function App() {
     store.materials,
     selectedMaterialIds,
     transmute,
+  ]);
+
+  const handlePreview = useCallback(async () => {
+    if (!selectedRecipe) throw new Error("No recipe selected");
+    const materials = store.materials.filter((m) => selectedMaterialIds.has(m.id));
+    if (materials.length === 0) throw new Error("No materials selected");
+
+    return preview({
+      materials,
+      promptTemplate: selectedRecipe.promptTemplate,
+      outputType: selectedRecipe.outputType,
+      transforms: selectedRecipe.transforms,
+      catalyst: selectedCatalyst ?? undefined,
+      language: selectedLanguage || undefined,
+    });
+  }, [
+    selectedRecipe,
+    selectedCatalyst,
+    selectedLanguage,
+    store.materials,
+    selectedMaterialIds,
+    preview,
   ]);
 
   const handleAddTransform = useCallback(
@@ -277,11 +302,21 @@ export function App() {
             onClear={() => setSelectedMaterialIds(new Set())}
           />
 
-          <TransmuteButton
-            onClick={handleTransmute}
-            disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
-            isLoading={isLoading}
-          />
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <TransmuteButton
+                onClick={handleTransmute}
+                disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
+                isLoading={isLoading}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <CopyPromptButton
+                onFetchPreview={handlePreview}
+                disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
+              />
+            </div>
+          </div>
 
           <ResultPanel result={result} isLoading={isLoading} error={error} />
         </div>

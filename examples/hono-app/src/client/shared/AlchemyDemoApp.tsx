@@ -4,6 +4,7 @@ import { useAlchemy } from "@EdV4H/alchemy-react";
 import { useCallback, useState } from "react";
 import type { RecipeEntry } from "../../shared/recipes.js";
 import { ApiKeyInput } from "./ApiKeyInput.js";
+import { CopyPromptButton } from "./CopyPromptButton.js";
 import {
   LanguageSelect,
   MaterialShelf,
@@ -128,6 +129,12 @@ export function AlchemyDemoApp({
     () => alchemy.compare(buildMaterialInputs()),
     [alchemy.compare, buildMaterialInputs],
   );
+
+  const handlePreview = useCallback(async () => {
+    const result = await alchemy.preview(buildMaterialInputs());
+    if (!result) throw new Error("Preview failed");
+    return result;
+  }, [alchemy.preview, buildMaterialInputs]);
 
   const hasSelection = selectedMaterials.length > 0;
 
@@ -281,11 +288,21 @@ export function AlchemyDemoApp({
               label={isLoading ? undefined : `Compare (${selectedCompareKeys.length} catalysts)`}
             />
           ) : (
-            <TransmuteButton
-              onClick={handleTransmute}
-              disabled={isLoading || !hasSelection}
-              isLoading={isLoading}
-            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <TransmuteButton
+                  onClick={handleTransmute}
+                  disabled={isLoading || !hasSelection}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <CopyPromptButton
+                  onFetchPreview={handlePreview}
+                  disabled={isLoading || !hasSelection}
+                />
+              </div>
+            </div>
           )}
 
           {/* Single result */}
