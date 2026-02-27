@@ -79,6 +79,7 @@ export function AlchemyDemoApp({
 
   const addCustomMaterial = (m: CustomMaterial) => {
     setCustomMaterials((prev) => [...prev, m]);
+    alchemy.toggleMaterial(m.id);
   };
 
   const removeCustomMaterial = (id: string) => {
