@@ -326,7 +326,10 @@ export function App() {
           customItems={materialsWithIcons}
           selectedIds={selectedMaterialIds}
           onToggle={toggleMaterial}
-          onAddCustom={store.addMaterial}
+          onAddCustom={(m) => {
+            store.addMaterial(m);
+            setSelectedMaterialIds((prev) => new Set([...prev, m.id]));
+          }}
           onDeleteCustom={handleDeleteMaterial}
         />
       }
