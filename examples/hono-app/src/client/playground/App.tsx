@@ -2,12 +2,16 @@ import { useCallback, useState } from "react";
 import { ApiKeyInput } from "../shared/ApiKeyInput.js";
 import { CopyPromptButton } from "../shared/CopyPromptButton.js";
 import {
+  GenerateCountStepper,
   LanguageSelect,
   MaterialShelf,
+  ModeSelector,
   PageShell,
   ResultPanel,
   SelectedMaterialsPreview,
   TransmuteButton,
+  type TransmuteMode,
+  VariationResultsGrid,
 } from "../shared/components.js";
 import {
   deleteButtonStyle,
@@ -28,9 +32,8 @@ import { usePlaygroundTransmute } from "./usePlaygroundTransmute.js";
 export function App() {
   const store = usePlaygroundStore();
   const { headers } = useApiKeyStore();
-  const { transmute, preview, result, isLoading, error, reset } = usePlaygroundTransmute({
-    headers,
-  });
+  const { transmute, generate, preview, result, generateResults, isLoading, error, reset } =
+    usePlaygroundTransmute({ headers });
 
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(store.recipes[0]?.id ?? "");
   const [selectedCatalystId, setSelectedCatalystId] = useState<string | null>(
@@ -38,6 +41,23 @@ export function App() {
   );
   const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(new Set());
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [generateMode, setGenerateMode] = useState(false);
+  const [generateCount, setGenerateCount] = useState(3);
+  const [selectedVariationKey, setSelectedVariationKey] = useState<string | null>(null);
+
+  const currentMode: TransmuteMode = generateMode ? "generate" : "single";
+
+  const handleModeChange = useCallback(
+    (mode: TransmuteMode) => {
+      reset();
+      setSelectedVariationKey(null);
+      setGenerateMode(mode === "generate");
+    },
+    [reset],
+  );
+
+  // Playground only supports Single and Generate modes (no Compare)
+  const playgroundModes: TransmuteMode[] = ["single", "generate"];
 
   const selectedRecipe = store.recipes.find((r) => r.id === selectedRecipeId);
   const selectedCatalyst = store.catalysts.find((c) => c.id === selectedCatalystId);
@@ -83,6 +103,31 @@ export function App() {
     store.materials,
     selectedMaterialIds,
     transmute,
+  ]);
+
+  const handleGenerate = useCallback(() => {
+    if (!selectedRecipe) return;
+    const materials = store.materials.filter((m) => selectedMaterialIds.has(m.id));
+    if (materials.length === 0) return;
+
+    setSelectedVariationKey(null);
+    generate({
+      materials,
+      promptTemplate: selectedRecipe.promptTemplate,
+      outputType: selectedRecipe.outputType,
+      transforms: selectedRecipe.transforms,
+      catalyst: selectedCatalyst ?? undefined,
+      language: selectedLanguage || undefined,
+      count: generateCount,
+    });
+  }, [
+    selectedRecipe,
+    selectedCatalyst,
+    selectedLanguage,
+    generateCount,
+    store.materials,
+    selectedMaterialIds,
+    generate,
   ]);
 
   const handlePreview = useCallback(async () => {
@@ -269,8 +314,36 @@ export function App() {
             </>
           )}
 
-          {/* Catalyst + Language */}
+          {/* Mode + Catalyst + Language */}
           <div style={{ margin: "0 0 16px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 10,
+              }}
+            >
+              <ModeSelector
+                mode={currentMode}
+                onChange={handleModeChange}
+                availableModes={playgroundModes}
+              />
+              {generateMode && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888" }}>Count</span>
+                  <GenerateCountStepper
+                    count={generateCount}
+                    onChange={(c) => setGenerateCount(Math.max(2, Math.min(5, c)))}
+                  />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
+                <LanguageSelect value={selectedLanguage} onChange={setSelectedLanguage} />
+              </div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ ...labelStyle, margin: 0 }}>Catalyst</span>
               <CatalystEditor
@@ -281,10 +354,6 @@ export function App() {
                 onUpdate={store.updateCatalyst}
                 onDelete={store.deleteCatalyst}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
-                <LanguageSelect value={selectedLanguage} onChange={setSelectedLanguage} />
-              </div>
             </div>
           </div>
 
@@ -302,23 +371,40 @@ export function App() {
             onClear={() => setSelectedMaterialIds(new Set())}
           />
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ flex: 1 }}>
-              <TransmuteButton
-                onClick={handleTransmute}
-                disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
-                isLoading={isLoading}
-              />
+          {generateMode ? (
+            <TransmuteButton
+              onClick={handleGenerate}
+              disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
+              isLoading={isLoading}
+              label={isLoading ? undefined : `Generate ${generateCount} Variations`}
+            />
+          ) : (
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <TransmuteButton
+                  onClick={handleTransmute}
+                  disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <CopyPromptButton
+                  onFetchPreview={handlePreview}
+                  disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
+                />
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <CopyPromptButton
-                onFetchPreview={handlePreview}
-                disabled={isLoading || !hasSelectedMaterials || !selectedRecipe}
-              />
-            </div>
-          </div>
+          )}
 
           <ResultPanel result={result} isLoading={isLoading} error={error} />
+
+          {generateResults != null && (
+            <VariationResultsGrid
+              results={generateResults}
+              selectedKey={selectedVariationKey}
+              onPick={setSelectedVariationKey}
+            />
+          )}
         </div>
       }
       right={

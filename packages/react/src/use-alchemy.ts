@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { MaterialInput } from "./types.js";
 import { useCompare } from "./use-compare.js";
+import { useGenerate } from "./use-generate.js";
 import type { PromptPreview } from "./use-transmute.js";
 import { useTransmute } from "./use-transmute.js";
 
@@ -35,14 +36,24 @@ export interface UseAlchemyResult<TOutput = unknown> {
   toggleCompareKey: (key: string) => void;
   setCompareKeys: (keys: string[]) => void;
 
+  // Generate mode
+  generateMode: boolean;
+  setGenerateMode: (on: boolean) => void;
+  generateCount: number;
+  setGenerateCount: (count: number) => void;
+  selectedVariationKey: string | null;
+  selectVariation: (key: string | null) => void;
+
   // Actions
   transmute: (materials: MaterialInput[]) => Promise<void>;
   compare: (materials: MaterialInput[]) => Promise<void>;
+  generate: (materials: MaterialInput[]) => Promise<void>;
   preview: (materials: MaterialInput[]) => Promise<PromptPreview | undefined>;
 
   // Results
   result: TOutput | null;
   compareResults: Record<string, TOutput> | null;
+  generateResults: Record<string, TOutput> | null;
   previewResult: PromptPreview | null;
   isLoading: boolean;
   isPreviewLoading: boolean;
@@ -71,30 +82,44 @@ export function useAlchemy<TOutput = unknown>(
   const [compareMode, setCompareModeState] = useState(false);
   const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
 
+  // ── Generate mode ──
+  const [generateMode, setGenerateModeState] = useState(false);
+  const [generateCount, setGenerateCountState] = useState(3);
+  const [selectedVariationKey, setSelectedVariationKey] = useState<string | null>(null);
+
   // ── Low-level hooks ──
   const transmuteHook = useTransmute<TOutput>({ baseUrl, headers });
   const compareHook = useCompare<TOutput>({ baseUrl, headers });
+  const generateHook = useGenerate<TOutput>({ baseUrl, headers });
 
   // ── Error (string) ── derived from low-level hooks or local
   const [localError, setLocalError] = useState<string | null>(null);
 
   // ── Derived state ──
-  const isLoading = transmuteHook.isLoading || compareHook.isLoading;
+  const isLoading = transmuteHook.isLoading || compareHook.isLoading || generateHook.isLoading;
   const isPreviewLoading = transmuteHook.isPreviewLoading;
-  const error = localError ?? transmuteHook.error?.message ?? compareHook.error?.message ?? null;
+  const error =
+    localError ??
+    transmuteHook.error?.message ??
+    compareHook.error?.message ??
+    generateHook.error?.message ??
+    null;
 
-  // ── Recipe selection resets catalyst/compare/results ──
+  // ── Recipe selection resets catalyst/compare/generate/results ──
   const selectRecipe = useCallback(
     (id: string) => {
       setSelectedRecipeId(id);
       setSelectedCatalystKey(null);
       setCompareModeState(false);
       setSelectedCompareKeys([]);
+      setGenerateModeState(false);
+      setSelectedVariationKey(null);
       setLocalError(null);
       transmuteHook.reset();
       compareHook.reset();
+      generateHook.reset();
     },
-    [transmuteHook.reset, compareHook.reset],
+    [transmuteHook.reset, compareHook.reset, generateHook.reset],
   );
 
   // ── Material toggle ──
@@ -109,8 +134,9 @@ export function useAlchemy<TOutput = unknown>(
       setLocalError(null);
       transmuteHook.reset();
       compareHook.reset();
+      generateHook.reset();
     },
-    [transmuteHook.reset, compareHook.reset],
+    [transmuteHook.reset, compareHook.reset, generateHook.reset],
   );
 
   const clearSelection = useCallback(() => {
@@ -127,10 +153,11 @@ export function useAlchemy<TOutput = unknown>(
     setSelectedLanguage(lang);
   }, []);
 
-  // ── Compare mode ──
+  // ── Compare mode (exclusive with generate) ──
   const setCompareMode = useCallback((on: boolean) => {
     setCompareModeState(on);
     if (!on) setSelectedCompareKeys([]);
+    if (on) setGenerateModeState(false);
   }, []);
 
   const toggleCompareKey = useCallback((key: string) => {
@@ -143,11 +170,29 @@ export function useAlchemy<TOutput = unknown>(
     setSelectedCompareKeys(keys);
   }, []);
 
+  // ── Generate mode (exclusive with compare) ──
+  const setGenerateMode = useCallback((on: boolean) => {
+    setGenerateModeState(on);
+    if (on) {
+      setCompareModeState(false);
+      setSelectedCompareKeys([]);
+    }
+  }, []);
+
+  const setGenerateCount = useCallback((count: number) => {
+    setGenerateCountState(Math.max(2, Math.min(5, count)));
+  }, []);
+
+  const selectVariation = useCallback((key: string | null) => {
+    setSelectedVariationKey(key);
+  }, []);
+
   // ── Actions ──
   const transmute = useCallback(
     async (materials: MaterialInput[]) => {
       setLocalError(null);
       compareHook.reset();
+      generateHook.reset();
       await transmuteHook.transmute(selectedRecipeId, materials, {
         catalystKey: selectedCatalystKey ?? undefined,
         language: selectedLanguage ?? undefined,
@@ -159,6 +204,7 @@ export function useAlchemy<TOutput = unknown>(
       selectedLanguage,
       transmuteHook.transmute,
       compareHook.reset,
+      generateHook.reset,
     ],
   );
 
@@ -166,6 +212,7 @@ export function useAlchemy<TOutput = unknown>(
     async (materials: MaterialInput[]) => {
       setLocalError(null);
       transmuteHook.reset();
+      generateHook.reset();
       await compareHook.compare(selectedRecipeId, materials, selectedCompareKeys, {
         language: selectedLanguage ?? undefined,
       });
@@ -176,6 +223,29 @@ export function useAlchemy<TOutput = unknown>(
       selectedLanguage,
       compareHook.compare,
       transmuteHook.reset,
+      generateHook.reset,
+    ],
+  );
+
+  const generate = useCallback(
+    async (materials: MaterialInput[]) => {
+      setLocalError(null);
+      transmuteHook.reset();
+      compareHook.reset();
+      setSelectedVariationKey(null);
+      await generateHook.generate(selectedRecipeId, materials, generateCount, {
+        catalystKey: selectedCatalystKey ?? undefined,
+        language: selectedLanguage ?? undefined,
+      });
+    },
+    [
+      selectedRecipeId,
+      selectedCatalystKey,
+      selectedLanguage,
+      generateCount,
+      generateHook.generate,
+      transmuteHook.reset,
+      compareHook.reset,
     ],
   );
 
@@ -193,9 +263,11 @@ export function useAlchemy<TOutput = unknown>(
   // ── Reset ──
   const resetResults = useCallback(() => {
     setLocalError(null);
+    setSelectedVariationKey(null);
     transmuteHook.reset();
     compareHook.reset();
-  }, [transmuteHook.reset, compareHook.reset]);
+    generateHook.reset();
+  }, [transmuteHook.reset, compareHook.reset, generateHook.reset]);
 
   return {
     selectedRecipeId,
@@ -212,11 +284,19 @@ export function useAlchemy<TOutput = unknown>(
     selectedCompareKeys,
     toggleCompareKey,
     setCompareKeys,
+    generateMode,
+    setGenerateMode,
+    generateCount,
+    setGenerateCount,
+    selectedVariationKey,
+    selectVariation,
     transmute,
     compare,
+    generate,
     preview,
     result: transmuteHook.data,
     compareResults: compareHook.data,
+    generateResults: generateHook.data,
     previewResult: transmuteHook.previewData,
     isLoading,
     isPreviewLoading,

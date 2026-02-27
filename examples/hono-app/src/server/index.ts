@@ -230,6 +230,56 @@ app.post("/api/compare/:recipeId", async (c) => {
   }
 });
 
+// ─── Generate (N variations) ────────────────────────────────────────────────
+
+interface GenerateBody {
+  materials: ServerMaterialInput[];
+  count: number;
+  catalystKey?: string;
+  language?: string;
+}
+
+app.post("/api/generate/:recipeId", async (c) => {
+  const { recipeId } = c.req.param();
+  const recipe = allRecipes[recipeId];
+
+  if (!recipe) {
+    return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);
+  }
+
+  const body = await c.req.json<GenerateBody>();
+  const materials = body.materials;
+
+  if (!Array.isArray(materials) || materials.length === 0) {
+    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
+  }
+
+  const count = Math.max(2, Math.min(5, body.count ?? 3));
+
+  try {
+    const alchemist = resolveAlchemist(c);
+    const parts = serverToMaterialParts(materials);
+    const catalyst = resolveCatalystPreset(body.catalystKey);
+    const results = await alchemist.generate(recipe, parts, count, {
+      catalyst,
+      language: body.language,
+    });
+    // Serialize error objects for JSON response
+    const serialized = Object.fromEntries(
+      Object.entries(results).map(([key, val]) => [
+        key,
+        val && typeof val === "object" && "error" in val && val.error instanceof Error
+          ? { error: val.error.message }
+          : val,
+      ]),
+    );
+    return c.json(serialized);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: message }, 500);
+  }
+});
+
 // ─── Prompt Preview ──────────────────────────────────────────────────────────
 
 export interface PromptPreview {

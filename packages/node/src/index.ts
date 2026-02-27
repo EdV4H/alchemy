@@ -91,6 +91,29 @@ export class Alchemist {
     );
   }
 
+  async generate<TInput, TOutput>(
+    recipe: Recipe<TInput, TOutput>,
+    material: TInput,
+    count: number,
+    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
+  ): Promise<Record<string, TOutput | { error: Error }>> {
+    const indices = Array.from({ length: count }, (_, i) => i + 1);
+    const settled = await Promise.allSettled(
+      indices.map(() => this.transmute(recipe, material, options)),
+    );
+    return Object.fromEntries(
+      indices.map((n, i) => {
+        const r = settled[i];
+        return [
+          `variation-${n}`,
+          r.status === "fulfilled"
+            ? r.value
+            : { error: r.reason instanceof Error ? r.reason : new Error(String(r.reason)) },
+        ];
+      }),
+    );
+  }
+
   private collectTransforms<TInput, TOutput>(recipe: Recipe<TInput, TOutput>): MaterialTransform[] {
     const global = this.config.transforms ?? [];
     const local = recipe.transforms ?? [];

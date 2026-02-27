@@ -157,6 +157,79 @@ app.post("/transmute", async (c) => {
   }
 });
 
+// ─── Generate Endpoint ──────────────────────────────────────────────────────
+
+interface PlaygroundGenerateBody extends PlaygroundTransmuteBody {
+  count: number;
+}
+
+app.post("/generate", async (c) => {
+  const body = await c.req.json<PlaygroundGenerateBody>();
+
+  if (!Array.isArray(body.materials) || body.materials.length === 0) {
+    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
+  }
+
+  if (!body.recipe?.promptTemplate) {
+    return c.json({ error: "recipe.promptTemplate is required" }, 400);
+  }
+
+  let spell: (parts: MaterialPart[]) => string;
+  try {
+    spell = buildSpellFromTemplate(body.recipe.promptTemplate);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: `Template error: ${message}` }, 400);
+  }
+
+  let transforms: MaterialTransform[] = [];
+  if (body.recipe.transforms && body.recipe.transforms.length > 0) {
+    try {
+      transforms = body.recipe.transforms.map(parseTransform);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return c.json({ error: `Transform error: ${message}` }, 400);
+    }
+  }
+
+  const refiner =
+    body.recipe.outputType === "json"
+      ? new JsonRefiner(z.record(z.string(), z.unknown()))
+      : new TextRefiner();
+
+  // biome-ignore lint/suspicious/noExplicitAny: recipe output type varies by outputType
+  const recipe: any = {
+    id: "playground",
+    catalyst: body.catalyst,
+    spell,
+    refiner,
+    transforms,
+  };
+
+  const count = Math.max(2, Math.min(5, body.count ?? 3));
+
+  try {
+    const alchemist = resolveAlchemist(c);
+    const parts = serverToMaterialParts(body.materials);
+    const results = await alchemist.generate(recipe, parts, count, {
+      catalyst: body.catalyst,
+      language: body.language,
+    });
+    const serialized = Object.fromEntries(
+      Object.entries(results).map(([key, val]) => [
+        key,
+        val && typeof val === "object" && "error" in val && val.error instanceof Error
+          ? { error: val.error.message }
+          : val,
+      ]),
+    );
+    return c.json(serialized);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return c.json({ error: message }, 500);
+  }
+});
+
 // ─── Preview Endpoint ────────────────────────────────────────────────────────
 
 app.post("/preview", async (c) => {
