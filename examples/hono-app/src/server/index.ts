@@ -254,7 +254,8 @@ app.post("/api/generate/:recipeId", async (c) => {
     return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
   }
 
-  const count = Math.max(2, Math.min(5, body.count ?? 3));
+  const rawCount = Number(body.count);
+  const count = Math.max(2, Math.min(5, Number.isFinite(rawCount) ? rawCount : 3));
 
   try {
     const alchemist = resolveAlchemist(c);

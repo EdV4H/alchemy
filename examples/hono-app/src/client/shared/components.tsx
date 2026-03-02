@@ -995,6 +995,7 @@ export function ModeSelector({
           key={m.value}
           type="button"
           onClick={() => onChange(m.value)}
+          aria-pressed={mode === m.value}
           style={{
             padding: "4px 14px",
             fontSize: 12,
@@ -1047,6 +1048,7 @@ export function GenerateCountStepper({
         type="button"
         onClick={() => onChange(Math.max(min, count - 1))}
         disabled={count <= min}
+        aria-label="Decrease count"
         style={{ ...stepperButton, opacity: count <= min ? 0.4 : 1 }}
       >
         -
@@ -1058,6 +1060,7 @@ export function GenerateCountStepper({
         type="button"
         onClick={() => onChange(Math.min(max, count + 1))}
         disabled={count >= max}
+        aria-label="Increase count"
         style={{ ...stepperButton, opacity: count >= max ? 0.4 : 1 }}
       >
         +
@@ -1086,13 +1089,17 @@ export function VariationResultsGrid({
     (key: string, val: unknown) => {
       onPick(key);
       const text = typeof val === "string" ? val : JSON.stringify(val, null, 2);
-      navigator.clipboard.writeText(text).then(
-        () => {
-          setCopiedKey(key);
-          setTimeout(() => setCopiedKey(null), 1500);
-        },
-        () => {},
-      );
+      try {
+        navigator.clipboard?.writeText(text).then(
+          () => {
+            setCopiedKey(key);
+            setTimeout(() => setCopiedKey(null), 1500);
+          },
+          () => {},
+        );
+      } catch {
+        // Clipboard API unavailable — degrade gracefully
+      }
     },
     [onPick],
   );
@@ -1109,6 +1116,12 @@ export function VariationResultsGrid({
       >
         {entries.map(([key, val], i) => {
           const isPicked = selectedKey === key;
+          const isError =
+            val != null &&
+            typeof val === "object" &&
+            "error" in val &&
+            typeof (val as Record<string, unknown>).error === "string";
+          const errorMsg = isError ? ((val as Record<string, string>).error as string) : null;
           return (
             <div
               key={key}
@@ -1139,25 +1152,32 @@ export function VariationResultsGrid({
                 >
                   Variation {i + 1}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handlePick(key, val)}
-                  aria-label={`Pick variation ${i + 1}`}
-                  style={{
-                    padding: "3px 10px",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    background: isPicked ? "#4caf50" : "#fff",
-                    color: isPicked ? "#fff" : "#555",
-                    border: isPicked ? "1px solid #4caf50" : "1px solid #ccc",
-                    borderRadius: 4,
-                  }}
-                >
-                  {copiedKey === key ? "Copied!" : isPicked ? "Picked" : "Pick"}
-                </button>
+                {!isError && (
+                  <button
+                    type="button"
+                    onClick={() => handlePick(key, val)}
+                    aria-label={`Pick variation ${i + 1}`}
+                    style={{
+                      padding: "3px 10px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      background: isPicked ? "#4caf50" : "#fff",
+                      color: isPicked ? "#fff" : "#555",
+                      border: isPicked ? "1px solid #4caf50" : "1px solid #ccc",
+                      borderRadius: 4,
+                    }}
+                  >
+                    {copiedKey === key ? "Copied!" : isPicked ? "Picked" : "Pick"}
+                  </button>
+                )}
               </div>
-              <ResultPanel result={val} isLoading={false} error={null} resultMode={resultMode} />
+              <ResultPanel
+                result={isError ? null : val}
+                isLoading={false}
+                error={errorMsg}
+                resultMode={resultMode}
+              />
             </div>
           );
         })}
