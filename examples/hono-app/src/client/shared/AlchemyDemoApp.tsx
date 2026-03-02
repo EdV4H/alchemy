@@ -6,15 +6,19 @@ import type { RecipeEntry } from "../../shared/recipes.js";
 import { ApiKeyInput } from "./ApiKeyInput.js";
 import { CopyPromptButton } from "./CopyPromptButton.js";
 import {
+  GenerateCountStepper,
   LanguageSelect,
   MaterialShelf,
   type MaterialShelfProps,
+  ModeSelector,
   PageShell,
   RecipeDetail,
   RecipeSelector,
   ResultPanel,
   SelectedMaterialsPreview,
   TransmuteButton,
+  type TransmuteMode,
+  VariationResultsGrid,
 } from "./components.js";
 import { labelStyle } from "./styles.js";
 import type { CustomMaterial, MaterialCard } from "./types.js";
@@ -59,6 +63,10 @@ export function AlchemyDemoApp({
     selectedLanguage,
     compareMode,
     selectedCompareKeys,
+    generateMode,
+    generateCount,
+    generateResults,
+    selectedVariationKey,
     result,
     compareResults,
     isLoading,
@@ -131,11 +139,42 @@ export function AlchemyDemoApp({
     [alchemy.compare, buildMaterialInputs],
   );
 
+  const handleGenerate = useCallback(
+    () => alchemy.generate(buildMaterialInputs()),
+    [alchemy.generate, buildMaterialInputs],
+  );
+
   const handlePreview = useCallback(async () => {
     const result = await alchemy.preview(buildMaterialInputs());
     if (!result) throw new Error("Preview failed");
     return result;
   }, [alchemy.preview, buildMaterialInputs]);
+
+  const currentMode: TransmuteMode = compareMode ? "compare" : generateMode ? "generate" : "single";
+
+  const handleModeChange = useCallback(
+    (mode: TransmuteMode) => {
+      alchemy.resetResults();
+      if (mode === "compare") {
+        alchemy.setCompareMode(true);
+        alchemy.setGenerateMode(false);
+        alchemy.setCompareKeys(catalystPresets.map((c) => c.key));
+      } else if (mode === "generate") {
+        alchemy.setGenerateMode(true);
+        alchemy.setCompareMode(false);
+      } else {
+        alchemy.setCompareMode(false);
+        alchemy.setGenerateMode(false);
+      }
+    },
+    [
+      alchemy.resetResults,
+      alchemy.setCompareMode,
+      alchemy.setGenerateMode,
+      alchemy.setCompareKeys,
+      catalystPresets,
+    ],
+  );
 
   const hasSelection = selectedMaterials.length > 0;
 
@@ -177,8 +216,32 @@ export function AlchemyDemoApp({
             </div>
           )}
 
-          {/* Catalyst selector */}
+          {/* Mode + Catalyst selector */}
           <div style={{ margin: "0 0 16px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 10,
+              }}
+            >
+              <ModeSelector mode={currentMode} onChange={handleModeChange} />
+              {generateMode && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888" }}>Count</span>
+                  <GenerateCountStepper count={generateCount} onChange={alchemy.setGenerateCount} />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
+                <LanguageSelect
+                  value={selectedLanguage ?? ""}
+                  onChange={(v) => alchemy.setLanguage(v || null)}
+                />
+              </div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ ...labelStyle, margin: 0 }}>Catalyst</span>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -236,37 +299,6 @@ export function AlchemyDemoApp({
                   );
                 })}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
-                <span style={{ fontSize: 12, color: "#888" }}>Language</span>
-                <LanguageSelect
-                  value={selectedLanguage ?? ""}
-                  onChange={(v) => alchemy.setLanguage(v || null)}
-                />
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: 12,
-                    color: "#888",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={compareMode}
-                    onChange={(e) => {
-                      const on = e.target.checked;
-                      alchemy.setCompareMode(on);
-                      alchemy.resetResults();
-                      if (on) {
-                        alchemy.setCompareKeys(catalystPresets.map((c) => c.key));
-                      }
-                    }}
-                  />
-                  Compare
-                </label>
-              </div>
             </div>
           </div>
 
@@ -280,13 +312,20 @@ export function AlchemyDemoApp({
             }}
           />
 
-          {/* Transmute / Compare Button */}
+          {/* Transmute / Compare / Generate Button */}
           {compareMode ? (
             <TransmuteButton
               onClick={handleCompare}
               disabled={isLoading || !hasSelection || selectedCompareKeys.length < 2}
               isLoading={isLoading}
               label={isLoading ? undefined : `Compare (${selectedCompareKeys.length} catalysts)`}
+            />
+          ) : generateMode ? (
+            <TransmuteButton
+              onClick={handleGenerate}
+              disabled={isLoading || !hasSelection}
+              isLoading={isLoading}
+              label={isLoading ? undefined : `Generate ${generateCount} Variations`}
             />
           ) : (
             <div style={{ display: "flex", gap: 8 }}>
@@ -357,6 +396,16 @@ export function AlchemyDemoApp({
                 })}
               </div>
             </div>
+          )}
+
+          {/* Generate results */}
+          {generateResults != null && (
+            <VariationResultsGrid
+              results={generateResults}
+              selectedKey={selectedVariationKey}
+              onPick={alchemy.selectVariation}
+              resultMode={resultMode}
+            />
           )}
         </>
       }

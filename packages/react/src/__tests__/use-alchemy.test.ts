@@ -178,4 +178,95 @@ describe("useAlchemy", () => {
     expect(result.current.compareResults).toBeNull();
     expect(result.current.error).toBeNull();
   });
+
+  it("setGenerateMode(true) disables compareMode", () => {
+    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
+
+    act(() => {
+      result.current.setCompareMode(true);
+      result.current.setCompareKeys(["a", "b"]);
+    });
+    expect(result.current.compareMode).toBe(true);
+
+    act(() => {
+      result.current.setGenerateMode(true);
+    });
+    expect(result.current.generateMode).toBe(true);
+    expect(result.current.compareMode).toBe(false);
+    expect(result.current.selectedCompareKeys).toEqual([]);
+  });
+
+  it("setCompareMode(true) disables generateMode", () => {
+    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
+
+    act(() => {
+      result.current.setGenerateMode(true);
+    });
+    expect(result.current.generateMode).toBe(true);
+
+    act(() => {
+      result.current.setCompareMode(true);
+    });
+    expect(result.current.compareMode).toBe(true);
+    expect(result.current.generateMode).toBe(false);
+  });
+
+  it("setGenerateCount clamps to 2-5 range", () => {
+    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
+
+    act(() => {
+      result.current.setGenerateCount(1);
+    });
+    expect(result.current.generateCount).toBe(2);
+
+    act(() => {
+      result.current.setGenerateCount(10);
+    });
+    expect(result.current.generateCount).toBe(5);
+
+    act(() => {
+      result.current.setGenerateCount(3);
+    });
+    expect(result.current.generateCount).toBe(3);
+  });
+
+  it("generate calls fetch with correct endpoint and count", async () => {
+    const payload = { "variation-1": "a", "variation-2": "b", "variation-3": "c" };
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
+
+    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "recipe-1" }));
+
+    act(() => {
+      result.current.setGenerateMode(true);
+      result.current.setGenerateCount(3);
+      result.current.selectCatalyst("formal");
+    });
+
+    await act(async () => {
+      await result.current.generate([{ type: "text", text: "hello" }]);
+    });
+
+    expect(result.current.generateResults).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith("/api/generate/recipe-1", expect.anything());
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.count).toBe(3);
+    expect(body.catalystKey).toBe("formal");
+  });
+
+  it("selectRecipe resets generateMode", () => {
+    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
+
+    act(() => {
+      result.current.setGenerateMode(true);
+    });
+    expect(result.current.generateMode).toBe(true);
+
+    act(() => {
+      result.current.selectRecipe("r2");
+    });
+    expect(result.current.generateMode).toBe(false);
+  });
 });

@@ -20,10 +20,16 @@ interface PromptPreviewData {
   user: string;
 }
 
+interface PlaygroundGeneratePayload extends PlaygroundTransmutePayload {
+  count: number;
+}
+
 interface UsePlaygroundTransmuteResult {
   transmute: (payload: PlaygroundTransmutePayload) => Promise<void>;
+  generate: (payload: PlaygroundGeneratePayload) => Promise<void>;
   preview: (payload: PlaygroundTransmutePayload) => Promise<PromptPreviewData>;
   result: unknown | null;
+  generateResults: Record<string, unknown> | null;
   isLoading: boolean;
   isPreviewLoading: boolean;
   error: string | null;
@@ -57,6 +63,7 @@ export function usePlaygroundTransmute(
 ): UsePlaygroundTransmuteResult {
   const extraHeaders = options?.headers;
   const [result, setResult] = useState<unknown | null>(null);
+  const [generateResults, setGenerateResults] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +79,7 @@ export function usePlaygroundTransmute(
       setIsLoading(true);
       setError(null);
       setResult(null);
+      setGenerateResults(null);
 
       try {
         const body = {
@@ -104,6 +112,60 @@ export function usePlaygroundTransmute(
           setError(data.error ?? `Server error (${res.status})`);
         } else {
           setResult(data);
+        }
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [extraHeaders],
+  );
+
+  const generate = useCallback(
+    async (payload: PlaygroundGeneratePayload) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setIsLoading(true);
+      setError(null);
+      setResult(null);
+      setGenerateResults(null);
+
+      try {
+        const body = {
+          materials: payload.materials.map(materialToServerInput),
+          recipe: {
+            promptTemplate: payload.promptTemplate,
+            outputType: payload.outputType,
+            transforms: payload.transforms,
+          },
+          catalyst: payload.catalyst
+            ? {
+                roleDefinition: payload.catalyst.roleDefinition,
+                temperature: payload.catalyst.temperature,
+                model: payload.catalyst.model || undefined,
+              }
+            : undefined,
+          language: payload.language || undefined,
+          count: payload.count,
+        };
+
+        const res = await fetch("/api/playground/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...extraHeaders },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error ?? `Server error (${res.status})`);
+        } else {
+          setGenerateResults(data as Record<string, unknown>);
         }
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;
@@ -163,10 +225,21 @@ export function usePlaygroundTransmute(
     abortRef.current?.abort();
     previewAbortRef.current?.abort();
     setResult(null);
+    setGenerateResults(null);
     setError(null);
     setIsLoading(false);
     setIsPreviewLoading(false);
   }, []);
 
-  return { transmute, preview, result, isLoading, isPreviewLoading, error, reset };
+  return {
+    transmute,
+    generate,
+    preview,
+    result,
+    generateResults,
+    isLoading,
+    isPreviewLoading,
+    error,
+    reset,
+  };
 }

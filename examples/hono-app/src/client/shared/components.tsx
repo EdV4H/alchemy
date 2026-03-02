@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
 import {
   cardStyle,
@@ -954,6 +954,242 @@ export function ResultPanel({
           {JSON.stringify(result, null, 2)}
         </pre>
       )}
+    </div>
+  );
+}
+
+// ─── Mode Selector ──────────────────────────────────────────────────────────
+
+export type TransmuteMode = "single" | "compare" | "generate";
+
+const ALL_MODES: { value: TransmuteMode; label: string }[] = [
+  { value: "single", label: "Single" },
+  { value: "compare", label: "Compare" },
+  { value: "generate", label: "Generate" },
+];
+
+export function ModeSelector({
+  mode,
+  onChange,
+  availableModes,
+}: {
+  mode: TransmuteMode;
+  onChange: (mode: TransmuteMode) => void;
+  availableModes?: TransmuteMode[];
+}) {
+  const modes = availableModes
+    ? ALL_MODES.filter((m) => availableModes.includes(m.value))
+    : ALL_MODES;
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        border: "1px solid #ccc",
+        borderRadius: 6,
+        overflow: "hidden",
+      }}
+    >
+      {modes.map((m) => (
+        <button
+          key={m.value}
+          type="button"
+          onClick={() => onChange(m.value)}
+          aria-pressed={mode === m.value}
+          style={{
+            padding: "4px 14px",
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: "pointer",
+            background: mode === m.value ? "#333" : "#fff",
+            color: mode === m.value ? "#fff" : "#555",
+            border: "none",
+            borderRight: m !== modes[modes.length - 1] ? "1px solid #ccc" : "none",
+          }}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Generate Count Stepper ─────────────────────────────────────────────────
+
+export function GenerateCountStepper({
+  count,
+  onChange,
+  min = 2,
+  max = 5,
+}: {
+  count: number;
+  onChange: (count: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  const stepperButton: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+    background: "#fff",
+    border: "1px solid #ccc",
+    borderRadius: 4,
+    color: "#333",
+  };
+
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, count - 1))}
+        disabled={count <= min}
+        aria-label="Decrease count"
+        style={{ ...stepperButton, opacity: count <= min ? 0.4 : 1 }}
+      >
+        -
+      </button>
+      <span style={{ fontSize: 14, fontWeight: 600, minWidth: 20, textAlign: "center" }}>
+        {count}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, count + 1))}
+        disabled={count >= max}
+        aria-label="Increase count"
+        style={{ ...stepperButton, opacity: count >= max ? 0.4 : 1 }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+// ─── Variation Results Grid ─────────────────────────────────────────────────
+
+export function VariationResultsGrid({
+  results,
+  selectedKey,
+  onPick,
+  resultMode = "text",
+}: {
+  results: Record<string, unknown>;
+  selectedKey: string | null;
+  onPick: (key: string) => void;
+  resultMode?: "text" | "html";
+}) {
+  const entries = Object.entries(results);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
+
+  const handlePick = useCallback(
+    (key: string, val: unknown) => {
+      onPick(key);
+      const text = typeof val === "string" ? val : JSON.stringify(val, null, 2);
+      try {
+        navigator.clipboard?.writeText(text).then(
+          () => {
+            if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+            setCopiedKey(key);
+            copiedTimerRef.current = setTimeout(() => setCopiedKey(null), 1500);
+          },
+          () => {},
+        );
+      } catch {
+        // Clipboard API unavailable — degrade gracefully
+      }
+    },
+    [onPick],
+  );
+
+  return (
+    <div style={{ marginTop: 24 }}>
+      <h2>Variations</h2>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {entries.map(([key, val], i) => {
+          const isPicked = selectedKey === key;
+          const isError =
+            val != null &&
+            typeof val === "object" &&
+            "error" in val &&
+            typeof (val as Record<string, unknown>).error === "string";
+          const errorMsg = isError ? ((val as Record<string, string>).error as string) : null;
+          return (
+            <div
+              key={key}
+              style={{
+                border: isPicked ? "2px solid #4caf50" : "1px solid #e0e0e0",
+                borderRadius: 6,
+                padding: 12,
+                minWidth: 0,
+                background: isPicked ? "#f1f8e9" : undefined,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#555",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Variation {i + 1}
+                </div>
+                {!isError && (
+                  <button
+                    type="button"
+                    onClick={() => handlePick(key, val)}
+                    aria-label={`Pick variation ${i + 1}`}
+                    style={{
+                      padding: "3px 10px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      background: isPicked ? "#4caf50" : "#fff",
+                      color: isPicked ? "#fff" : "#555",
+                      border: isPicked ? "1px solid #4caf50" : "1px solid #ccc",
+                      borderRadius: 4,
+                    }}
+                  >
+                    {copiedKey === key ? "Copied!" : isPicked ? "Picked" : "Pick"}
+                  </button>
+                )}
+              </div>
+              <ResultPanel
+                result={isError ? null : val}
+                isLoading={false}
+                error={errorMsg}
+                resultMode={resultMode}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
