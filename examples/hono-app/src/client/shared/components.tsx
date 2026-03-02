@@ -1003,7 +1003,7 @@ export function ModeSelector({
             background: mode === m.value ? "#333" : "#fff",
             color: mode === m.value ? "#fff" : "#555",
             border: "none",
-            borderRight: m.value !== "generate" ? "1px solid #ccc" : "none",
+            borderRight: m !== modes[modes.length - 1] ? "1px solid #ccc" : "none",
           }}
         >
           {m.label}
@@ -1086,10 +1086,13 @@ export function VariationResultsGrid({
     (key: string, val: unknown) => {
       onPick(key);
       const text = typeof val === "string" ? val : JSON.stringify(val, null, 2);
-      navigator.clipboard.writeText(text).then(() => {
-        setCopiedKey(key);
-        setTimeout(() => setCopiedKey(null), 1500);
-      });
+      navigator.clipboard.writeText(text).then(
+        () => {
+          setCopiedKey(key);
+          setTimeout(() => setCopiedKey(null), 1500);
+        },
+        () => {},
+      );
     },
     [onPick],
   );
@@ -1100,7 +1103,7 @@ export function VariationResultsGrid({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${entries.length}, 1fr)`,
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
           gap: 12,
         }}
       >
@@ -1139,6 +1142,7 @@ export function VariationResultsGrid({
                 <button
                   type="button"
                   onClick={() => handlePick(key, val)}
+                  aria-label={`Pick variation ${i + 1}`}
                   style={{
                     padding: "3px 10px",
                     fontSize: 11,

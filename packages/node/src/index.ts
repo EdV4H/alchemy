@@ -97,6 +97,9 @@ export class Alchemist {
     count: number,
     options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
   ): Promise<Record<string, TOutput | { error: Error }>> {
+    if (count < 1) {
+      throw new Error("count must be at least 1");
+    }
     const indices = Array.from({ length: count }, (_, i) => i + 1);
     const settled = await Promise.allSettled(
       indices.map(() => this.transmute(recipe, material, options)),
