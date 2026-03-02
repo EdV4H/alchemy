@@ -6,14 +6,16 @@ export interface UseGenerateOptions {
   headers?: Record<string, string>;
 }
 
+export type GenerateResultEntry<TOutput> = TOutput | { error: string };
+
 export interface UseGenerateResult<TOutput = unknown> {
   generate: (
     recipeId: string,
     materials: MaterialInput[],
     count: number,
     options?: { catalystKey?: string; language?: string },
-  ) => Promise<Record<string, TOutput> | undefined>;
-  data: Record<string, TOutput> | null;
+  ) => Promise<Record<string, GenerateResultEntry<TOutput>> | undefined>;
+  data: Record<string, GenerateResultEntry<TOutput>> | null;
   isLoading: boolean;
   error: Error | null;
   reset: () => void;
@@ -24,7 +26,7 @@ export function useGenerate<TOutput = unknown>(
 ): UseGenerateResult<TOutput> {
   const baseUrl = options?.baseUrl ?? "";
   const extraHeaders = options?.headers;
-  const [data, setData] = useState<Record<string, TOutput> | null>(null);
+  const [data, setData] = useState<Record<string, GenerateResultEntry<TOutput>> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -35,7 +37,7 @@ export function useGenerate<TOutput = unknown>(
       materials: MaterialInput[],
       count: number,
       opts?: { catalystKey?: string; language?: string },
-    ): Promise<Record<string, TOutput> | undefined> => {
+    ): Promise<Record<string, GenerateResultEntry<TOutput>> | undefined> => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -58,7 +60,7 @@ export function useGenerate<TOutput = unknown>(
           const body = await res.text();
           throw new Error(`${res.status}: ${body}`);
         }
-        const result = (await res.json()) as Record<string, TOutput>;
+        const result = (await res.json()) as Record<string, GenerateResultEntry<TOutput>>;
         setData(result);
         return result;
       } catch (e) {

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { MaterialInput } from "./types.js";
 import { useCompare } from "./use-compare.js";
+import type { GenerateResultEntry } from "./use-generate.js";
 import { useGenerate } from "./use-generate.js";
 import type { PromptPreview } from "./use-transmute.js";
 import { useTransmute } from "./use-transmute.js";
@@ -53,7 +54,7 @@ export interface UseAlchemyResult<TOutput = unknown> {
   // Results
   result: TOutput | null;
   compareResults: Record<string, TOutput> | null;
-  generateResults: Record<string, TOutput> | null;
+  generateResults: Record<string, GenerateResultEntry<TOutput>> | null;
   previewResult: PromptPreview | null;
   isLoading: boolean;
   isPreviewLoading: boolean;

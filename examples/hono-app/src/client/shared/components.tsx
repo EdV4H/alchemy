@@ -1,5 +1,5 @@
 import type React from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
 import {
   cardStyle,
@@ -1084,6 +1084,13 @@ export function VariationResultsGrid({
 }) {
   const entries = Object.entries(results);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
 
   const handlePick = useCallback(
     (key: string, val: unknown) => {
@@ -1092,8 +1099,9 @@ export function VariationResultsGrid({
       try {
         navigator.clipboard?.writeText(text).then(
           () => {
+            if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
             setCopiedKey(key);
-            setTimeout(() => setCopiedKey(null), 1500);
+            copiedTimerRef.current = setTimeout(() => setCopiedKey(null), 1500);
           },
           () => {},
         );
