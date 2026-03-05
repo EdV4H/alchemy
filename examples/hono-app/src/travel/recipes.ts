@@ -1,5 +1,11 @@
 import type { MaterialPart, Recipe } from "@edv4h/alchemy-node";
-import { extractText, JsonRefiner, TextRefiner, truncateText } from "@edv4h/alchemy-node";
+import {
+  extractText,
+  JsonRefiner,
+  MermaidRefiner,
+  TextRefiner,
+  truncateText,
+} from "@edv4h/alchemy-node";
 import { z } from "zod";
 import type { RecipeEntry } from "../shared/recipes.js";
 import { zodToFieldMeta } from "../shared/zod-helpers.js";
@@ -271,6 +277,26 @@ ${text}`;
   transforms: [truncateText(4000)],
 };
 
+// ─── Recipe 8: Trip Flow Diagram ──────────────────────────────────────────
+// 旅程フロー図 — Mermaid output
+
+export const travelFlowRecipe: Recipe<MaterialPart[], string> = {
+  id: "travel-flow",
+  name: "Trip Flow Diagram",
+  requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
+  catalyst: {
+    roleDefinition:
+      "You are a travel itinerary visualizer. Convert travel notes into a clear Mermaid flowchart showing the journey flow — destinations, activities, and transportation between them. Use descriptive node labels.",
+    temperature: 0.3,
+  },
+  spell: (parts) => {
+    const text = extractText(parts);
+    return `Based on the following travel materials, create a Mermaid flowchart diagram showing the trip itinerary flow. Include destinations as nodes and transportation/connections as edges:\n\n${text}`;
+  },
+  refiner: new MermaidRefiner(),
+  transforms: [truncateText(4000)],
+};
+
 // ─── Recipe Registry ────────────────────────────────────────────────────────
 
 export const travelRecipeEntries: RecipeEntry[] = [
@@ -368,6 +394,18 @@ export const travelRecipeEntries: RecipeEntry[] = [
       requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
       promptTemplate:
         "Create guide \u2192 {destination, bestSeason, mustSee[], localFood[], transportation[], culturalNotes[], packlist[]}",
+    },
+  },
+  {
+    recipe: travelFlowRecipe,
+    label: "Trip Flow",
+    icon: "\uD83D\uDD00",
+    description: "Visualize your trip itinerary as a Mermaid flowchart",
+    meta: {
+      outputType: "mermaid",
+      transforms: ["truncateText(4000)"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
+      promptTemplate: "Convert trip itinerary into a Mermaid flowchart diagram",
     },
   },
 ];
