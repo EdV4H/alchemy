@@ -57,6 +57,7 @@
         <a href="#transmuter" class="sidebar-link sub">Transmuter</a>
         <a href="#refiner" class="sidebar-link sub">Refiner</a>
         <a href="#recipe" class="sidebar-link sub">Recipe</a>
+        <a href="#material-requirements" class="sidebar-link sub">Material Requirements</a>
         <a href="#alchemist" class="sidebar-link sub">Alchemist</a>
       </div>
     </aside>
@@ -96,11 +97,11 @@
           </thead>
           <tbody>
             <tr><td><code>text</code></td><td>Plain text content</td><td><code>text</code></td></tr>
-            <tr><td><code>image</code></td><td>Image via URL or base64</td><td><code>imageUrl</code></td></tr>
-            <tr><td><code>audio</code></td><td>Audio content</td><td><code>audioUrl</code></td></tr>
-            <tr><td><code>document</code></td><td>Document text</td><td><code>documentText</code></td></tr>
-            <tr><td><code>video</code></td><td>Video content</td><td><code>videoUrl</code></td></tr>
-            <tr><td><code>data</code></td><td>Structured data (CSV, JSON, TSV)</td><td><code>dataFormat</code>, <code>dataContent</code></td></tr>
+            <tr><td><code>image</code></td><td>Image via URL or base64</td><td><code>source: { kind: "url" | "base64" }</code></td></tr>
+            <tr><td><code>audio</code></td><td>Audio content</td><td><code>source: { kind: "url" | "base64" }</code></td></tr>
+            <tr><td><code>document</code></td><td>Document text or URL</td><td><code>source: { kind: "url" | "text" }</code></td></tr>
+            <tr><td><code>video</code></td><td>Video content</td><td><code>source: { kind: "url" | "base64" }</code></td></tr>
+            <tr><td><code>data</code></td><td>Structured data (CSV, JSON, TSV)</td><td><code>format</code>, <code>content</code>, <code>label?</code></td></tr>
           </tbody>
         </table>
 
@@ -111,8 +112,8 @@
           <pre><code class="language-ts">// Multiple material types in a single request
 const materials = [
   { type: "text", text: "Analyze this chart and data" },
-  { type: "image", imageUrl: "https://example.com/chart.png" },
-  { type: "data", dataFormat: "csv", dataContent: "name,value\nA,10\nB,20" },
+  { type: "image", source: { kind: "url", url: "https://example.com/chart.png" } },
+  { type: "data", format: "csv", content: "name,value\nA,10\nB,20" },
 ];</code></pre>
         </div>
 
@@ -277,6 +278,37 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
         </div>
 
         <p>Recipes are generic over <code>TInput</code> and <code>TOutput</code>, giving you end-to-end type safety from input to output.</p>
+
+        <h3 id="material-requirements">Material Requirements</h3>
+        <p>Recipes can declare what types of materials they expect using <code>requiredMaterials</code>. This enables validation before transmutation, preventing wasted API calls on invalid input.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">const imageAnalysisRecipe: Recipe&lt;MaterialPart[], AnalysisResult&gt; = {
+  id: "image-analysis",
+  spell: (material) =&gt; ({ output: "Analyze the provided images" }),
+  refiner: new JsonRefiner(AnalysisSchema),
+  // Declarative: require 1-5 images
+  requiredMaterials: [
+    { type: "image", min: 1, max: 5, label: "Analysis images" },
+  ],
+  // Custom: ensure at least one text description is included
+  validateMaterials: (parts) =&gt; {
+    const hasText = parts.some((p) =&gt; p.type === "text");
+    return hasText
+      ? { valid: true }
+      : { valid: false, message: "Please include a text description" };
+  },
+};</code></pre>
+        </div>
+
+        <p>Validation runs in two stages via <code>runMaterialValidation()</code>:</p>
+        <ol>
+          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type</li>
+          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> only if the declarative check passes</li>
+        </ol>
 
         <h2 id="alchemist">Alchemist</h2>
         <p>The Alchemist is the main orchestrator. It wires everything together and executes the transmutation pipeline:</p>
