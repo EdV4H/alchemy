@@ -63,3 +63,56 @@ export class JsonRefiner<T> implements Refiner<T> {
     return "Respond with valid JSON only. No markdown, no explanation.";
   }
 }
+
+export class MermaidRefiner implements Refiner<string> {
+  private static readonly DIAGRAM_KEYWORDS = [
+    "graph",
+    "flowchart",
+    "sequenceDiagram",
+    "classDiagram",
+    "stateDiagram",
+    "erDiagram",
+    "gantt",
+    "pie",
+    "gitgraph",
+    "journey",
+    "mindmap",
+    "timeline",
+    "C4Context",
+    "C4Container",
+    "C4Component",
+    "C4Deployment",
+    "xychart-beta",
+    "block-beta",
+    "sankey-beta",
+    "packet-beta",
+    "kanban",
+    "architecture-beta",
+  ];
+
+  private static stripCodeFences(text: string): string {
+    const fenceRegex = /^```(?:mermaid)?\s*\n?([\s\S]*?)\n?```\s*$/;
+    const match = fenceRegex.exec(text.trim());
+    return match ? match[1].trim() : text.trim();
+  }
+
+  refine(rawText: string): string {
+    const cleaned = MermaidRefiner.stripCodeFences(rawText);
+    if (!cleaned) {
+      throw new RefineError("Empty Mermaid diagram output");
+    }
+    const firstWord = cleaned.split(/[\s\n{]/)[0];
+    if (
+      !MermaidRefiner.DIAGRAM_KEYWORDS.some((kw) => firstWord.toLowerCase() === kw.toLowerCase())
+    ) {
+      throw new RefineError(
+        `Invalid Mermaid diagram: expected diagram keyword but got "${firstWord}"`,
+      );
+    }
+    return cleaned;
+  }
+
+  getFormatInstructions(): string {
+    return "Respond with a valid Mermaid diagram definition only. No markdown fences, no explanation. Start with the diagram type keyword (e.g., graph, flowchart, sequenceDiagram).";
+  }
+}

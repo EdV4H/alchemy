@@ -37,7 +37,7 @@ export interface AlchemyDemoConfig {
   catalystPresets: NamedCatalyst[];
   materialGroups?: { header: string; filter: (m: MaterialCard) => boolean }[];
   customMaterialTypes?: CustomMaterialType[];
-  resultMode?: "text" | "html";
+  resultMode?: "text" | "html" | "mermaid";
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -76,6 +76,8 @@ export function AlchemyDemoApp({
   } = alchemy;
 
   const selectedEntry = recipeEntries.find((e) => e.recipe.id === selectedRecipeId);
+
+  const effectiveResultMode = selectedEntry?.meta.outputType === "mermaid" ? "mermaid" : resultMode;
 
   const allSelectableMaterials: (MaterialCard | (CustomMaterial & { icon: string }))[] = [
     ...materials,
@@ -383,7 +385,7 @@ export function AlchemyDemoApp({
               result={result}
               isLoading={false}
               error={localError ?? error}
-              resultMode={resultMode}
+              resultMode={effectiveResultMode}
             />
           </div>
 
@@ -426,7 +428,7 @@ export function AlchemyDemoApp({
                         result={val}
                         isLoading={false}
                         error={null}
-                        resultMode={resultMode}
+                        resultMode={effectiveResultMode}
                       />
                     </div>
                   );
@@ -441,7 +443,7 @@ export function AlchemyDemoApp({
               results={generateResults}
               selectedKey={selectedVariationKey}
               onPick={alchemy.selectVariation}
-              resultMode={resultMode}
+              resultMode={effectiveResultMode}
             />
           )}
         </>

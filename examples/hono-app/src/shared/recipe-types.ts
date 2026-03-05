@@ -5,7 +5,7 @@ export interface RecipeFieldMeta {
 }
 
 export interface RecipeMeta {
-  outputType: "text" | "json";
+  outputType: "text" | "json" | "mermaid";
   schemaFields?: RecipeFieldMeta[]; // json only
   transforms: string[]; // human-readable e.g. "truncateText(2000)"
   promptTemplate: string; // spell summary

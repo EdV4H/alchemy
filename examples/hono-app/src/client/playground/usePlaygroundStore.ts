@@ -9,7 +9,7 @@ export interface PlaygroundRecipe {
   name: string;
   icon?: string;
   promptTemplate: string;
-  outputType: "text" | "json";
+  outputType: "text" | "json" | "mermaid";
   transforms: string[];
   requiredMaterials?: MaterialRequirement[];
   validateMaterialsKey?: string;

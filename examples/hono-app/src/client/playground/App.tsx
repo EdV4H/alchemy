@@ -301,13 +301,14 @@ export function App() {
                     value={selectedRecipe.outputType}
                     onChange={(e) =>
                       store.updateRecipe(selectedRecipe.id, {
-                        outputType: e.target.value as "text" | "json",
+                        outputType: e.target.value as "text" | "json" | "mermaid",
                       })
                     }
                     style={selectStyle}
                   >
                     <option value="text">text</option>
                     <option value="json">json</option>
+                    <option value="mermaid">mermaid</option>
                   </select>
                 </div>
               </div>
@@ -601,13 +602,19 @@ export function App() {
             </div>
           )}
 
-          <ResultPanel result={result} isLoading={isLoading} error={localError ?? error} />
+          <ResultPanel
+            result={result}
+            isLoading={isLoading}
+            error={localError ?? error}
+            resultMode={selectedRecipe?.outputType === "mermaid" ? "mermaid" : "text"}
+          />
 
           {generateResults != null && (
             <VariationResultsGrid
               results={generateResults}
               selectedKey={selectedVariationKey}
               onPick={setSelectedVariationKey}
+              resultMode={selectedRecipe?.outputType === "mermaid" ? "mermaid" : "text"}
             />
           )}
         </div>

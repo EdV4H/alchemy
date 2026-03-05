@@ -146,6 +146,7 @@ export {
   filterByType,
   isTextOnly,
   JsonRefiner,
+  MermaidRefiner,
   normalizeSpellOutput,
   prependText,
   RefineError,

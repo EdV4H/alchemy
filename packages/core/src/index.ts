@@ -8,7 +8,7 @@ export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from ".
 export type { MaterialInput } from "./material-input.js";
 export { toMaterialParts } from "./material-input.js";
 // Refiners
-export { JsonRefiner, TextRefiner } from "./refiners.js";
+export { JsonRefiner, MermaidRefiner, TextRefiner } from "./refiners.js";
 // Transforms
 export { dataToText, filterByType, prependText, truncateText } from "./transforms.js";
 // Types
