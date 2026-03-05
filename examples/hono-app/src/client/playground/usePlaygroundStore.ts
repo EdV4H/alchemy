@@ -1,3 +1,4 @@
+import type { MaterialRequirement } from "@edv4h/alchemy-node";
 import { useCallback, useSyncExternalStore } from "react";
 import type { CustomMaterial } from "../shared/types.js";
 
@@ -10,6 +11,8 @@ export interface PlaygroundRecipe {
   promptTemplate: string;
   outputType: "text" | "json";
   transforms: string[];
+  requiredMaterials?: MaterialRequirement[];
+  validateMaterialsKey?: string;
   defaultCatalystId?: string;
   createdAt: number;
   updatedAt: number;
