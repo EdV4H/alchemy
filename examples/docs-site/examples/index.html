@@ -55,6 +55,7 @@
         <a href="#streaming" class="sidebar-link sub">Streaming</a>
         <a href="#compare" class="sidebar-link sub">A/B Comparison</a>
         <a href="#react-ui" class="sidebar-link sub">React UI</a>
+        <a href="#validation" class="sidebar-link sub">Validation</a>
       </div>
     </aside>
 
@@ -180,12 +181,12 @@ const result = await alchemist.transmute({
   },
   materials: [
     { type: "text", text: "Q4 2024 Sales Report" },
-    { type: "image", imageUrl: "https://example.com/sales-chart.png" },
+    { type: "image", source: { kind: "url", url: "https://example.com/sales-chart.png" } },
     {
       type: "data",
-      dataFormat: "csv",
-      dataContent: "month,revenue\nOct,45000\nNov,52000\nDec,61000",
-      dataLabel: "Monthly Revenue",
+      format: "csv",
+      content: "month,revenue\nOct,45000\nNov,52000\nDec,61000",
+      label: "Monthly Revenue",
     },
   ],
 });
@@ -357,6 +358,74 @@ function TranslatorApp() {
         <div class="callout callout-tip">
           <strong>Live Demo</strong>
           <p>Check out the <a href="https://github.com/EdV4H/alchemy/tree/main/examples/hono-app" target="_blank" rel="noopener">hono-app example</a> for a full-stack demo with React frontend and Hono backend, including a playground, travel assistant, and team landing page generator.</p>
+        </div>
+
+        <!-- Example 7 -->
+        <h2 id="validation">Material Validation</h2>
+        <p>Validate materials before transmutation to catch errors early and avoid wasted API calls.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { JsonRefiner, runMaterialValidation } from "@edv4h/alchemy-core";
+import type { Recipe, MaterialPart } from "@edv4h/alchemy-core";
+import { z } from "zod";
+
+// Define a recipe with material requirements
+const imageAnalysisRecipe: Recipe&lt;MaterialPart[], { description: string }&gt; = {
+  id: "image-analysis",
+  spell: (material) =&gt; ({ output: "Describe the provided images" }),
+  refiner: new JsonRefiner(z.object({ description: z.string() })),
+  // Declarative: require 1-3 images
+  requiredMaterials: [
+    { type: "image", min: 1, max: 3, label: "Photos to analyze" },
+  ],
+};
+
+// Validate before calling the API
+const materials: MaterialPart[] = [
+  { type: "text", text: "What's in this photo?" },
+];
+
+const validation = runMaterialValidation(imageAnalysisRecipe, materials);
+
+if (!validation.valid) {
+  console.error("Validation failed:");
+  for (const issue of validation.issues ?? []) {
+    console.error(
+      `  ${issue.label ?? issue.type}: expected ${issue.requirement.min}–${issue.requirement.max ?? "∞"}, got ${issue.actual} (${issue.kind})`
+    );
+  }
+  // → "Photos to analyze: expected 1–3, got 0 (too_few)"
+}</code></pre>
+        </div>
+
+        <h3>Custom Validation</h3>
+        <p>For more complex rules, use <code>validateMaterials</code> alongside or instead of <code>requiredMaterials</code>.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">const recipe: Recipe&lt;MaterialPart[], string&gt; = {
+  id: "travel-plan",
+  spell: (material) =&gt; ({ output: "Create a travel itinerary" }),
+  refiner: new TextRefiner(),
+  requiredMaterials: [
+    { type: "text", min: 1, label: "Travel preferences" },
+  ],
+  validateMaterials: (parts) =&gt; {
+    const textParts = parts.filter((p) =&gt; p.type === "text");
+    const totalLength = textParts.reduce(
+      (sum, p) =&gt; sum + (p.type === "text" ? p.text.length : 0), 0,
+    );
+    if (totalLength &lt; 20) {
+      return { valid: false, message: "Please provide more detail (at least 20 characters)" };
+    }
+    return { valid: true };
+  },
+};</code></pre>
         </div>
       </div>
     </main>
