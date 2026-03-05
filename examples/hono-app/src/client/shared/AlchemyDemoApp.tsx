@@ -380,14 +380,16 @@ export function AlchemyDemoApp({
           )}
 
           {/* Single result */}
-          <div style={{ marginTop: 24 }}>
-            <ResultPanel
-              result={result}
-              isLoading={false}
-              error={localError ?? error}
-              resultMode={effectiveResultMode}
-            />
-          </div>
+          {!compareMode && !generateMode && (
+            <div style={{ marginTop: 24 }}>
+              <ResultPanel
+                result={result}
+                isLoading={false}
+                error={localError ?? error}
+                resultMode={effectiveResultMode}
+              />
+            </div>
+          )}
 
           {/* Compare results */}
           {compareResults != null && (

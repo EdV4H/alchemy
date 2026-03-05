@@ -602,12 +602,14 @@ export function App() {
             </div>
           )}
 
-          <ResultPanel
-            result={result}
-            isLoading={isLoading}
-            error={localError ?? error}
-            resultMode={selectedRecipe?.outputType === "mermaid" ? "mermaid" : "text"}
-          />
+          {!generateMode && (
+            <ResultPanel
+              result={result}
+              isLoading={isLoading}
+              error={localError ?? error}
+              resultMode={selectedRecipe?.outputType === "mermaid" ? "mermaid" : "text"}
+            />
+          )}
 
           {generateResults != null && (
             <VariationResultsGrid
