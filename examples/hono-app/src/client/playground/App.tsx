@@ -93,11 +93,21 @@ export function App() {
     if (!hasReqs && !hasValidator) return true;
 
     const materials = store.materials.filter((m) => selectedMaterialIds.has(m.id));
-    // Build fake MaterialPart-like objects for validation
-    const fakeParts = materials.map((m) => {
-      if (m.type === "text") return { type: "text" as const, text: m.text ?? "" };
-      return { type: m.type };
-    }) as import("@edv4h/alchemy-node").MaterialPart[];
+    // Build minimal MaterialPart objects for validation
+    const fakeParts: import("@edv4h/alchemy-node").MaterialPart[] = materials.map((m) => {
+      switch (m.type) {
+        case "text":
+          return { type: "text", text: m.text ?? "" };
+        case "image":
+          return { type: "image", source: { kind: "url", url: "" } };
+        case "data":
+          return { type: "data", format: "csv", content: "" };
+        case "document":
+          return { type: "document", source: { kind: "text", text: "" } };
+        default:
+          return { type: "text", text: "" };
+      }
+    });
 
     // 1. Declarative check
     if (hasReqs) {

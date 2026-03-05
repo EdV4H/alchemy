@@ -542,9 +542,9 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
         <div style={{ marginBottom: 10 }}>
           <div style={popoverSectionLabel}>Required Materials</div>
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {meta.requiredMaterials?.map((req) => (
+            {meta.requiredMaterials?.map((req, index) => (
               <span
-                key={`${req.type}-${req.label ?? ""}`}
+                key={`${req.type}-${req.label ?? ""}-${index}`}
                 style={{
                   display: "inline-block",
                   padding: "2px 8px",

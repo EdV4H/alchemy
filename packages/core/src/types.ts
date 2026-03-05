@@ -73,8 +73,8 @@ export interface MaterialPartRegistry {}
 
 export type MaterialPart = BuiltinMaterialPart | MaterialPartRegistry[keyof MaterialPartRegistry];
 
-/** 素材パーツのタイプ文字列 */
-export type MaterialPartType = BuiltinMaterialPart["type"];
+/** 素材パーツのタイプ文字列（拡張型も含む） */
+export type MaterialPartType = MaterialPart["type"];
 
 /** レシピが要求する素材タイプの定義 */
 export interface MaterialRequirement {

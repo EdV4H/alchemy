@@ -14,23 +14,30 @@ export function validateMaterialRequirements(
 ): MaterialValidationResult {
   const issues: MaterialValidationIssue[] = [];
 
+  // Precompute counts by type in a single pass
+  const countByType = new Map<string, number>();
+  for (const part of parts) {
+    countByType.set(part.type, (countByType.get(part.type) ?? 0) + 1);
+  }
+
   for (const req of requirements) {
-    const count = parts.filter((p) => p.type === req.type).length;
-    const min = req.min ?? 1;
+    const count = countByType.get(req.type) ?? 0;
+    const min = Math.max(0, Math.floor(req.min ?? 1));
+    const max = req.max !== undefined ? Math.max(0, Math.floor(req.max)) : undefined;
 
     if (count < min) {
       issues.push({
         type: req.type,
         label: req.label,
-        requirement: { min, max: req.max },
+        requirement: { min, max },
         actual: count,
         kind: "too_few",
       });
-    } else if (req.max !== undefined && count > req.max) {
+    } else if (max !== undefined && count > max) {
       issues.push({
         type: req.type,
         label: req.label,
-        requirement: { min, max: req.max },
+        requirement: { min, max },
         actual: count,
         kind: "too_many",
       });

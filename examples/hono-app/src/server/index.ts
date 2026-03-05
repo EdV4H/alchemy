@@ -3,6 +3,7 @@ import type {
   MaterialPart,
   MaterialTransform,
   MaterialValidationIssue,
+  MaterialValidationResult,
 } from "@edv4h/alchemy-node";
 import {
   Alchemist,
@@ -161,6 +162,14 @@ function formatValidationIssue(issue: MaterialValidationIssue): string {
   return `At most ${issue.requirement.max} ${label} allowed (got ${issue.actual})`;
 }
 
+function formatValidationError(validation: MaterialValidationResult): string {
+  return (
+    validation.message ??
+    validation.issues?.map(formatValidationIssue).join("; ") ??
+    "Validation failed"
+  );
+}
+
 interface TransmuteBody {
   materials: ServerMaterialInput[];
   catalystKey?: string;
@@ -188,11 +197,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
 
     const validation = runMaterialValidation(recipe, parts);
     if (!validation.valid) {
-      const msg =
-        validation.message ??
-        validation.issues?.map(formatValidationIssue).join("; ") ??
-        "Validation failed";
-      return c.json({ error: msg }, 400);
+      return c.json({ error: formatValidationError(validation) }, 400);
     }
 
     const catalyst = resolveCatalystPreset(body.catalystKey);
@@ -235,11 +240,7 @@ app.post("/api/compare/:recipeId", async (c) => {
 
     const validation = runMaterialValidation(recipe, parts);
     if (!validation.valid) {
-      const msg =
-        validation.message ??
-        validation.issues?.map(formatValidationIssue).join("; ") ??
-        "Validation failed";
-      return c.json({ error: msg }, 400);
+      return c.json({ error: formatValidationError(validation) }, 400);
     }
 
     const catalysts: Record<string, CatalystConfig> = {};
@@ -297,11 +298,7 @@ app.post("/api/generate/:recipeId", async (c) => {
 
     const validation = runMaterialValidation(recipe, parts);
     if (!validation.valid) {
-      const msg =
-        validation.message ??
-        validation.issues?.map(formatValidationIssue).join("; ") ??
-        "Validation failed";
-      return c.json({ error: msg }, 400);
+      return c.json({ error: formatValidationError(validation) }, 400);
     }
 
     const catalyst = resolveCatalystPreset(body.catalystKey);
@@ -421,11 +418,7 @@ app.post("/api/preview/:recipeId", async (c) => {
 
     const validation = runMaterialValidation(recipe, parts);
     if (!validation.valid) {
-      const msg =
-        validation.message ??
-        validation.issues?.map(formatValidationIssue).join("; ") ??
-        "Validation failed";
-      return c.json({ error: msg }, 400);
+      return c.json({ error: formatValidationError(validation) }, 400);
     }
 
     const catalyst = resolveCatalystPreset(body.catalystKey);

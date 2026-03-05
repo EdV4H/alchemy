@@ -1,5 +1,6 @@
 ---
 "@edv4h/alchemy-core": minor
+"@edv4h/alchemy-node": minor
 ---
 
 Add material validation system with declarative requirements and custom validators
