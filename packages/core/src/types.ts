@@ -73,6 +73,32 @@ export interface MaterialPartRegistry {}
 
 export type MaterialPart = BuiltinMaterialPart | MaterialPartRegistry[keyof MaterialPartRegistry];
 
+/** 素材パーツのタイプ文字列（拡張型も含む） */
+export type MaterialPartType = MaterialPart["type"];
+
+/** レシピが要求する素材タイプの定義 */
+export interface MaterialRequirement {
+  readonly type: MaterialPartType;
+  readonly min?: number; // デフォルト: 1
+  readonly max?: number; // undefined = 無制限
+  readonly label?: string; // 表示用ラベル
+}
+
+/** バリデーション結果 */
+export interface MaterialValidationResult {
+  valid: boolean;
+  message?: string;
+  issues?: MaterialValidationIssue[];
+}
+
+export interface MaterialValidationIssue {
+  type: MaterialPartType;
+  label?: string;
+  requirement: { min: number; max?: number };
+  actual: number;
+  kind: "too_few" | "too_many";
+}
+
 export type SpellOutput = string | MaterialPart | MaterialPart[];
 
 // ──────────────────────────────────────────
@@ -153,6 +179,8 @@ export interface Recipe<TInput, TOutput> {
   spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
   transforms?: MaterialTransform[];
+  requiredMaterials?: MaterialRequirement[];
+  validateMaterials?: (parts: MaterialPart[]) => MaterialValidationResult;
 }
 
 // ──────────────────────────────────────────

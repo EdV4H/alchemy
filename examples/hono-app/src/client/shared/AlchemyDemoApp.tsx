@@ -1,4 +1,5 @@
-import type { NamedCatalyst } from "@edv4h/alchemy-node";
+import type { MaterialPart, NamedCatalyst } from "@edv4h/alchemy-node";
+import { runMaterialValidation, toMaterialParts } from "@edv4h/alchemy-node";
 import type { MaterialInput } from "@edv4h/alchemy-react";
 import { useAlchemy } from "@edv4h/alchemy-react";
 import { useCallback, useState } from "react";
@@ -55,6 +56,7 @@ export function AlchemyDemoApp({
   const { headers } = useApiKeyStore();
   const alchemy = useAlchemy({ initialRecipeId: recipeEntries[0].recipe.id, headers });
   const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>([]);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const {
     selectedRecipeId,
@@ -129,20 +131,50 @@ export function AlchemyDemoApp({
     });
   }, [selectedMaterials]);
 
-  const handleTransmute = useCallback(
-    () => alchemy.transmute(buildMaterialInputs()),
-    [alchemy.transmute, buildMaterialInputs],
-  );
+  const validateBeforeSubmit = useCallback((): boolean => {
+    if (!selectedEntry) return true;
+    const recipe = selectedEntry.recipe;
+    if (!recipe.requiredMaterials && !recipe.validateMaterials) return true;
 
-  const handleCompare = useCallback(
-    () => alchemy.compare(buildMaterialInputs()),
-    [alchemy.compare, buildMaterialInputs],
-  );
+    const inputs = buildMaterialInputs();
+    const parts = toMaterialParts(inputs) as MaterialPart[];
+    const result = runMaterialValidation(recipe, parts);
+    if (!result.valid) {
+      const msg =
+        result.message ??
+        result.issues
+          ?.map((i) => {
+            const label = i.label ?? i.type;
+            return i.kind === "too_few"
+              ? `Requires at least ${i.requirement.min} ${label} (got ${i.actual})`
+              : `At most ${i.requirement.max} ${label} allowed (got ${i.actual})`;
+          })
+          .join("; ") ??
+        "Validation failed";
+      setLocalError(msg);
+      return false;
+    }
+    setLocalError(null);
+    return true;
+  }, [selectedEntry, buildMaterialInputs]);
 
-  const handleGenerate = useCallback(
-    () => alchemy.generate(buildMaterialInputs()),
-    [alchemy.generate, buildMaterialInputs],
-  );
+  const handleTransmute = useCallback(() => {
+    if (!validateBeforeSubmit()) return;
+    setLocalError(null);
+    alchemy.transmute(buildMaterialInputs());
+  }, [alchemy.transmute, buildMaterialInputs, validateBeforeSubmit]);
+
+  const handleCompare = useCallback(() => {
+    if (!validateBeforeSubmit()) return;
+    setLocalError(null);
+    alchemy.compare(buildMaterialInputs());
+  }, [alchemy.compare, buildMaterialInputs, validateBeforeSubmit]);
+
+  const handleGenerate = useCallback(() => {
+    if (!validateBeforeSubmit()) return;
+    setLocalError(null);
+    alchemy.generate(buildMaterialInputs());
+  }, [alchemy.generate, buildMaterialInputs, validateBeforeSubmit]);
 
   const handlePreview = useCallback(async () => {
     const result = await alchemy.preview(buildMaterialInputs());
@@ -347,7 +379,12 @@ export function AlchemyDemoApp({
 
           {/* Single result */}
           <div style={{ marginTop: 24 }}>
-            <ResultPanel result={result} isLoading={false} error={error} resultMode={resultMode} />
+            <ResultPanel
+              result={result}
+              isLoading={false}
+              error={localError ?? error}
+              resultMode={resultMode}
+            />
           </div>
 
           {/* Compare results */}

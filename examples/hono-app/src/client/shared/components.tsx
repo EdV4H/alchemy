@@ -525,6 +525,7 @@ export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?:
 export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
   const { meta } = entry;
   const catalyst = entry.recipe.catalyst;
+  const hasCustomValidation = !!entry.recipe.validateMaterials;
 
   return (
     <div
@@ -536,6 +537,48 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
         color: "#333",
       }}
     >
+      {/* REQUIRED MATERIALS */}
+      {(meta.requiredMaterials?.length || hasCustomValidation) && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={popoverSectionLabel}>Required Materials</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {meta.requiredMaterials?.map((req, index) => (
+              <span
+                key={`${req.type}-${req.label ?? ""}-${index}`}
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  borderRadius: 4,
+                  background: "#fff3e0",
+                  color: "#e65100",
+                }}
+              >
+                {req.label ?? req.type}
+                {req.min != null && req.min > 1 ? ` ×${req.min}+` : ""}
+                {req.max != null ? ` (max ${req.max})` : ""}
+              </span>
+            ))}
+            {hasCustomValidation && (
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  borderRadius: 4,
+                  background: "#f3e5f5",
+                  color: "#7b1fa2",
+                }}
+              >
+                Custom validation
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* OUTPUT */}
       <div style={{ marginBottom: 10 }}>
         <div style={popoverSectionLabel}>Output</div>

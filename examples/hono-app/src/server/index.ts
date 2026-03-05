@@ -1,4 +1,10 @@
-import type { CatalystConfig, MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
+import type {
+  CatalystConfig,
+  MaterialPart,
+  MaterialTransform,
+  MaterialValidationIssue,
+  MaterialValidationResult,
+} from "@edv4h/alchemy-node";
 import {
   Alchemist,
   AnthropicTransmuter,
@@ -8,6 +14,7 @@ import {
   imageUrlToBase64,
   normalizeSpellOutput,
   OpenAITransmuter,
+  runMaterialValidation,
   toMaterialParts,
   truncateText,
 } from "@edv4h/alchemy-node";
@@ -147,6 +154,22 @@ function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
   return allCatalystPresets.find((c) => c.key === key)?.config;
 }
 
+function formatValidationIssue(issue: MaterialValidationIssue): string {
+  const label = issue.label ?? issue.type;
+  if (issue.kind === "too_few") {
+    return `Requires at least ${issue.requirement.min} ${label} (got ${issue.actual})`;
+  }
+  return `At most ${issue.requirement.max} ${label} allowed (got ${issue.actual})`;
+}
+
+function formatValidationError(validation: MaterialValidationResult): string {
+  return (
+    validation.message ??
+    validation.issues?.map(formatValidationIssue).join("; ") ??
+    "Validation failed"
+  );
+}
+
 interface TransmuteBody {
   materials: ServerMaterialInput[];
   catalystKey?: string;
@@ -171,6 +194,12 @@ app.post("/api/transmute/:recipeId", async (c) => {
   try {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
+
+    const validation = runMaterialValidation(recipe, parts);
+    if (!validation.valid) {
+      return c.json({ error: formatValidationError(validation) }, 400);
+    }
+
     const catalyst = resolveCatalystPreset(body.catalystKey);
     const result = await alchemist.transmute(recipe, parts, { catalyst, language: body.language });
     return c.json(result);
@@ -208,6 +237,12 @@ app.post("/api/compare/:recipeId", async (c) => {
   try {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
+
+    const validation = runMaterialValidation(recipe, parts);
+    if (!validation.valid) {
+      return c.json({ error: formatValidationError(validation) }, 400);
+    }
+
     const catalysts: Record<string, CatalystConfig> = {};
     for (const key of body.catalystKeys) {
       const config = resolveCatalystPreset(key);
@@ -260,6 +295,12 @@ app.post("/api/generate/:recipeId", async (c) => {
   try {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
+
+    const validation = runMaterialValidation(recipe, parts);
+    if (!validation.valid) {
+      return c.json({ error: formatValidationError(validation) }, 400);
+    }
+
     const catalyst = resolveCatalystPreset(body.catalystKey);
     const results = await alchemist.generate(recipe, parts, count, {
       catalyst,
@@ -374,6 +415,12 @@ app.post("/api/preview/:recipeId", async (c) => {
 
   try {
     const parts = serverToMaterialParts(materials);
+
+    const validation = runMaterialValidation(recipe, parts);
+    if (!validation.valid) {
+      return c.json({ error: formatValidationError(validation) }, 400);
+    }
+
     const catalyst = resolveCatalystPreset(body.catalystKey);
     const preview = await buildPromptPreview(parts, recipe, {
       catalyst,

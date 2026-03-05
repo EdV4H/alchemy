@@ -150,11 +150,13 @@ export {
   prependText,
   RefineError,
   resolveCatalyst,
+  runMaterialValidation,
   TextRefiner,
   TransformError,
   TransmuteError,
   toMaterialParts,
   truncateText,
+  validateMaterialRequirements,
 } from "@edv4h/alchemy-core";
 // Node-specific transforms
 export {
