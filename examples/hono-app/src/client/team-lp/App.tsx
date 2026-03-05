@@ -173,6 +173,26 @@ Alchemy Labs is a Series A startup (founded 2022) building the developer platfor
 - Forbes 30 Under 30 — Alice Chen (2024)
 - Best Developer Tool — DevWorld Conference 2024`,
   },
+
+  // ── Invalid Materials (バリデーション確認用) ────────────────────────────────
+  {
+    id: "invalid-image-only",
+    icon: "\u26A0\uFE0F",
+    label: "[Invalid] \u753B\u50CF\u306E\u307F\uFF08\u30C6\u30AD\u30B9\u30C8\u306A\u3057\uFF09",
+    category: "image",
+    text: "",
+    imageUrl: "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f8?w=400",
+  },
+  {
+    id: "invalid-data-only",
+    icon: "\u26A0\uFE0F",
+    label:
+      "[Invalid] \u30C7\u30FC\u30BF\u306E\u307F\uFF08\u30C6\u30AD\u30B9\u30C8\u306A\u3057\uFF09",
+    category: "data",
+    text: "",
+    dataFormat: "csv",
+    dataContent: "col1,col2\na,b",
+  },
 ];
 
 // ─── Category groups for the material shelf ─────────────────────────────────
@@ -181,11 +201,19 @@ const materialGroups: { header: string; filter: (m: MaterialCard) => boolean }[]
   { header: "\uD83D\uDC64 Member Profiles", filter: (m) => m.id.startsWith("member-") },
   {
     header: "\uD83D\uDCDD Team Info",
-    filter: (m) => m.category === "text" && !m.id.startsWith("member-"),
+    filter: (m) =>
+      m.category === "text" && !m.id.startsWith("member-") && !m.id.startsWith("invalid-"),
   },
-  { header: "\uD83D\uDCF7 Photos", filter: (m) => m.category === "image" },
-  { header: "\uD83D\uDCCA Data", filter: (m) => m.category === "data" },
+  {
+    header: "\uD83D\uDCF7 Photos",
+    filter: (m) => m.category === "image" && !m.id.startsWith("invalid-"),
+  },
+  {
+    header: "\uD83D\uDCCA Data",
+    filter: (m) => m.category === "data" && !m.id.startsWith("invalid-"),
+  },
   { header: "\uD83D\uDCC4 Documents", filter: (m) => m.category === "document" },
+  { header: "\u26A0\uFE0F Invalid (test)", filter: (m) => m.id.startsWith("invalid-") },
 ];
 
 // ─── App ────────────────────────────────────────────────────────────────────
