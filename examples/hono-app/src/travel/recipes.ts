@@ -10,6 +10,7 @@ import { zodToFieldMeta } from "../shared/zod-helpers.js";
 export const travelMemoryRecipe: Recipe<MaterialPart[], string> = {
   id: "travel-memory",
   name: "Travel Memory Story",
+  requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
   catalyst: {
     roleDefinition:
       "You are a talented travel writer. Transform travel notes, photos, and data into a compelling narrative that brings the journey to life. Write in a warm, vivid style with sensory details. Output in the same language as the input materials.",
@@ -49,6 +50,7 @@ export type TravelHighlights = z.infer<typeof TravelHighlightsSchema>;
 export const travelHighlightsRecipe: Recipe<MaterialPart[], TravelHighlights> = {
   id: "travel-highlights",
   name: "Travel Highlights",
+  requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
   catalyst: {
     roleDefinition:
       "You are a highlights curator. Identify the most memorable and noteworthy moments from travel materials and organize them into a structured highlights reel.",
@@ -78,6 +80,7 @@ ${text}`;
 export const travelBlogRecipe: Recipe<MaterialPart[], string> = {
   id: "travel-blog",
   name: "Travel Blog Post",
+  requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
   catalyst: {
     roleDefinition:
       "You are an experienced travel blogger. Write engaging, SEO-friendly blog posts that balance personal anecdotes with useful information. Include section headers and a conversational tone.",
@@ -113,6 +116,7 @@ export type PhotoCaptions = z.infer<typeof PhotoCaptionsSchema>;
 export const photoCaptionRecipe: Recipe<MaterialPart[], PhotoCaptions> = {
   id: "photo-caption",
   name: "Photo Caption Generator",
+  requiredMaterials: [{ type: "image", min: 1, label: "Travel photos" }],
   catalyst: {
     roleDefinition:
       "You are a creative photo caption specialist. Generate evocative descriptions and social-media-ready captions for travel photos. Capture the mood and story behind each image.",
@@ -151,6 +155,7 @@ export type TripSummary = z.infer<typeof TripSummarySchema>;
 export const tripSummaryRecipe: Recipe<MaterialPart[], TripSummary> = {
   id: "trip-summary",
   name: "Trip Summary Report",
+  requiredMaterials: [{ type: "text", min: 1, label: "Trip notes" }],
   catalyst: {
     roleDefinition:
       "You are a meticulous travel report writer. Compile travel materials into a comprehensive, well-organized trip report with timelines, destinations, and key takeaways.",
@@ -199,6 +204,7 @@ export type BudgetAnalysis = z.infer<typeof BudgetAnalysisSchema>;
 export const budgetAnalysisRecipe: Recipe<MaterialPart[], BudgetAnalysis> = {
   id: "budget-analysis",
   name: "Budget Analysis",
+  requiredMaterials: [{ type: "text", min: 1, label: "Expense data" }],
   catalyst: {
     roleDefinition:
       "You are a travel budget analyst. Analyze travel expense data and provide clear breakdowns, insights, and money-saving tips for future trips.",
@@ -240,6 +246,7 @@ export type DestinationGuide = z.infer<typeof DestinationGuideSchema>;
 export const destinationGuideRecipe: Recipe<MaterialPart[], DestinationGuide> = {
   id: "destination-guide",
   name: "Destination Guide",
+  requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
   catalyst: {
     roleDefinition:
       "You are a knowledgeable travel guide writer. Create practical, insightful destination guides based on travel materials. Include local tips that only experienced travelers would know.",
@@ -275,6 +282,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: [],
+      requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
       promptTemplate:
         "Craft a vivid travel story from notes, photos, data, and documents ...materials",
     },
@@ -288,6 +296,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
       outputType: "json",
       schemaFields: zodToFieldMeta(TravelHighlightsSchema),
       transforms: ["truncateText(4000)"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
       promptTemplate:
         "Extract highlights \u2192 {tripTitle, duration, topMoments[], bestPhoto, oneLiner, recommendations[]}",
     },
@@ -300,6 +309,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: [],
+      requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
       promptTemplate:
         "Write a travel blog post with title, sections, observations, and tips ...materials",
     },
@@ -313,6 +323,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
       outputType: "json",
       schemaFields: zodToFieldMeta(PhotoCaptionsSchema),
       transforms: [],
+      requiredMaterials: [{ type: "image", min: 1, label: "Travel photos" }],
       promptTemplate:
         "Generate photo captions \u2192 {captions: [{description, shortCaption, instagramCaption, hashtags[], mood}]}",
     },
@@ -326,6 +337,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
       outputType: "json",
       schemaFields: zodToFieldMeta(TripSummarySchema),
       transforms: ["truncateText(6000)", "dataToText()", "documentToText()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Trip notes" }],
       promptTemplate:
         "Compile trip report \u2192 {title, overview, destinations[], timeline[], expenses, ratings, lessonsLearned[]}",
     },
@@ -339,6 +351,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
       outputType: "json",
       schemaFields: zodToFieldMeta(BudgetAnalysisSchema),
       transforms: ["dataToText()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Expense data" }],
       promptTemplate:
         "Analyze expenses \u2192 {summary, totalSpent, dailyAverage, categoryBreakdown[], mostExpensive, savingTips[], comparisonNotes}",
     },
@@ -352,6 +365,7 @@ export const travelRecipeEntries: RecipeEntry[] = [
       outputType: "json",
       schemaFields: zodToFieldMeta(DestinationGuideSchema),
       transforms: ["truncateText(4000)", "documentToText()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
       promptTemplate:
         "Create guide \u2192 {destination, bestSeason, mustSee[], localFood[], transportation[], culturalNotes[], packlist[]}",
     },
