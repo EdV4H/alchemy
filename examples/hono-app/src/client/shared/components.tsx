@@ -1139,8 +1139,16 @@ export function VariationResultsGrid({
   resultMode?: "text" | "html" | "mermaid";
 }) {
   const entries = Object.entries(results);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const entryCount = entries.length;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: must re-run when entry count changes
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [entryCount]);
 
   useEffect(() => {
     return () => {
@@ -1168,84 +1176,159 @@ export function VariationResultsGrid({
     [onPick],
   );
 
+  const navButtonStyle: React.CSSProperties = {
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    border: "1px solid #ccc",
+    background: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 14,
+    color: "#333",
+    padding: 0,
+    flexShrink: 0,
+  };
+
   return (
     <div style={{ marginTop: 24 }}>
       <h2>Variations</h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: 12,
-        }}
-      >
-        {entries.map(([key, val], i) => {
-          const isPicked = selectedKey === key;
-          const isError =
-            val != null &&
-            typeof val === "object" &&
-            "error" in val &&
-            typeof (val as Record<string, unknown>).error === "string";
-          const errorMsg = isError ? ((val as Record<string, string>).error as string) : null;
-          return (
-            <div
-              key={key}
-              style={{
-                border: isPicked ? "2px solid #4caf50" : "1px solid #e0e0e0",
-                borderRadius: 6,
-                padding: 12,
-                minWidth: 0,
-                background: isPicked ? "#f1f8e9" : undefined,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
+
+      {/* Viewport */}
+      <div style={{ overflow: "hidden", borderRadius: 6 }}>
+        <div
+          style={{
+            display: "flex",
+            transform: `translateX(-${currentIndex * 100}%)`,
+            transition: "transform 300ms ease",
+          }}
+        >
+          {entries.map(([key, val], i) => {
+            const isPicked = selectedKey === key;
+            const isError =
+              val != null &&
+              typeof val === "object" &&
+              "error" in val &&
+              typeof (val as Record<string, unknown>).error === "string";
+            const errorMsg = isError ? ((val as Record<string, string>).error as string) : null;
+            return (
+              <div key={key} style={{ flex: "0 0 100%", minWidth: 0 }}>
                 <div
                   style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#555",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    border: isPicked ? "2px solid #4caf50" : "1px solid #e0e0e0",
+                    borderRadius: 6,
+                    padding: 12,
+                    background: isPicked ? "#f1f8e9" : undefined,
                   }}
                 >
-                  Variation {i + 1}
-                </div>
-                {!isError && (
-                  <button
-                    type="button"
-                    onClick={() => handlePick(key, val)}
-                    aria-label={`Pick variation ${i + 1}`}
+                  <div
                     style={{
-                      padding: "3px 10px",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      background: isPicked ? "#4caf50" : "#fff",
-                      color: isPicked ? "#fff" : "#555",
-                      border: isPicked ? "1px solid #4caf50" : "1px solid #ccc",
-                      borderRadius: 4,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 8,
                     }}
                   >
-                    {copiedKey === key ? "Copied!" : isPicked ? "Picked" : "Pick"}
-                  </button>
-                )}
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#555",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      Variation {i + 1} of {entries.length}
+                    </div>
+                    {!isError && (
+                      <button
+                        type="button"
+                        onClick={() => handlePick(key, val)}
+                        aria-label={`Pick variation ${i + 1}`}
+                        style={{
+                          padding: "3px 10px",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: isPicked ? "#4caf50" : "#fff",
+                          color: isPicked ? "#fff" : "#555",
+                          border: isPicked ? "1px solid #4caf50" : "1px solid #ccc",
+                          borderRadius: 4,
+                        }}
+                      >
+                        {copiedKey === key ? "Copied!" : isPicked ? "Picked" : "Pick"}
+                      </button>
+                    )}
+                  </div>
+                  <ResultPanel
+                    result={isError ? null : val}
+                    isLoading={false}
+                    error={errorMsg}
+                    resultMode={resultMode}
+                  />
+                </div>
               </div>
-              <ResultPanel
-                result={isError ? null : val}
-                isLoading={false}
-                error={errorMsg}
-                resultMode={resultMode}
-              />
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      {/* Navigation bar — hidden when only 1 item */}
+      {entries.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            marginTop: 12,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+            disabled={currentIndex === 0}
+            aria-label="Previous variation"
+            style={{ ...navButtonStyle, opacity: currentIndex === 0 ? 0.3 : 1 }}
+          >
+            &#8249;
+          </button>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {entries.map(([,], i) => (
+              <button
+                type="button"
+                // biome-ignore lint/suspicious/noArrayIndexKey: stable order from Object.entries
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                aria-label={`Go to variation ${i + 1}`}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: i === currentIndex ? "#333" : "#ccc",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentIndex((i) => Math.min(entries.length - 1, i + 1))}
+            disabled={currentIndex === entries.length - 1}
+            aria-label="Next variation"
+            style={{
+              ...navButtonStyle,
+              opacity: currentIndex === entries.length - 1 ? 0.3 : 1,
+            }}
+          >
+            &#8250;
+          </button>
+        </div>
+      )}
     </div>
   );
 }
