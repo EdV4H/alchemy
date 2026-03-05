@@ -8,6 +8,7 @@ import {
   imageUrlToBase64,
   isTextOnly,
   JsonRefiner,
+  MermaidRefiner,
   prependText,
   TextRefiner,
   truncateText,
@@ -85,11 +86,22 @@ interface PlaygroundTransmuteBody {
   materials: ServerMaterialInput[];
   recipe: {
     promptTemplate: string;
-    outputType: "text" | "json";
+    outputType: "text" | "json" | "mermaid";
     transforms?: string[];
   };
   catalyst?: CatalystConfig;
   language?: string;
+}
+
+function resolveRefiner(outputType: "text" | "json" | "mermaid") {
+  switch (outputType) {
+    case "json":
+      return new JsonRefiner(z.record(z.string(), z.unknown()));
+    case "mermaid":
+      return new MermaidRefiner();
+    default:
+      return new TextRefiner();
+  }
 }
 
 // ─── Endpoint ───────────────────────────────────────────────────────────────
@@ -127,11 +139,7 @@ app.post("/transmute", async (c) => {
     }
   }
 
-  // Build refiner
-  const refiner =
-    body.recipe.outputType === "json"
-      ? new JsonRefiner(z.record(z.string(), z.unknown()))
-      : new TextRefiner();
+  const refiner = resolveRefiner(body.recipe.outputType);
 
   // Assemble recipe
   // biome-ignore lint/suspicious/noExplicitAny: recipe output type varies by outputType
@@ -192,10 +200,7 @@ app.post("/generate", async (c) => {
     }
   }
 
-  const refiner =
-    body.recipe.outputType === "json"
-      ? new JsonRefiner(z.record(z.string(), z.unknown()))
-      : new TextRefiner();
+  const refiner = resolveRefiner(body.recipe.outputType);
 
   // biome-ignore lint/suspicious/noExplicitAny: recipe output type varies by outputType
   const recipe: any = {
@@ -262,10 +267,7 @@ app.post("/preview", async (c) => {
     }
   }
 
-  const refiner =
-    body.recipe.outputType === "json"
-      ? new JsonRefiner(z.record(z.string(), z.unknown()))
-      : new TextRefiner();
+  const refiner = resolveRefiner(body.recipe.outputType);
 
   try {
     const parts = serverToMaterialParts(body.materials);

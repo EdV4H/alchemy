@@ -5,7 +5,7 @@ import type { PlaygroundCatalyst } from "./usePlaygroundStore.js";
 interface PlaygroundTransmutePayload {
   materials: CustomMaterial[];
   promptTemplate: string;
-  outputType: "text" | "json";
+  outputType: "text" | "json" | "mermaid";
   transforms: string[];
   catalyst?: PlaygroundCatalyst;
   language?: string;

@@ -1,6 +1,7 @@
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RecipeEntry, RecipeFieldMeta } from "../../shared/recipes.js";
+import { MermaidDiagram } from "./MermaidDiagram.js";
 import {
   cardStyle,
   codeStyle,
@@ -589,8 +590,18 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
             fontSize: 11,
             fontWeight: 600,
             borderRadius: 4,
-            background: meta.outputType === "json" ? "#e8f5e9" : "#e3f2fd",
-            color: meta.outputType === "json" ? "#2e7d32" : "#1565c0",
+            background:
+              meta.outputType === "json"
+                ? "#e8f5e9"
+                : meta.outputType === "mermaid"
+                  ? "#f3e5f5"
+                  : "#e3f2fd",
+            color:
+              meta.outputType === "json"
+                ? "#2e7d32"
+                : meta.outputType === "mermaid"
+                  ? "#7b1fa2"
+                  : "#1565c0",
           }}
         >
           {meta.outputType}
@@ -908,7 +919,7 @@ export function ResultPanel({
   result: unknown | null;
   isLoading: boolean;
   error: string | null;
-  resultMode?: "text" | "html";
+  resultMode?: "text" | "html" | "mermaid";
 }) {
   if (isLoading) {
     return (
@@ -974,6 +985,8 @@ export function ResultPanel({
               <pre style={{ ...codeStyle, marginTop: 8, fontSize: 12 }}>{result}</pre>
             </details>
           </>
+        ) : resultMode === "mermaid" ? (
+          <MermaidDiagram code={result} />
         ) : (
           <div
             style={{
@@ -1123,7 +1136,7 @@ export function VariationResultsGrid({
   results: Record<string, unknown>;
   selectedKey: string | null;
   onPick: (key: string) => void;
-  resultMode?: "text" | "html";
+  resultMode?: "text" | "html" | "mermaid";
 }) {
   const entries = Object.entries(results);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

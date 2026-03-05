@@ -1,5 +1,5 @@
 import type { MaterialPart, Recipe } from "@edv4h/alchemy-node";
-import { extractText, TextRefiner, truncateText } from "@edv4h/alchemy-node";
+import { extractText, MermaidRefiner, TextRefiner, truncateText } from "@edv4h/alchemy-node";
 import type { RecipeEntry } from "../shared/recipes.js";
 
 // ─── Recipe 1: Hero Section ─────────────────────────────────────────────────
@@ -156,6 +156,26 @@ export const teamFullPageRecipe: Recipe<MaterialPart[], string> = {
   refiner: new TextRefiner(),
 };
 
+// ─── Recipe 8: Org Chart ─────────────────────────────────────────────────────
+// チーム組織図 — Mermaid output
+
+export const teamOrgChartRecipe: Recipe<MaterialPart[], string> = {
+  id: "team-org-chart",
+  name: "Org Chart",
+  requiredMaterials: [{ type: "text", min: 1, label: "Team structure" }],
+  catalyst: {
+    roleDefinition:
+      "You are an organizational chart designer. Convert team structure information into a clear Mermaid graph showing reporting lines, team groupings, and roles. Use descriptive labels for each node.",
+    temperature: 0.3,
+  },
+  spell: (parts) => {
+    const text = extractText(parts);
+    return `Based on the following team information, create a Mermaid graph diagram showing the organizational structure. Include team members, their roles, and reporting relationships:\n\n${text}`;
+  },
+  refiner: new MermaidRefiner(),
+  transforms: [truncateText(4000)],
+};
+
 // ─── Recipe Registry ────────────────────────────────────────────────────────
 
 export const teamLpRecipeEntries: RecipeEntry[] = [
@@ -244,6 +264,18 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
       transforms: ["imageUrlToBase64()", "dataToText()"],
       requiredMaterials: [{ type: "text", min: 1, label: "Team materials" }],
       promptTemplate: "Generate complete team landing page HTML from all materials ...materials",
+    },
+  },
+  {
+    recipe: teamOrgChartRecipe,
+    label: "Org Chart",
+    icon: "\uD83C\uDFD7\uFE0F",
+    description: "Generate a team organization chart as a Mermaid diagram",
+    meta: {
+      outputType: "mermaid",
+      transforms: ["truncateText(4000)"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Team structure" }],
+      promptTemplate: "Generate team org chart as a Mermaid graph diagram",
     },
   },
 ];
