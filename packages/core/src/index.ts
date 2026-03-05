@@ -11,7 +11,6 @@ export { toMaterialParts } from "./material-input.js";
 export { JsonRefiner, TextRefiner } from "./refiners.js";
 // Transforms
 export { dataToText, filterByType, prependText, truncateText } from "./transforms.js";
-
 // Types
 export type {
   AlchemistConfig,
@@ -25,8 +24,12 @@ export type {
   Language,
   MaterialPart,
   MaterialPartRegistry,
+  MaterialPartType,
+  MaterialRequirement,
   MaterialTransform,
   MaterialTransformContext,
+  MaterialValidationIssue,
+  MaterialValidationResult,
   NamedCatalyst,
   Recipe,
   Refiner,
@@ -37,3 +40,5 @@ export type {
   Transmuter,
   VideoMaterialPart,
 } from "./types.js";
+// Validation
+export { runMaterialValidation, validateMaterialRequirements } from "./validation.js";
