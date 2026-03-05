@@ -8,6 +8,7 @@ import type { RecipeEntry } from "../shared/recipes.js";
 export const teamHeroRecipe: Recipe<MaterialPart[], string> = {
   id: "team-hero",
   name: "Hero Section",
+  requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
   catalyst: {
     roleDefinition:
       "You are an expert landing page designer. Generate a compelling hero section as semantic HTML with inline styles. Include a headline, tagline, mission statement, and a call-to-action button. Use modern, responsive CSS. If a response language is specified, write all visible text content (headings, paragraphs, buttons) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -29,6 +30,7 @@ export const teamHeroRecipe: Recipe<MaterialPart[], string> = {
 export const teamMembersRecipe: Recipe<MaterialPart[], string> = {
   id: "team-members",
   name: "Member Profile Cards",
+  requiredMaterials: [{ type: "text", min: 1, label: "Member profiles" }],
   catalyst: {
     roleDefinition:
       "You are a UI designer specializing in profile cards. Generate a responsive grid of member profile cards as semantic HTML with inline styles. Each card should include the member's name, role, a brief bio, and skills. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -50,6 +52,7 @@ export const teamMembersRecipe: Recipe<MaterialPart[], string> = {
 export const teamAchievementsRecipe: Recipe<MaterialPart[], string> = {
   id: "team-achievements",
   name: "Achievements & Stats",
+  requiredMaterials: [{ type: "text", min: 1, label: "Team data" }],
   catalyst: {
     roleDefinition:
       "You are a data visualization specialist for landing pages. Generate an achievements/stats section as semantic HTML with inline styles. Display key metrics prominently with large numbers, labels, and subtle animations hints via CSS. If a response language is specified, write all visible text content (labels, descriptions) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -71,6 +74,7 @@ ${text}`;
 export const teamCultureRecipe: Recipe<MaterialPart[], string> = {
   id: "team-culture",
   name: "Team Culture & Values",
+  requiredMaterials: [{ type: "text", min: 1, label: "Culture notes" }],
   catalyst: {
     roleDefinition:
       "You are a culture branding specialist. Generate a team culture and values section as semantic HTML with inline styles. Present core values with icons (use emoji), descriptions, and a narrative about team culture. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -92,6 +96,7 @@ export const teamCultureRecipe: Recipe<MaterialPart[], string> = {
 export const teamProjectsRecipe: Recipe<MaterialPart[], string> = {
   id: "team-projects",
   name: "Project Showcase",
+  requiredMaterials: [{ type: "text", min: 1, label: "Project data" }],
   catalyst: {
     roleDefinition:
       "You are a portfolio designer. Generate a project showcase section as semantic HTML with inline styles. Each project card should follow a Challenge → Solution → Result structure. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -113,6 +118,7 @@ ${text}`;
 export const teamWhyJoinRecipe: Recipe<MaterialPart[], string> = {
   id: "team-why-join",
   name: "Why Join Us? / FAQ",
+  requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
   catalyst: {
     roleDefinition:
       "You are a talent acquisition copywriter. Generate a 'Why Join Us?' section followed by an FAQ accordion as semantic HTML with inline styles. Use <details>/<summary> elements for the FAQ. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
@@ -134,6 +140,7 @@ export const teamWhyJoinRecipe: Recipe<MaterialPart[], string> = {
 export const teamFullPageRecipe: Recipe<MaterialPart[], string> = {
   id: "team-full-page",
   name: "Full Page Assembler",
+  requiredMaterials: [{ type: "text", min: 1, label: "Team materials" }],
   catalyst: {
     roleDefinition:
       "You are a full-stack landing page designer. Generate a complete, single-page team landing page as semantic HTML with inline styles. Include all major sections: hero, about/mission, team members, achievements, culture & values, project showcase, why join us, and a footer. If a response language is specified, write all visible text content in that language. Output only the HTML — no markdown fences, no explanation.",
@@ -160,6 +167,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: ["imageUrlToBase64()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
       promptTemplate:
         "Generate a hero section HTML with headline, tagline, mission, and CTA ...materials",
     },
@@ -172,6 +180,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: ["imageUrlToBase64()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Member profiles" }],
       promptTemplate: "Generate member profile cards grid HTML from team profiles ...materials",
     },
   },
@@ -183,6 +192,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: ["dataToText()", "truncateText(6000)"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Team data" }],
       promptTemplate: "Generate achievements & stats section HTML from team data ...materials",
     },
   },
@@ -194,6 +204,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: [],
+      requiredMaterials: [{ type: "text", min: 1, label: "Culture notes" }],
       promptTemplate: "Generate culture & values section HTML from team culture notes ...materials",
     },
   },
@@ -205,6 +216,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: ["dataToText()", "truncateText(6000)"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Project data" }],
       promptTemplate:
         "Generate project showcase HTML with challenge/solution/result cards ...materials",
     },
@@ -217,6 +229,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: [],
+      requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
       promptTemplate:
         "Generate 'Why Join Us?' section + FAQ accordion HTML from team info ...materials",
     },
@@ -229,6 +242,7 @@ export const teamLpRecipeEntries: RecipeEntry[] = [
     meta: {
       outputType: "text",
       transforms: ["imageUrlToBase64()", "dataToText()"],
+      requiredMaterials: [{ type: "text", min: 1, label: "Team materials" }],
       promptTemplate: "Generate complete team landing page HTML from all materials ...materials",
     },
   },
