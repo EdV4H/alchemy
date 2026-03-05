@@ -159,17 +159,41 @@ const allMaterials: MaterialCard[] = [
     text: "Short vlog clip from Arashiyama bamboo grove (stub: frame extraction not yet available)",
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
   },
+
+  // ── Invalid Materials (バリデーション確認用) ────────────────────────────────
+  {
+    id: "invalid-image-only",
+    icon: "\u26A0\uFE0F",
+    label: "[Invalid] \u753B\u50CF\u306E\u307F\uFF08\u30C6\u30AD\u30B9\u30C8\u306A\u3057\uFF09",
+    category: "image",
+    text: "",
+    imageUrl: "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f8?w=400",
+  },
+  {
+    id: "invalid-empty-text",
+    icon: "\u26A0\uFE0F",
+    label: "[Invalid] \u7A7A\u30C6\u30AD\u30B9\u30C8",
+    category: "text",
+    text: "",
+  },
 ];
 
 // ─── Category groups for the material shelf ─────────────────────────────────
 
 const materialGroups: { header: string; filter: (m: MaterialCard) => boolean }[] = [
-  { header: "\uD83D\uDCDD Texts & Notes", filter: (m) => m.category === "text" },
-  { header: "\uD83D\uDCF7 Photos", filter: (m) => m.category === "image" },
+  {
+    header: "\uD83D\uDCDD Texts & Notes",
+    filter: (m) => m.category === "text" && !m.id.startsWith("invalid-"),
+  },
+  {
+    header: "\uD83D\uDCF7 Photos",
+    filter: (m) => m.category === "image" && !m.id.startsWith("invalid-"),
+  },
   { header: "\uD83D\uDCC4 Documents", filter: (m) => m.category === "document" },
   { header: "\uD83D\uDCCA Data", filter: (m) => m.category === "data" },
   { header: "\uD83C\uDFA7 Audio", filter: (m) => m.category === "audio" },
   { header: "\uD83C\uDFAC Video", filter: (m) => m.category === "video" },
+  { header: "\u26A0\uFE0F Invalid (test)", filter: (m) => m.id.startsWith("invalid-") },
 ];
 
 // ─── App ────────────────────────────────────────────────────────────────────
