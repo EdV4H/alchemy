@@ -29,6 +29,15 @@ export const rewriteRecipe: Recipe<MaterialPart[], string> = {
     ...parts,
   ],
   refiner: new TextRefiner(),
+  requiredMaterials: [{ type: "text", min: 1 }],
+  validateMaterials: (parts) => {
+    const textParts = parts.filter((p) => p.type === "text");
+    const totalLength = textParts.reduce((sum, p) => sum + ("text" in p ? p.text.length : 0), 0);
+    if (totalLength < 10) {
+      return { valid: false, message: "Text must be at least 10 characters" };
+    }
+    return { valid: true };
+  },
 };
 
 // ─── Recipe 2: Sentiment Analysis ──────────────────────────────────────────
@@ -51,6 +60,7 @@ export const sentimentRecipe: Recipe<MaterialPart[], Sentiment> = {
       "You are a sentiment analysis expert. Analyze text for sentiment, emotional tone, and confidence level.",
     temperature: 0,
   },
+  requiredMaterials: [{ type: "text", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);
     return `Analyze the sentiment of the following text. Return a JSON object with these exact fields:
@@ -172,6 +182,7 @@ export const imageAnalysisRecipe: Recipe<MaterialPart[], string> = {
   },
   spell: (parts) => parts,
   refiner: new TextRefiner(),
+  requiredMaterials: [{ type: "image", min: 1 }],
 };
 
 // ─── Recipe 7: Smart Summarizer ────────────────────────────────────────────
@@ -271,6 +282,7 @@ export const dataAnalystRecipe: Recipe<MaterialPart[], DataAnalysis> = {
       "You are a data analyst expert. Analyze structured data (CSV, JSON, TSV) and provide insights, identify anomalies, and suggest actionable recommendations.",
     temperature: 0.2,
   },
+  requiredMaterials: [{ type: "data", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);
     return `Analyze the following data. Return a JSON object with these exact fields:
@@ -297,6 +309,7 @@ export const docSummarizerRecipe: Recipe<MaterialPart[], Summary> = {
       "You are an expert document summarizer. Produce structured summaries that capture the essence of the document at multiple levels of detail.",
     temperature: 0.2,
   },
+  requiredMaterials: [{ type: "document", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);
     return `Summarize the following document. Return a JSON object with these exact fields:
@@ -334,6 +347,7 @@ export const recipeEntries: RecipeEntry[] = [
       outputType: "text",
       transforms: [],
       promptTemplate: "Rewrite the following text in a professional, polished style: ...materials",
+      requiredMaterials: rewriteRecipe.requiredMaterials,
     },
   },
   {
@@ -347,6 +361,7 @@ export const recipeEntries: RecipeEntry[] = [
       transforms: ["truncateText(2000)"],
       promptTemplate:
         "Analyze the sentiment of the following text → {sentiment, confidence, emotions, summary}",
+      requiredMaterials: sentimentRecipe.requiredMaterials,
     },
   },
   {
@@ -393,6 +408,7 @@ export const recipeEntries: RecipeEntry[] = [
       outputType: "text",
       transforms: [],
       promptTemplate: "...materials (image parts passed directly)",
+      requiredMaterials: imageAnalysisRecipe.requiredMaterials,
     },
   },
   {
@@ -431,6 +447,7 @@ export const recipeEntries: RecipeEntry[] = [
       schemaFields: zodToFieldMeta(DataAnalysisSchema),
       transforms: ["dataToText()"],
       promptTemplate: "Analyze the data → {summary, insights[], anomalies[], recommendations[]}",
+      requiredMaterials: dataAnalystRecipe.requiredMaterials,
     },
   },
   {
@@ -444,6 +461,7 @@ export const recipeEntries: RecipeEntry[] = [
       transforms: ["documentToText()", "truncateText(8000)"],
       promptTemplate:
         "Summarize the document → {oneLiner, keyPoints[], detailedSummary, wordCountOriginal, wordCountSummary}",
+      requiredMaterials: docSummarizerRecipe.requiredMaterials,
     },
   },
 ];

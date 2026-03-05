@@ -9,4 +9,5 @@ export interface RecipeMeta {
   schemaFields?: RecipeFieldMeta[]; // json only
   transforms: string[]; // human-readable e.g. "truncateText(2000)"
   promptTemplate: string; // spell summary
+  requiredMaterials?: import("@edv4h/alchemy-node").MaterialRequirement[];
 }
