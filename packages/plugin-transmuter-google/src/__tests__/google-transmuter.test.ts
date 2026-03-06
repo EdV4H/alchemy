@@ -13,7 +13,7 @@ vi.mock("@google/generative-ai", () => {
   };
 });
 
-import { GoogleTransmuter } from "../transmuters/google.js";
+import { GoogleTransmuter } from "../index.js";
 
 beforeEach(() => {
   mockGenerateContent.mockReset();

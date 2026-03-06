@@ -15,7 +15,7 @@ vi.mock("openai", () => {
   };
 });
 
-import { OpenAITransmuter } from "../transmuters/openai.js";
+import { OpenAITransmuter } from "../index.js";
 
 beforeEach(() => {
   mockCreate.mockReset();

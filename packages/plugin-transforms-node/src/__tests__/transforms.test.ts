@@ -1,7 +1,7 @@
 import type { MaterialPart, MaterialTransformContext } from "@edv4h/alchemy-core";
 import { TransformError } from "@edv4h/alchemy-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { audioToText, imageUrlToBase64, videoToFrames } from "../transforms.js";
+import { audioToText, imageUrlToBase64, videoToFrames } from "../index.js";
 
 const ctx: MaterialTransformContext = { recipeId: "test" };
 

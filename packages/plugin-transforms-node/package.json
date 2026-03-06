@@ -1,26 +1,22 @@
 {
-  "name": "@edv4h/alchemy-node",
+  "name": "@edv4h/alchemy-plugin-transforms-node",
   "version": "0.1.0",
-  "description": "Node.js runtime for Alchemy — LLM transmuters for OpenAI, Anthropic, and Google",
+  "description": "Node.js material transforms plugin for Alchemy",
   "license": "MIT",
   "author": "EdV4H",
   "repository": {
     "type": "git",
     "url": "https://github.com/EdV4H/alchemy.git",
-    "directory": "packages/node"
+    "directory": "packages/plugin-transforms-node"
   },
   "homepage": "https://github.com/EdV4H/alchemy#readme",
   "bugs": "https://github.com/EdV4H/alchemy/issues",
   "keywords": [
     "alchemy",
     "llm",
-    "prompt-engineering",
-    "ai",
-    "openai",
-    "anthropic",
-    "google",
+    "transforms",
     "node",
-    "typescript"
+    "plugin"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -48,15 +44,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@edv4h/alchemy-core": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-anthropic": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-google": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-openai": "workspace:*",
-    "@edv4h/alchemy-plugin-transforms-node": "workspace:*"
+    "@edv4h/alchemy-core": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.3.0",
-    "typescript": "^5.7.0",
-    "zod": "^3.24.0"
+    "typescript": "^5.7.0"
   }
 }
