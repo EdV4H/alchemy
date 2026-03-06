@@ -116,18 +116,21 @@ importers:
 
   packages/node:
     dependencies:
-      '@anthropic-ai/sdk':
-        specifier: ^0.39.0
-        version: 0.39.0
       '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
-      '@google/generative-ai':
-        specifier: ^0.24.0
-        version: 0.24.1
-      openai:
-        specifier: ^4.100.0
-        version: 4.104.0(ws@8.19.0)(zod@3.25.76)
+      '@edv4h/alchemy-plugin-transforms-node':
+        specifier: workspace:*
+        version: link:../plugin-transforms-node
+      '@edv4h/alchemy-plugin-transmuter-anthropic':
+        specifier: workspace:*
+        version: link:../plugin-transmuter-anthropic
+      '@edv4h/alchemy-plugin-transmuter-google':
+        specifier: workspace:*
+        version: link:../plugin-transmuter-google
+      '@edv4h/alchemy-plugin-transmuter-openai':
+        specifier: workspace:*
+        version: link:../plugin-transmuter-openai
     devDependencies:
       '@types/node':
         specifier: ^25.3.0
@@ -138,6 +141,58 @@ importers:
       zod:
         specifier: ^3.24.0
         version: 3.25.76
+
+  packages/plugin-transforms-node:
+    dependencies:
+      '@edv4h/alchemy-core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/plugin-transmuter-anthropic:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.39.0
+        version: 0.39.0
+      '@edv4h/alchemy-core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/plugin-transmuter-google:
+    dependencies:
+      '@edv4h/alchemy-core':
+        specifier: workspace:*
+        version: link:../core
+      '@google/generative-ai':
+        specifier: ^0.24.0
+        version: 0.24.1
+    devDependencies:
+      '@types/node':
+        specifier: ^25.3.0
+        version: 25.3.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/plugin-transmuter-openai:
+    dependencies:
+      '@edv4h/alchemy-core':
+        specifier: workspace:*
+        version: link:../core
+      openai:
+        specifier: ^4.100.0
+        version: 4.104.0(ws@8.19.0)(zod@3.25.76)
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
   packages/react:
     dependencies:

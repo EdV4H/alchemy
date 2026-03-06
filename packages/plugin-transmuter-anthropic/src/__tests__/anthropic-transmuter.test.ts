@@ -15,7 +15,7 @@ vi.mock("@anthropic-ai/sdk", () => {
   };
 });
 
-import { AnthropicTransmuter } from "../transmuters/anthropic.js";
+import { AnthropicTransmuter } from "../index.js";
 
 beforeEach(() => {
   mockCreate.mockReset();

@@ -165,11 +165,11 @@ export {
   documentToText,
   imageUrlToBase64,
   videoToFrames,
-} from "./transforms.js";
-export type { AnthropicTransmuterConfig } from "./transmuters/anthropic.js";
-export { AnthropicTransmuter } from "./transmuters/anthropic.js";
-export type { GoogleTransmuterConfig } from "./transmuters/google.js";
-export { GoogleTransmuter } from "./transmuters/google.js";
-export type { OpenAITransmuterConfig } from "./transmuters/openai.js";
+} from "@edv4h/alchemy-plugin-transforms-node";
 // Re-export transmuters
-export { OpenAITransmuter } from "./transmuters/openai.js";
+export type { AnthropicTransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-anthropic";
+export { AnthropicTransmuter } from "@edv4h/alchemy-plugin-transmuter-anthropic";
+export type { GoogleTransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-google";
+export { GoogleTransmuter } from "@edv4h/alchemy-plugin-transmuter-google";
+export type { OpenAITransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-openai";
+export { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
