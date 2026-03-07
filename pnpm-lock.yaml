@@ -47,6 +47,18 @@ importers:
       '@edv4h/alchemy-node':
         specifier: workspace:*
         version: link:../../packages/node
+      '@edv4h/alchemy-plugin-transforms-node':
+        specifier: workspace:*
+        version: link:../../packages/plugin-transforms-node
+      '@edv4h/alchemy-plugin-transmuter-anthropic':
+        specifier: workspace:*
+        version: link:../../packages/plugin-transmuter-anthropic
+      '@edv4h/alchemy-plugin-transmuter-google':
+        specifier: workspace:*
+        version: link:../../packages/plugin-transmuter-google
+      '@edv4h/alchemy-plugin-transmuter-openai':
+        specifier: workspace:*
+        version: link:../../packages/plugin-transmuter-openai
       '@edv4h/alchemy-react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -93,6 +105,9 @@ importers:
       '@edv4h/alchemy-node':
         specifier: workspace:*
         version: link:../../packages/node
+      '@edv4h/alchemy-plugin-transmuter-openai':
+        specifier: workspace:*
+        version: link:../../packages/plugin-transmuter-openai
       zod:
         specifier: ^3.24.0
         version: 3.25.76
@@ -119,18 +134,6 @@ importers:
       '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
-      '@edv4h/alchemy-plugin-transforms-node':
-        specifier: workspace:*
-        version: link:../plugin-transforms-node
-      '@edv4h/alchemy-plugin-transmuter-anthropic':
-        specifier: workspace:*
-        version: link:../plugin-transmuter-anthropic
-      '@edv4h/alchemy-plugin-transmuter-google':
-        specifier: workspace:*
-        version: link:../plugin-transmuter-google
-      '@edv4h/alchemy-plugin-transmuter-openai':
-        specifier: workspace:*
-        version: link:../plugin-transmuter-openai
     devDependencies:
       '@types/node':
         specifier: ^25.3.0

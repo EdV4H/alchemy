@@ -48,11 +48,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@edv4h/alchemy-core": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-anthropic": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-google": "workspace:*",
-    "@edv4h/alchemy-plugin-transmuter-openai": "workspace:*",
-    "@edv4h/alchemy-plugin-transforms-node": "workspace:*"
+    "@edv4h/alchemy-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

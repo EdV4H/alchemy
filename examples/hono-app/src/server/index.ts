@@ -7,17 +7,16 @@ import type {
 } from "@edv4h/alchemy-node";
 import {
   Alchemist,
-  AnthropicTransmuter,
   dataToText,
-  documentToText,
-  GoogleTransmuter,
-  imageUrlToBase64,
   normalizeSpellOutput,
-  OpenAITransmuter,
   runMaterialValidation,
   toMaterialParts,
   truncateText,
 } from "@edv4h/alchemy-node";
+import { documentToText, imageUrlToBase64 } from "@edv4h/alchemy-plugin-transforms-node";
+import { AnthropicTransmuter } from "@edv4h/alchemy-plugin-transmuter-anthropic";
+import { GoogleTransmuter } from "@edv4h/alchemy-plugin-transmuter-google";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { catalystPresets } from "../shared/catalysts.js";

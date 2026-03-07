@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@edv4h/alchemy-node": "workspace:*",
+    "@edv4h/alchemy-plugin-transmuter-openai": "workspace:*",
     "zod": "^3.24.0"
   },
   "devDependencies": {

@@ -159,17 +159,3 @@ export {
   truncateText,
   validateMaterialRequirements,
 } from "@edv4h/alchemy-core";
-// Node-specific transforms
-export {
-  audioToText,
-  documentToText,
-  imageUrlToBase64,
-  videoToFrames,
-} from "@edv4h/alchemy-plugin-transforms-node";
-// Re-export transmuters
-export type { AnthropicTransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-anthropic";
-export { AnthropicTransmuter } from "@edv4h/alchemy-plugin-transmuter-anthropic";
-export type { GoogleTransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-google";
-export { GoogleTransmuter } from "@edv4h/alchemy-plugin-transmuter-google";
-export type { OpenAITransmuterConfig } from "@edv4h/alchemy-plugin-transmuter-openai";
-export { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
