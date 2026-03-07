@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@edv4h/alchemy-node": "workspace:*",
+    "@edv4h/alchemy-plugin-transmuter-anthropic": "workspace:*",
+    "@edv4h/alchemy-plugin-transmuter-google": "workspace:*",
+    "@edv4h/alchemy-plugin-transmuter-openai": "workspace:*",
+    "@edv4h/alchemy-plugin-transforms-node": "workspace:*",
     "@edv4h/alchemy-react": "workspace:*",
     "hono": "^4.7.0",
     "mermaid": "^11.12.3",

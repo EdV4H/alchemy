@@ -1,11 +1,9 @@
 import type { CatalystConfig, MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
 import {
   dataToText,
-  documentToText,
   extractAllText,
   extractText,
   filterByType,
-  imageUrlToBase64,
   isTextOnly,
   JsonRefiner,
   MermaidRefiner,
@@ -13,6 +11,7 @@ import {
   TextRefiner,
   truncateText,
 } from "@edv4h/alchemy-node";
+import { documentToText, imageUrlToBase64 } from "@edv4h/alchemy-plugin-transforms-node";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { ServerMaterialInput } from "./index.js";
