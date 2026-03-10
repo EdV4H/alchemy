@@ -1,7 +1,7 @@
 {
   "name": "@edv4h/alchemy-node",
   "version": "0.1.0",
-  "description": "Node.js runtime for Alchemy — LLM transmuters for OpenAI, Anthropic, and Google",
+  "description": "Node.js runtime for Alchemy — the Alchemist orchestrator class with core re-exports",
   "license": "MIT",
   "author": "EdV4H",
   "repository": {

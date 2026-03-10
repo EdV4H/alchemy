@@ -74,7 +74,13 @@
           <div class="code-block-header">
             <span class="code-block-lang">bash</span>
           </div>
-          <pre><code class="language-bash">pnpm add @edv4h/alchemy-core @edv4h/alchemy-node</code></pre>
+          <pre><code class="language-bash"># Core + Node runtime
+pnpm add @edv4h/alchemy-core @edv4h/alchemy-node
+
+# Add a transmuter plugin for your LLM provider
+pnpm add @edv4h/alchemy-plugin-transmuter-openai    # OpenAI
+# pnpm add @edv4h/alchemy-plugin-transmuter-anthropic  # Anthropic
+# pnpm add @edv4h/alchemy-plugin-transmuter-google     # Google Gemini</code></pre>
         </div>
 
         <p>If you plan to use structured output with JSON schemas, also install Zod:</p>
@@ -98,7 +104,8 @@
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist } from "@edv4h/alchemy-node";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 // 1. Create an Alchemist with an OpenAI transmuter
 const alchemist = new Alchemist({

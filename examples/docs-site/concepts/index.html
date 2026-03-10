@@ -132,6 +132,7 @@ const materials = [
   filterByType,
   dataToText,
 } from "@edv4h/alchemy-core";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 // Built-in transforms
 const alchemist = new Alchemist({
@@ -143,7 +144,7 @@ const alchemist = new Alchemist({
 });</code></pre>
         </div>
 
-        <p><strong>Node.js-specific transforms</strong> are also available:</p>
+        <p><strong>Node.js-specific transforms</strong> are available in <code>@edv4h/alchemy-plugin-transforms-node</code>:</p>
         <ul>
           <li><code>imageUrlToBase64()</code> — Fetches remote images and converts to base64</li>
           <li><code>documentToText()</code> — Extracts text from documents</li>
@@ -217,7 +218,7 @@ const catalysts: Record&lt;string, NamedCatalyst&gt; = {
 }</code></pre>
         </div>
 
-        <p>Alchemy ships with <code>OpenAITransmuter</code> for the OpenAI Chat Completions API. You can implement custom transmuters for any LLM provider (Anthropic, Google, local models, etc.).</p>
+        <p>Alchemy provides transmuter plugins for popular LLM providers: <code>@edv4h/alchemy-plugin-transmuter-openai</code>, <code>@edv4h/alchemy-plugin-transmuter-anthropic</code>, and <code>@edv4h/alchemy-plugin-transmuter-google</code>. You can also implement custom transmuters for any provider.</p>
 
         <div class="callout callout-tip">
           <strong>Custom Transmuter</strong>
@@ -317,7 +318,8 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist } from "@edv4h/alchemy-node";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter({ apiKey: "..." }),
