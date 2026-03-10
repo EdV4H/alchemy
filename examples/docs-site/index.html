@@ -52,7 +52,8 @@
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist, OpenAITransmuter } from "@edv4h/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist } from "@edv4h/alchemy-node";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 import { JsonRefiner } from "@edv4h/alchemy-core";
 import { z } from "zod";
 
@@ -112,12 +113,32 @@ console.log(result.output.bullets);
         <div class="card package-card">
           <span class="badge badge-accent">node</span>
           <h3 class="card-title">@edv4h/alchemy-node</h3>
-          <p class="card-desc">The Alchemist orchestrator class, OpenAI Transmuter, and Node-specific transforms (image-to-base64, document-to-text).</p>
+          <p class="card-desc">The Alchemist orchestrator class with core re-exports. Provides the main entry point for Node.js server-side usage.</p>
         </div>
         <div class="card package-card">
           <span class="badge badge-accent">react</span>
           <h3 class="card-title">@edv4h/alchemy-react</h3>
           <p class="card-desc">React hooks — useAlchemy, useTransmute, useCompare — for building interactive LLM-powered UIs with full state management.</p>
+        </div>
+        <div class="card package-card">
+          <span class="badge badge-accent">plugin</span>
+          <h3 class="card-title">@edv4h/alchemy-plugin-transmuter-openai</h3>
+          <p class="card-desc">OpenAI transmuter plugin — connects Alchemy to GPT-4o, GPT-4o-mini and other OpenAI models.</p>
+        </div>
+        <div class="card package-card">
+          <span class="badge badge-accent">plugin</span>
+          <h3 class="card-title">@edv4h/alchemy-plugin-transmuter-anthropic</h3>
+          <p class="card-desc">Anthropic transmuter plugin — connects Alchemy to Claude models via the Anthropic SDK.</p>
+        </div>
+        <div class="card package-card">
+          <span class="badge badge-accent">plugin</span>
+          <h3 class="card-title">@edv4h/alchemy-plugin-transmuter-google</h3>
+          <p class="card-desc">Google transmuter plugin — connects Alchemy to Gemini models via the Google Generative AI SDK.</p>
+        </div>
+        <div class="card package-card">
+          <span class="badge badge-accent">plugin</span>
+          <h3 class="card-title">@edv4h/alchemy-plugin-transforms-node</h3>
+          <p class="card-desc">Node.js transform helpers — imageUrlToBase64, documentToText, and other server-side material transforms.</p>
         </div>
       </div>
     </section>
