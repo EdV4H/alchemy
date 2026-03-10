@@ -45,10 +45,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@edv4h/alchemy-core": "workspace:*",
+    "@edv4h/alchemy-core": "workspace:*"
+  },
+  "peerDependencies": {
     "@google/generative-ai": "^0.24.0"
   },
   "devDependencies": {
+    "@google/generative-ai": "^0.24.0",
     "@types/node": "^25.3.0",
     "typescript": "^5.7.0"
   }

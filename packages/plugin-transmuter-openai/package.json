@@ -45,10 +45,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@edv4h/alchemy-core": "workspace:*",
+    "@edv4h/alchemy-core": "workspace:*"
+  },
+  "peerDependencies": {
     "openai": "^4.100.0"
   },
   "devDependencies": {
+    "openai": "^4.100.0",
     "typescript": "^5.7.0"
   }
 }

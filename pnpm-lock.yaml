@@ -157,13 +157,13 @@ importers:
 
   packages/plugin-transmuter-anthropic:
     dependencies:
-      '@anthropic-ai/sdk':
-        specifier: ^0.39.0
-        version: 0.39.0
       '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.39.0
+        version: 0.39.0
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -173,10 +173,10 @@ importers:
       '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
       '@google/generative-ai':
         specifier: ^0.24.0
         version: 0.24.1
-    devDependencies:
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
@@ -189,10 +189,10 @@ importers:
       '@edv4h/alchemy-core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
       openai:
         specifier: ^4.100.0
         version: 4.104.0(ws@8.19.0)(zod@3.25.76)
-    devDependencies:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

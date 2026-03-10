@@ -45,10 +45,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@edv4h/alchemy-core": "workspace:*",
+    "@edv4h/alchemy-core": "workspace:*"
+  },
+  "peerDependencies": {
     "@anthropic-ai/sdk": "^0.39.0"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "typescript": "^5.7.0"
   }
 }
