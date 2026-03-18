@@ -81,20 +81,20 @@ describe("validateMaterialRequirements", () => {
 });
 
 describe("runMaterialValidation", () => {
-  it("returns valid when no requirements or custom validator", () => {
-    const result = runMaterialValidation({}, []);
+  it("returns valid when no requirements or custom validator", async () => {
+    const result = await runMaterialValidation({}, []);
     expect(result.valid).toBe(true);
   });
 
-  it("runs declarative check only", () => {
-    const result = runMaterialValidation({ requiredMaterials: [{ type: "text", min: 1 }] }, [
+  it("runs declarative check only", async () => {
+    const result = await runMaterialValidation({ requiredMaterials: [{ type: "text", min: 1 }] }, [
       { type: "text", text: "hello" },
     ]);
     expect(result.valid).toBe(true);
   });
 
-  it("runs custom validator after declarative check passes", () => {
-    const result = runMaterialValidation(
+  it("runs custom validator after declarative check passes", async () => {
+    const result = await runMaterialValidation(
       {
         requiredMaterials: [{ type: "text", min: 1 }],
         validateMaterials: (parts) => {
@@ -111,9 +111,9 @@ describe("runMaterialValidation", () => {
     expect(result.message).toBe("Text must be at least 10 characters");
   });
 
-  it("skips custom validator when declarative check fails", () => {
+  it("skips custom validator when declarative check fails", async () => {
     let customCalled = false;
-    const result = runMaterialValidation(
+    const result = await runMaterialValidation(
       {
         requiredMaterials: [{ type: "image", min: 1 }],
         validateMaterials: () => {
@@ -127,8 +127,8 @@ describe("runMaterialValidation", () => {
     expect(customCalled).toBe(false);
   });
 
-  it("runs custom validator when no declarative requirements", () => {
-    const result = runMaterialValidation(
+  it("runs custom validator when no declarative requirements", async () => {
+    const result = await runMaterialValidation(
       {
         validateMaterials: () => ({ valid: false, message: "Custom error" }),
       },
@@ -136,5 +136,191 @@ describe("runMaterialValidation", () => {
     );
     expect(result.valid).toBe(false);
     expect(result.message).toBe("Custom error");
+  });
+});
+
+describe("evaluate + judgeMaterials", () => {
+  it("runs evaluate on matching parts and returns evaluations", async () => {
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 1,
+            label: "テキスト素材",
+            evaluate: (parts) => {
+              const len = (parts[0] as { type: "text"; text: string }).text.length;
+              return { score: Math.min(len / 100, 1) };
+            },
+          },
+        ],
+      },
+      [{ type: "text", text: "hello" }],
+    );
+    expect(result.valid).toBe(true);
+    expect(result.evaluations).toHaveLength(1);
+    expect(result.evaluations?.[0].type).toBe("text");
+    expect(result.evaluations?.[0].label).toBe("テキスト素材");
+    expect(result.evaluations?.[0].evaluation.score).toBe(5 / 100);
+  });
+
+  it("supports async evaluate functions", async () => {
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 1,
+            evaluate: async (parts) => {
+              await new Promise((r) => setTimeout(r, 1));
+              return { score: 0.8, message: "Good quality" };
+            },
+          },
+        ],
+      },
+      [{ type: "text", text: "hello" }],
+    );
+    expect(result.valid).toBe(true);
+    expect(result.evaluations?.[0].evaluation).toEqual({ score: 0.8, message: "Good quality" });
+  });
+
+  it("skips evaluate when declarative check fails", async () => {
+    let evaluateCalled = false;
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 3,
+            evaluate: () => {
+              evaluateCalled = true;
+              return { score: 1 };
+            },
+          },
+        ],
+      },
+      [{ type: "text", text: "only one" }],
+    );
+    expect(result.valid).toBe(false);
+    expect(evaluateCalled).toBe(false);
+    expect(result.evaluations).toBeUndefined();
+  });
+
+  it("judgeMaterials returns canTransmute=false → valid=false", async () => {
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 1,
+            label: "課題感テキスト",
+            evaluate: () => ({ score: 0.1, message: "品質が低い" }),
+          },
+        ],
+        judgeMaterials: (evaluations) => {
+          const failed = evaluations.filter((e) => e.evaluation.score < 0.3);
+          if (failed.length > 0) {
+            return { canTransmute: false, message: `${failed[0].label}の品質が不足しています` };
+          }
+          return { canTransmute: true };
+        },
+      },
+      [{ type: "text", text: "x" }],
+    );
+    expect(result.valid).toBe(false);
+    expect(result.message).toBe("課題感テキストの品質が不足しています");
+    expect(result.judgement?.canTransmute).toBe(false);
+    expect(result.evaluations).toHaveLength(1);
+  });
+
+  it("judgeMaterials returns canTransmute=true with warning", async () => {
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 1,
+            evaluate: () => ({ score: 0.4 }),
+          },
+        ],
+        judgeMaterials: (evaluations) => {
+          const avg = evaluations.reduce((s, e) => s + e.evaluation.score, 0) / evaluations.length;
+          if (avg < 0.5) {
+            return {
+              canTransmute: true,
+              warning: "素材の品質が低いため、精度が下がる可能性があります",
+            };
+          }
+          return { canTransmute: true };
+        },
+      },
+      [{ type: "text", text: "hello" }],
+    );
+    expect(result.valid).toBe(true);
+    expect(result.judgement?.canTransmute).toBe(true);
+    expect(result.judgement?.warning).toBe("素材の品質が低いため、精度が下がる可能性があります");
+  });
+
+  it("judgeMaterials is skipped when no evaluate functions exist", async () => {
+    let judgeCalled = false;
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [{ type: "text", min: 1 }],
+        judgeMaterials: () => {
+          judgeCalled = true;
+          return { canTransmute: true };
+        },
+      },
+      [{ type: "text", text: "hello" }],
+    );
+    expect(result.valid).toBe(true);
+    expect(judgeCalled).toBe(false);
+    expect(result.evaluations).toBeUndefined();
+  });
+
+  it("runs evaluate in parallel for multiple requirements", async () => {
+    const callOrder: string[] = [];
+    const result = await runMaterialValidation(
+      {
+        requiredMaterials: [
+          {
+            type: "text",
+            min: 1,
+            label: "テキスト",
+            evaluate: async () => {
+              callOrder.push("text-start");
+              await new Promise((r) => setTimeout(r, 10));
+              callOrder.push("text-end");
+              return { score: 0.9 };
+            },
+          },
+          {
+            type: "data",
+            min: 1,
+            label: "データ",
+            evaluate: async () => {
+              callOrder.push("data-start");
+              await new Promise((r) => setTimeout(r, 10));
+              callOrder.push("data-end");
+              return { score: 0.7 };
+            },
+          },
+        ],
+        judgeMaterials: (evaluations) => {
+          const avg = evaluations.reduce((s, e) => s + e.evaluation.score, 0) / evaluations.length;
+          return { canTransmute: true, warning: avg < 0.9 ? "Average below 0.9" : undefined };
+        },
+      },
+      [
+        { type: "text", text: "hello" },
+        { type: "data", format: "json" as const, content: "{}" },
+      ],
+    );
+    expect(result.valid).toBe(true);
+    expect(result.evaluations).toHaveLength(2);
+    expect(result.judgement?.warning).toBe("Average below 0.9");
+    // Parallel execution: both should start before either ends
+    expect(callOrder[0]).toBe("text-start");
+    expect(callOrder[1]).toBe("data-start");
   });
 });
