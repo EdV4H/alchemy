@@ -1,4 +1,4 @@
-import type { MaterialPart, NamedCatalyst } from "@edv4h/alchemy-node";
+import type { MaterialPart } from "@edv4h/alchemy-node";
 import { runMaterialValidation, toMaterialParts } from "@edv4h/alchemy-node";
 import type { MaterialInput } from "@edv4h/alchemy-react";
 import { useAlchemy } from "@edv4h/alchemy-react";
@@ -21,7 +21,6 @@ import {
   type TransmuteMode,
   VariationResultsGrid,
 } from "./components.js";
-import { labelStyle } from "./styles.js";
 import type { CustomMaterial, MaterialCard } from "./types.js";
 import { type CustomMaterialType, customMaterialIcon } from "./types.js";
 import { useApiKeyStore } from "./useApiKeyStore.js";
@@ -34,7 +33,6 @@ export interface AlchemyDemoConfig {
   emptyMessage?: string;
   materials: MaterialCard[];
   recipeEntries: RecipeEntry[];
-  catalystPresets: NamedCatalyst[];
   materialGroups?: { header: string; filter: (m: MaterialCard) => boolean }[];
   customMaterialTypes?: CustomMaterialType[];
   resultMode?: "text" | "html" | "mermaid";
@@ -48,7 +46,6 @@ export function AlchemyDemoApp({
   emptyMessage = "Select materials from the shelf",
   materials,
   recipeEntries,
-  catalystPresets,
   materialGroups,
   customMaterialTypes,
   resultMode = "text",
@@ -61,16 +58,12 @@ export function AlchemyDemoApp({
   const {
     selectedRecipeId,
     selectedIds,
-    selectedCatalystKey,
     selectedLanguage,
-    compareMode,
-    selectedCompareKeys,
     generateMode,
     generateCount,
     generateResults,
     selectedVariationKey,
     result,
-    compareResults,
     isLoading,
     error,
   } = alchemy;
@@ -166,12 +159,6 @@ export function AlchemyDemoApp({
     alchemy.transmute(buildMaterialInputs());
   }, [alchemy.transmute, buildMaterialInputs, validateBeforeSubmit]);
 
-  const handleCompare = useCallback(() => {
-    if (!validateBeforeSubmit()) return;
-    setLocalError(null);
-    alchemy.compare(buildMaterialInputs());
-  }, [alchemy.compare, buildMaterialInputs, validateBeforeSubmit]);
-
   const handleGenerate = useCallback(() => {
     if (!validateBeforeSubmit()) return;
     setLocalError(null);
@@ -184,30 +171,18 @@ export function AlchemyDemoApp({
     return result;
   }, [alchemy.preview, buildMaterialInputs]);
 
-  const currentMode: TransmuteMode = compareMode ? "compare" : generateMode ? "generate" : "single";
+  const currentMode: TransmuteMode = generateMode ? "generate" : "single";
 
   const handleModeChange = useCallback(
     (mode: TransmuteMode) => {
       alchemy.resetResults();
-      if (mode === "compare") {
-        alchemy.setCompareMode(true);
-        alchemy.setGenerateMode(false);
-        alchemy.setCompareKeys(catalystPresets.map((c) => c.key));
-      } else if (mode === "generate") {
+      if (mode === "generate") {
         alchemy.setGenerateMode(true);
-        alchemy.setCompareMode(false);
       } else {
-        alchemy.setCompareMode(false);
         alchemy.setGenerateMode(false);
       }
     },
-    [
-      alchemy.resetResults,
-      alchemy.setCompareMode,
-      alchemy.setGenerateMode,
-      alchemy.setCompareKeys,
-      catalystPresets,
-    ],
+    [alchemy.resetResults, alchemy.setGenerateMode],
   );
 
   const hasSelection = selectedMaterials.length > 0;
@@ -250,7 +225,7 @@ export function AlchemyDemoApp({
             </div>
           )}
 
-          {/* Mode + Catalyst selector */}
+          {/* Mode selector */}
           <div style={{ margin: "0 0 16px" }}>
             <div
               style={{
@@ -276,64 +251,6 @@ export function AlchemyDemoApp({
                 />
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ ...labelStyle, margin: 0 }}>Catalyst</span>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!compareMode) {
-                      alchemy.selectCatalyst(null);
-                      alchemy.resetResults();
-                    }
-                  }}
-                  style={{
-                    padding: "4px 12px",
-                    fontSize: 12,
-                    borderRadius: 14,
-                    border:
-                      !compareMode && selectedCatalystKey === null
-                        ? "2px solid #333"
-                        : "1px solid #ccc",
-                    background: !compareMode && selectedCatalystKey === null ? "#333" : "#fff",
-                    color: !compareMode && selectedCatalystKey === null ? "#fff" : "#555",
-                    cursor: "pointer",
-                  }}
-                >
-                  Default
-                </button>
-                {catalystPresets.map((cat) => {
-                  const isSelected = compareMode
-                    ? selectedCompareKeys.includes(cat.key)
-                    : selectedCatalystKey === cat.key;
-                  return (
-                    <button
-                      type="button"
-                      key={cat.key}
-                      onClick={() => {
-                        if (compareMode) {
-                          alchemy.toggleCompareKey(cat.key);
-                        } else {
-                          alchemy.selectCatalyst(cat.key);
-                          alchemy.resetResults();
-                        }
-                      }}
-                      style={{
-                        padding: "4px 12px",
-                        fontSize: 12,
-                        borderRadius: 14,
-                        border: isSelected ? "2px solid #333" : "1px solid #ccc",
-                        background: isSelected ? "#333" : "#fff",
-                        color: isSelected ? "#fff" : "#555",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* Selected materials preview */}
@@ -346,15 +263,8 @@ export function AlchemyDemoApp({
             }}
           />
 
-          {/* Transmute / Compare / Generate Button */}
-          {compareMode ? (
-            <TransmuteButton
-              onClick={handleCompare}
-              disabled={isLoading || !hasSelection || selectedCompareKeys.length < 2}
-              isLoading={isLoading}
-              label={isLoading ? undefined : `Compare (${selectedCompareKeys.length} catalysts)`}
-            />
-          ) : generateMode ? (
+          {/* Transmute / Generate Button */}
+          {generateMode ? (
             <TransmuteButton
               onClick={handleGenerate}
               disabled={isLoading || !hasSelection}
@@ -380,7 +290,7 @@ export function AlchemyDemoApp({
           )}
 
           {/* Single result */}
-          {!compareMode && !generateMode && (
+          {!generateMode && (
             <div style={{ marginTop: 24 }}>
               <ResultPanel
                 result={result}
@@ -388,54 +298,6 @@ export function AlchemyDemoApp({
                 error={localError ?? error}
                 resultMode={effectiveResultMode}
               />
-            </div>
-          )}
-
-          {/* Compare results */}
-          {compareResults != null && (
-            <div style={{ marginTop: 24 }}>
-              <h2>Comparison</h2>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${Object.keys(compareResults).length}, 1fr)`,
-                  gap: 12,
-                }}
-              >
-                {Object.entries(compareResults).map(([key, val]) => {
-                  const catalystLabel = catalystPresets.find((c) => c.key === key)?.label ?? key;
-                  return (
-                    <div
-                      key={key}
-                      style={{
-                        border: "1px solid #e0e0e0",
-                        borderRadius: 6,
-                        padding: 12,
-                        minWidth: 0,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "#555",
-                          marginBottom: 8,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        {catalystLabel}
-                      </div>
-                      <ResultPanel
-                        result={val}
-                        isLoading={false}
-                        error={null}
-                        resultMode={effectiveResultMode}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           )}
 

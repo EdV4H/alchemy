@@ -1,5 +1,3 @@
-// Catalyst utilities
-export { resolveCatalyst } from "./catalyst.js";
 // Errors
 export { AlchemyError, RefineError, TransformError, TransmuteError } from "./errors.js";
 // Material utilities
@@ -16,7 +14,6 @@ export type {
   AlchemistConfig,
   AudioMaterialPart,
   BuiltinMaterialPart,
-  CatalystConfig,
   DataMaterialPart,
   DocumentMaterialPart,
   ImageMaterialPart,
@@ -30,7 +27,6 @@ export type {
   MaterialTransformContext,
   MaterialValidationIssue,
   MaterialValidationResult,
-  NamedCatalyst,
   Recipe,
   Refiner,
   SpellOutput,

@@ -27,8 +27,8 @@ export class AnthropicTransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): Promise<TransmutationResult> {
-    const { catalyst, signal } = options;
-    const model = catalyst?.model ?? this.defaultModel;
+    const { signal } = options;
+    const model = this.defaultModel;
     const system = this.buildSystem(options);
     const content = this.toAnthropicContent(material);
 
@@ -38,7 +38,7 @@ export class AnthropicTransmuter implements Transmuter {
         max_tokens: 4096,
         system: system || undefined,
         messages: [{ role: "user", content }],
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
       },
       { signal: signal ?? undefined },
     );
@@ -63,8 +63,8 @@ export class AnthropicTransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): AsyncGenerator<string, void, unknown> {
-    const { catalyst, signal } = options;
-    const model = catalyst?.model ?? this.defaultModel;
+    const { signal } = options;
+    const model = this.defaultModel;
     const system = this.buildSystem(options);
     const content = this.toAnthropicContent(material);
 
@@ -74,7 +74,7 @@ export class AnthropicTransmuter implements Transmuter {
         max_tokens: 4096,
         system: system || undefined,
         messages: [{ role: "user", content }],
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
       },
       { signal: signal ?? undefined },
     );
@@ -87,10 +87,10 @@ export class AnthropicTransmuter implements Transmuter {
   }
 
   private buildSystem(options: TransmutationOptions): string {
-    const { catalyst, language } = options;
+    const { roleDefinition, language } = options;
     const parts: string[] = [];
-    if (catalyst?.roleDefinition) {
-      parts.push(catalyst.roleDefinition);
+    if (roleDefinition) {
+      parts.push(roleDefinition);
     }
     if (language) {
       parts.push(`Respond in ${language}.`);

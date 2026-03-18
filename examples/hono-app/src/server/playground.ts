@@ -1,4 +1,4 @@
-import type { CatalystConfig, MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
+import type { MaterialPart, MaterialTransform } from "@edv4h/alchemy-node";
 import {
   dataToText,
   extractAllText,
@@ -88,7 +88,8 @@ interface PlaygroundTransmuteBody {
     outputType: "text" | "json" | "mermaid";
     transforms?: string[];
   };
-  catalyst?: CatalystConfig;
+  roleDefinition?: string;
+  temperature?: number;
   language?: string;
 }
 
@@ -144,7 +145,7 @@ app.post("/transmute", async (c) => {
   // biome-ignore lint/suspicious/noExplicitAny: recipe output type varies by outputType
   const recipe: any = {
     id: "playground",
-    catalyst: body.catalyst,
+    roleDefinition: body.roleDefinition,
     spell,
     refiner,
     transforms,
@@ -154,7 +155,7 @@ app.post("/transmute", async (c) => {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(body.materials);
     const result = await alchemist.transmute(recipe, parts, {
-      catalyst: body.catalyst,
+      temperature: body.temperature,
       language: body.language,
     });
     return c.json(result);
@@ -204,7 +205,7 @@ app.post("/generate", async (c) => {
   // biome-ignore lint/suspicious/noExplicitAny: recipe output type varies by outputType
   const recipe: any = {
     id: "playground",
-    catalyst: body.catalyst,
+    roleDefinition: body.roleDefinition,
     spell,
     refiner,
     transforms,
@@ -217,7 +218,7 @@ app.post("/generate", async (c) => {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(body.materials);
     const results = await alchemist.generate(recipe, parts, count, {
-      catalyst: body.catalyst,
+      temperature: body.temperature,
       language: body.language,
     });
     const serialized = Object.fromEntries(
@@ -272,8 +273,8 @@ app.post("/preview", async (c) => {
     const parts = serverToMaterialParts(body.materials);
     const preview = await buildPromptPreview(
       parts,
-      { id: "playground", spell, refiner, transforms },
-      { catalyst: body.catalyst, language: body.language },
+      { id: "playground", roleDefinition: body.roleDefinition, spell, refiner, transforms },
+      { language: body.language },
     );
     return c.json(preview);
   } catch (e) {

@@ -646,12 +646,6 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
                 {catalyst.temperature}
               </div>
             )}
-            {catalyst.model && (
-              <div>
-                <span style={{ color: "#999" }}>model: </span>
-                {catalyst.model}
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -1016,11 +1010,10 @@ export function ResultPanel({
 
 // ─── Mode Selector ──────────────────────────────────────────────────────────
 
-export type TransmuteMode = "single" | "compare" | "generate";
+export type TransmuteMode = "single" | "generate";
 
 const ALL_MODES: { value: TransmuteMode; label: string }[] = [
   { value: "single", label: "Single" },
-  { value: "compare", label: "Compare" },
   { value: "generate", label: "Generate" },
 ];
 

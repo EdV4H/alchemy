@@ -38,7 +38,7 @@ describe("Alchemist.transmute()", () => {
         { type: "text", text: "Summarize: long text" },
         { type: "text", text: "Respond with plain text only. No JSON, no markdown formatting." },
       ],
-      expect.objectContaining({ catalyst: undefined }),
+      expect.objectContaining({ roleDefinition: undefined, temperature: undefined }),
     );
   });
 
@@ -64,17 +64,15 @@ describe("Alchemist.transmute()", () => {
     expect((parts[1] as { type: "text"; text: string }).text).toContain("JSON");
   });
 
-  it("passes catalyst to transmuter", async () => {
+  it("passes roleDefinition and temperature to transmuter", async () => {
     const transmuter = mockTransmuter("result");
     const alchemist = new Alchemist({ transmuter });
 
     await alchemist.transmute(
       {
-        id: "catalyst-test",
-        catalyst: {
-          roleDefinition: "You are helpful",
-          temperature: 0.5,
-        },
+        id: "rd-test",
+        roleDefinition: "You are helpful",
+        temperature: 0.5,
         spell: () => "Hello",
         refiner: new TextRefiner(),
       },
@@ -84,7 +82,8 @@ describe("Alchemist.transmute()", () => {
     expect(transmuter.transmute).toHaveBeenCalledWith(
       expect.arrayContaining([{ type: "text", text: "Hello" }]),
       expect.objectContaining({
-        catalyst: { roleDefinition: "You are helpful", temperature: 0.5 },
+        roleDefinition: "You are helpful",
+        temperature: 0.5,
       }),
     );
   });
@@ -106,6 +105,31 @@ describe("Alchemist.transmute()", () => {
     expect(transmuter.transmute).toHaveBeenCalledWith(
       expect.arrayContaining([{ type: "text", text: "Hello" }]),
       expect.objectContaining({ language: "Japanese" }),
+    );
+  });
+
+  it("options override recipe roleDefinition and temperature", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter });
+
+    await alchemist.transmute(
+      {
+        id: "override-test",
+        roleDefinition: "recipe role",
+        temperature: 0.3,
+        spell: () => "Hello",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+      { roleDefinition: "override role", temperature: 0.9 },
+    );
+
+    expect(transmuter.transmute).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        roleDefinition: "override role",
+        temperature: 0.9,
+      }),
     );
   });
 });
@@ -139,7 +163,7 @@ describe("Alchemist.stream()", () => {
     expect(chunks).toEqual(["Hello", " ", "world"]);
     expect(transmuter.stream).toHaveBeenCalledWith(
       [{ type: "text", text: "Stream: test" }],
-      expect.objectContaining({ catalyst: undefined }),
+      expect.objectContaining({ roleDefinition: undefined, temperature: undefined }),
     );
   });
 
@@ -152,52 +176,6 @@ describe("Alchemist.stream()", () => {
       undefined,
     );
     await expect(gen.next()).rejects.toThrow("does not support streaming");
-  });
-});
-
-describe("Alchemist.compare()", () => {
-  it("returns results from multiple catalysts", async () => {
-    const transmuter = mockTransmuter("result");
-    const alchemist = new Alchemist({ transmuter });
-
-    const results = await alchemist.compare(
-      {
-        id: "compare-test",
-        spell: () => "input",
-        refiner: new TextRefiner(),
-      },
-      undefined,
-      { a: { temperature: 0.3 }, b: { temperature: 0.9 } },
-    );
-
-    expect(results).toHaveProperty("a", "result");
-    expect(results).toHaveProperty("b", "result");
-  });
-
-  it("returns partial results when one catalyst fails", async () => {
-    let callCount = 0;
-    const transmuter: Transmuter = {
-      transmute: vi.fn().mockImplementation(async () => {
-        callCount++;
-        if (callCount === 2) throw new Error("API failure");
-        return { text: "  ok  ", usage: undefined };
-      }),
-    };
-    const alchemist = new Alchemist({ transmuter });
-
-    const results = await alchemist.compare(
-      {
-        id: "partial-test",
-        spell: () => "input",
-        refiner: new TextRefiner(),
-      },
-      undefined,
-      { a: { temperature: 0.3 }, b: { temperature: 0.9 } },
-    );
-
-    expect(results.a).toBe("ok");
-    expect(results.b).toEqual({ error: expect.any(Error) });
-    expect((results.b as { error: Error }).error.message).toBe("API failure");
   });
 });
 
@@ -230,7 +208,7 @@ describe("MaterialTransform pipeline", () => {
     expect(order).toEqual(["global", "recipe"]);
   });
 
-  it("passes transform context with recipeId and catalyst", async () => {
+  it("passes transform context with recipeId, roleDefinition and temperature", async () => {
     const transmuter = mockTransmuter("done");
     const receivedCtx: unknown[] = [];
 
@@ -244,7 +222,7 @@ describe("MaterialTransform pipeline", () => {
     await alchemist.transmute(
       {
         id: "ctx-test",
-        catalyst: { temperature: 0.7 },
+        temperature: 0.7,
         spell: () => "input",
         refiner: new TextRefiner(),
       },
@@ -253,7 +231,8 @@ describe("MaterialTransform pipeline", () => {
 
     expect(receivedCtx[0]).toEqual({
       recipeId: "ctx-test",
-      catalyst: { temperature: 0.7 },
+      roleDefinition: undefined,
+      temperature: 0.7,
     });
   });
 

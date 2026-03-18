@@ -13,7 +13,7 @@ function mockTransmuter(responseText: string): Transmuter {
 }
 
 describe("Alchemist.generate()", () => {
-  it("generates N variations with the same recipe and catalyst", async () => {
+  it("generates N variations with the same recipe", async () => {
     const transmuter = mockTransmuter("result");
     const alchemist = new Alchemist({ transmuter });
 
@@ -34,23 +34,23 @@ describe("Alchemist.generate()", () => {
     expect(transmuter.transmute).toHaveBeenCalledTimes(3);
   });
 
-  it("passes catalyst to all variations", async () => {
+  it("passes temperature to all variations", async () => {
     const transmuter = mockTransmuter("result");
     const alchemist = new Alchemist({ transmuter });
 
     await alchemist.generate(
       {
-        id: "gen-catalyst",
+        id: "gen-temp",
         spell: () => "input",
         refiner: new TextRefiner(),
       },
       undefined,
       2,
-      { catalyst: { temperature: 0.8 } },
+      { temperature: 0.8 },
     );
 
     for (const call of (transmuter.transmute as ReturnType<typeof vi.fn>).mock.calls) {
-      expect(call[1]).toEqual(expect.objectContaining({ catalyst: { temperature: 0.8 } }));
+      expect(call[1]).toEqual(expect.objectContaining({ temperature: 0.8 }));
     }
   });
 

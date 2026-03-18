@@ -14,7 +14,7 @@ pnpm add @edv4h/alchemy-core
 - **Transforms** — `truncateText`, `prependText`, `filterByType`, `dataToText`
 - **Material utilities** — `extractText`, `extractAllText`, `isTextOnly`, `toMaterialParts`
 - **Validation** — `runMaterialValidation`, `validateMaterialRequirements`
-- **Types** — `MaterialPart`, `Recipe`, `Transmuter`, `CatalystConfig`, `Refiner`, etc.
+- **Types** — `MaterialPart`, `Recipe`, `Transmuter`, `Refiner`, etc.
 
 ## Usage
 

@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import type { CustomMaterial } from "../shared/types.js";
-import type { PlaygroundCatalyst } from "./usePlaygroundStore.js";
 
 interface PlaygroundTransmutePayload {
   materials: CustomMaterial[];
   promptTemplate: string;
   outputType: "text" | "json" | "mermaid";
   transforms: string[];
-  catalyst?: PlaygroundCatalyst;
+  roleDefinition?: string;
+  temperature?: number;
   language?: string;
 }
 
@@ -89,13 +89,8 @@ export function usePlaygroundTransmute(
             outputType: payload.outputType,
             transforms: payload.transforms,
           },
-          catalyst: payload.catalyst
-            ? {
-                roleDefinition: payload.catalyst.roleDefinition,
-                temperature: payload.catalyst.temperature,
-                model: payload.catalyst.model || undefined,
-              }
-            : undefined,
+          roleDefinition: payload.roleDefinition || undefined,
+          temperature: payload.temperature,
           language: payload.language || undefined,
         };
 
@@ -142,13 +137,8 @@ export function usePlaygroundTransmute(
             outputType: payload.outputType,
             transforms: payload.transforms,
           },
-          catalyst: payload.catalyst
-            ? {
-                roleDefinition: payload.catalyst.roleDefinition,
-                temperature: payload.catalyst.temperature,
-                model: payload.catalyst.model || undefined,
-              }
-            : undefined,
+          roleDefinition: payload.roleDefinition || undefined,
+          temperature: payload.temperature,
           language: payload.language || undefined,
           count: payload.count,
         };
@@ -192,13 +182,8 @@ export function usePlaygroundTransmute(
             outputType: payload.outputType,
             transforms: payload.transforms,
           },
-          catalyst: payload.catalyst
-            ? {
-                roleDefinition: payload.catalyst.roleDefinition,
-                temperature: payload.catalyst.temperature,
-                model: payload.catalyst.model || undefined,
-              }
-            : undefined,
+          roleDefinition: payload.roleDefinition || undefined,
+          temperature: payload.temperature,
           language: payload.language || undefined,
         };
 

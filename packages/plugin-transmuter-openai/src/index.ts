@@ -29,15 +29,15 @@ export class OpenAITransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): Promise<TransmutationResult> {
-    const { catalyst, signal } = options;
-    const model = catalyst?.model ?? this.defaultModel;
+    const { signal } = options;
+    const model = this.defaultModel;
     const messages = this.buildMessages(material, options);
 
     const response = await this.client.chat.completions.create(
       {
         model,
         messages,
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
       },
       { signal },
     );
@@ -58,15 +58,15 @@ export class OpenAITransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): AsyncGenerator<string, void, unknown> {
-    const { catalyst, signal } = options;
-    const model = catalyst?.model ?? this.defaultModel;
+    const { signal } = options;
+    const model = this.defaultModel;
     const messages = this.buildMessages(material, options);
 
     const stream = await this.client.chat.completions.create(
       {
         model,
         messages,
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
         stream: true,
       },
       { signal },
@@ -84,10 +84,10 @@ export class OpenAITransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): OpenAI.Chat.ChatCompletionMessageParam[] {
-    const { catalyst, language } = options;
+    const { roleDefinition, language } = options;
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
-    if (catalyst?.roleDefinition) {
-      messages.push({ role: "system", content: catalyst.roleDefinition });
+    if (roleDefinition) {
+      messages.push({ role: "system", content: roleDefinition });
     }
     if (language) {
       messages.push({ role: "system", content: `Respond in ${language}.` });

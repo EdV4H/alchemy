@@ -1,4 +1,3 @@
-import { teamLpCatalystPresets } from "../../team-lp/catalysts.js";
 import { teamLpRecipeEntries } from "../../team-lp/recipes.js";
 import { AlchemyDemoApp } from "../shared/AlchemyDemoApp.js";
 import type { MaterialCard } from "../shared/types.js";
@@ -228,7 +227,6 @@ export function App() {
       }
       materials={allMaterials}
       recipeEntries={teamLpRecipeEntries}
-      catalystPresets={teamLpCatalystPresets}
       materialGroups={materialGroups}
       customMaterialTypes={["text", "image", "data", "document"]}
       resultMode="html"

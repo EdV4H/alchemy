@@ -15,12 +15,12 @@ export interface UseTransmuteResult<TOutput = unknown> {
   transmute: (
     recipeId: string,
     materials: MaterialInput[],
-    options?: { catalystKey?: string; language?: string },
+    options?: { language?: string },
   ) => Promise<TOutput | undefined>;
   preview: (
     recipeId: string,
     materials: MaterialInput[],
-    options?: { catalystKey?: string; language?: string },
+    options?: { language?: string },
   ) => Promise<PromptPreview | undefined>;
   data: TOutput | null;
   previewData: PromptPreview | null;
@@ -47,7 +47,7 @@ export function useTransmute<TOutput = unknown>(
     async (
       recipeId: string,
       materials: MaterialInput[],
-      opts?: { catalystKey?: string; language?: string },
+      opts?: { language?: string },
     ): Promise<TOutput | undefined> => {
       abortRef.current?.abort();
       const controller = new AbortController();
@@ -61,7 +61,6 @@ export function useTransmute<TOutput = unknown>(
           headers: { "Content-Type": "application/json", ...extraHeaders },
           body: JSON.stringify({
             materials,
-            catalystKey: opts?.catalystKey,
             language: opts?.language,
           }),
           signal: controller.signal,
@@ -89,7 +88,7 @@ export function useTransmute<TOutput = unknown>(
     async (
       recipeId: string,
       materials: MaterialInput[],
-      opts?: { catalystKey?: string; language?: string },
+      opts?: { language?: string },
     ): Promise<PromptPreview | undefined> => {
       previewAbortRef.current?.abort();
       const controller = new AbortController();
@@ -102,7 +101,6 @@ export function useTransmute<TOutput = unknown>(
           headers: { "Content-Type": "application/json", ...extraHeaders },
           body: JSON.stringify({
             materials,
-            catalystKey: opts?.catalystKey,
             language: opts?.language,
           }),
           signal: controller.signal,

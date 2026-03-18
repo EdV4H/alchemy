@@ -47,7 +47,7 @@ describe("useTransmute", () => {
     );
   });
 
-  it("passes catalystKey and language in body", async () => {
+  it("passes language in body", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve("ok"),
@@ -57,13 +57,11 @@ describe("useTransmute", () => {
 
     await act(async () => {
       await result.current.transmute("r1", [{ type: "text", text: "hi" }], {
-        catalystKey: "formal",
         language: "Japanese",
       });
     });
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.catalystKey).toBe("formal");
     expect(body.language).toBe("Japanese");
   });
 

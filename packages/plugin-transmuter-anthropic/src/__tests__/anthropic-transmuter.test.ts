@@ -32,7 +32,8 @@ describe("AnthropicTransmuter.transmute()", () => {
     const transmuter = new AnthropicTransmuter({ apiKey: "test-key" });
     const material: MaterialPart[] = [{ type: "text", text: "Summarize this" }];
     const result = await transmuter.transmute(material, {
-      catalyst: { roleDefinition: "You are a summarizer", temperature: 0.3 },
+      roleDefinition: "You are a summarizer",
+      temperature: 0.3,
     });
 
     expect(result.text).toBe("summary");
@@ -52,7 +53,7 @@ describe("AnthropicTransmuter.transmute()", () => {
     );
   });
 
-  it("uses defaultModel when catalyst.model is absent", async () => {
+  it("uses defaultModel when no model override exists", async () => {
     mockCreate.mockResolvedValueOnce({
       content: [{ type: "text", text: "ok" }],
       usage: null,
@@ -91,7 +92,7 @@ describe("AnthropicTransmuter.transmute()", () => {
 
     const transmuter = new AnthropicTransmuter({ apiKey: "test-key" });
     await transmuter.transmute([{ type: "text", text: "Hello" }], {
-      catalyst: { roleDefinition: "You are a translator" },
+      roleDefinition: "You are a translator",
       language: "Japanese",
     });
 

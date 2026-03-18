@@ -46,7 +46,7 @@ describe("useGenerate", () => {
     );
   });
 
-  it("passes count, catalystKey and language in body", async () => {
+  it("passes count and language in body", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({}),
@@ -56,14 +56,12 @@ describe("useGenerate", () => {
 
     await act(async () => {
       await result.current.generate("r1", [{ type: "text", text: "hi" }], 3, {
-        catalystKey: "formal",
         language: "Japanese",
       });
     });
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.count).toBe(3);
-    expect(body.catalystKey).toBe("formal");
     expect(body.language).toBe("Japanese");
   });
 

@@ -1,5 +1,4 @@
 import type {
-  CatalystConfig,
   MaterialPart,
   MaterialTransform,
   MaterialValidationIssue,
@@ -19,11 +18,8 @@ import { GoogleTransmuter } from "@edv4h/alchemy-plugin-transmuter-google";
 import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 import type { Context } from "hono";
 import { Hono } from "hono";
-import { catalystPresets } from "../shared/catalysts.js";
 import { recipeRegistry } from "../shared/recipes.js";
-import { teamLpCatalystPresets } from "../team-lp/catalysts.js";
 import { teamLpRecipeRegistry } from "../team-lp/recipes.js";
-import { travelCatalystPresets } from "../travel/catalysts.js";
 import { travelRecipeRegistry } from "../travel/recipes.js";
 import playgroundApp from "./playground.js";
 
@@ -117,9 +113,6 @@ const allRecipes: Record<string, any> = {
   ...teamLpRecipeRegistry,
 };
 
-// Merge all catalyst presets
-const allCatalystPresets = [...catalystPresets, ...travelCatalystPresets, ...teamLpCatalystPresets];
-
 /**
  * Server-side MaterialInput extends core MaterialInput with documentUrl support.
  * Core toMaterialParts handles all cases except documentUrl, which is server-only.
@@ -148,11 +141,6 @@ export function serverToMaterialParts(materials: ServerMaterialInput[]): Materia
   return [...serverHandled, ...toMaterialParts(coreHandled)];
 }
 
-function resolveCatalystPreset(key?: string): CatalystConfig | undefined {
-  if (!key) return undefined;
-  return allCatalystPresets.find((c) => c.key === key)?.config;
-}
-
 function formatValidationIssue(issue: MaterialValidationIssue): string {
   const label = issue.label ?? issue.type;
   if (issue.kind === "too_few") {
@@ -171,7 +159,6 @@ function formatValidationError(validation: MaterialValidationResult): string {
 
 interface TransmuteBody {
   materials: ServerMaterialInput[];
-  catalystKey?: string;
   language?: string;
 }
 
@@ -199,65 +186,8 @@ app.post("/api/transmute/:recipeId", async (c) => {
       return c.json({ error: formatValidationError(validation) }, 400);
     }
 
-    const catalyst = resolveCatalystPreset(body.catalystKey);
-    const result = await alchemist.transmute(recipe, parts, { catalyst, language: body.language });
+    const result = await alchemist.transmute(recipe, parts, { language: body.language });
     return c.json(result);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    return c.json({ error: message }, 500);
-  }
-});
-
-interface CompareBody {
-  materials: ServerMaterialInput[];
-  catalystKeys: string[];
-  language?: string;
-}
-
-app.post("/api/compare/:recipeId", async (c) => {
-  const { recipeId } = c.req.param();
-  const recipe = allRecipes[recipeId];
-
-  if (!recipe) {
-    return c.json({ error: `Unknown recipe: ${recipeId}` }, 404);
-  }
-
-  const body = await c.req.json<CompareBody>();
-  const materials = body.materials;
-
-  if (!Array.isArray(materials) || materials.length === 0) {
-    return c.json({ error: "materials (MaterialInput[]) is required" }, 400);
-  }
-
-  if (!Array.isArray(body.catalystKeys) || body.catalystKeys.length < 2) {
-    return c.json({ error: "catalystKeys (string[], min 2) is required" }, 400);
-  }
-
-  try {
-    const alchemist = resolveAlchemist(c);
-    const parts = serverToMaterialParts(materials);
-
-    const validation = runMaterialValidation(recipe, parts);
-    if (!validation.valid) {
-      return c.json({ error: formatValidationError(validation) }, 400);
-    }
-
-    const catalysts: Record<string, CatalystConfig> = {};
-    for (const key of body.catalystKeys) {
-      const config = resolveCatalystPreset(key);
-      if (config) catalysts[key] = config;
-    }
-    const results = await alchemist.compare(recipe, parts, catalysts, { language: body.language });
-    // Serialize error objects for JSON response
-    const serialized = Object.fromEntries(
-      Object.entries(results).map(([key, val]) => [
-        key,
-        val && typeof val === "object" && "error" in val && val.error instanceof Error
-          ? { error: val.error.message }
-          : val,
-      ]),
-    );
-    return c.json(serialized);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return c.json({ error: message }, 500);
@@ -269,7 +199,6 @@ app.post("/api/compare/:recipeId", async (c) => {
 interface GenerateBody {
   materials: ServerMaterialInput[];
   count: number;
-  catalystKey?: string;
   language?: string;
 }
 
@@ -300,9 +229,7 @@ app.post("/api/generate/:recipeId", async (c) => {
       return c.json({ error: formatValidationError(validation) }, 400);
     }
 
-    const catalyst = resolveCatalystPreset(body.catalystKey);
     const results = await alchemist.generate(recipe, parts, count, {
-      catalyst,
       language: body.language,
     });
     // Serialize error objects for JSON response
@@ -357,13 +284,13 @@ export async function buildPromptPreview(
   parts: MaterialPart[],
   recipe: {
     id: string;
-    catalyst?: CatalystConfig;
+    roleDefinition?: string;
     // biome-ignore lint/suspicious/noExplicitAny: spell input varies
     spell: (material: any) => any;
     transforms?: MaterialTransform[];
     refiner: { getFormatInstructions?(): string };
   },
-  options: { catalyst?: CatalystConfig; language?: string },
+  options: { language?: string },
 ): Promise<PromptPreview> {
   // 1. Run spell
   const spellOutput = await recipe.spell(parts);
@@ -373,7 +300,6 @@ export async function buildPromptPreview(
   const transforms = recipe.transforms ?? [];
   for (const transform of transforms) {
     materialParts = await transform(materialParts, {
-      catalyst: options.catalyst ?? recipe.catalyst,
       recipeId: recipe.id,
     });
   }
@@ -388,9 +314,8 @@ export async function buildPromptPreview(
   const user = materialParts.map(materialPartToText).join("\n\n");
 
   // 5. Build system prompt
-  const catalyst = options.catalyst ?? recipe.catalyst;
   const systemParts: string[] = [];
-  if (catalyst?.roleDefinition) systemParts.push(catalyst.roleDefinition);
+  if (recipe.roleDefinition) systemParts.push(recipe.roleDefinition);
   if (options.language) systemParts.push(`Respond in ${options.language}.`);
   const system = systemParts.length > 0 ? systemParts.join("\n") : undefined;
 
@@ -420,9 +345,7 @@ app.post("/api/preview/:recipeId", async (c) => {
       return c.json({ error: formatValidationError(validation) }, 400);
     }
 
-    const catalyst = resolveCatalystPreset(body.catalystKey);
     const preview = await buildPromptPreview(parts, recipe, {
-      catalyst,
       language: body.language,
     });
     return c.json(preview);

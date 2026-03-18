@@ -35,9 +35,8 @@ function TranslatorApp() {
 
 ## Hooks
 
-- **`useAlchemy`** — Full-featured hook with recipe selection, catalyst switching, and state management
+- **`useAlchemy`** — Full-featured hook with recipe selection and state management
 - **`useTransmute`** — Simplified hook for single transmutation
-- **`useCompare`** — A/B comparison across multiple catalysts
 - **`useGenerate`** — Generate multiple variations in parallel
 
 ## License

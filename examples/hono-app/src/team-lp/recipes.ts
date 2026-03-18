@@ -9,11 +9,9 @@ export const teamHeroRecipe: Recipe<MaterialPart[], string> = {
   id: "team-hero",
   name: "Hero Section",
   requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
-  catalyst: {
-    roleDefinition:
-      "You are an expert landing page designer. Generate a compelling hero section as semantic HTML with inline styles. Include a headline, tagline, mission statement, and a call-to-action button. Use modern, responsive CSS. If a response language is specified, write all visible text content (headings, paragraphs, buttons) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.5,
-  },
+  roleDefinition:
+    "You are an expert landing page designer. Generate a compelling hero section as semantic HTML with inline styles. Include a headline, tagline, mission statement, and a call-to-action button. Use modern, responsive CSS. If a response language is specified, write all visible text content (headings, paragraphs, buttons) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.5,
   spell: (parts) => [
     {
       type: "text",
@@ -31,11 +29,9 @@ export const teamMembersRecipe: Recipe<MaterialPart[], string> = {
   id: "team-members",
   name: "Member Profile Cards",
   requiredMaterials: [{ type: "text", min: 1, label: "Member profiles" }],
-  catalyst: {
-    roleDefinition:
-      "You are a UI designer specializing in profile cards. Generate a responsive grid of member profile cards as semantic HTML with inline styles. Each card should include the member's name, role, a brief bio, and skills. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.5,
-  },
+  roleDefinition:
+    "You are a UI designer specializing in profile cards. Generate a responsive grid of member profile cards as semantic HTML with inline styles. Each card should include the member's name, role, a brief bio, and skills. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.5,
   spell: (parts) => [
     {
       type: "text",
@@ -53,11 +49,9 @@ export const teamAchievementsRecipe: Recipe<MaterialPart[], string> = {
   id: "team-achievements",
   name: "Achievements & Stats",
   requiredMaterials: [{ type: "text", min: 1, label: "Team data" }],
-  catalyst: {
-    roleDefinition:
-      "You are a data visualization specialist for landing pages. Generate an achievements/stats section as semantic HTML with inline styles. Display key metrics prominently with large numbers, labels, and subtle animations hints via CSS. If a response language is specified, write all visible text content (labels, descriptions) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.4,
-  },
+  roleDefinition:
+    "You are a data visualization specialist for landing pages. Generate an achievements/stats section as semantic HTML with inline styles. Display key metrics prominently with large numbers, labels, and subtle animations hints via CSS. If a response language is specified, write all visible text content (labels, descriptions) in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.4,
   spell: (parts) => {
     const text = extractText(parts);
     return `Using the following team data, generate an achievements & stats section as HTML with inline styles. Display key metrics as large, prominent numbers with labels. Use a visually appealing grid layout:
@@ -75,11 +69,9 @@ export const teamCultureRecipe: Recipe<MaterialPart[], string> = {
   id: "team-culture",
   name: "Team Culture & Values",
   requiredMaterials: [{ type: "text", min: 1, label: "Culture notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a culture branding specialist. Generate a team culture and values section as semantic HTML with inline styles. Present core values with icons (use emoji), descriptions, and a narrative about team culture. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.6,
-  },
+  roleDefinition:
+    "You are a culture branding specialist. Generate a team culture and values section as semantic HTML with inline styles. Present core values with icons (use emoji), descriptions, and a narrative about team culture. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.6,
   spell: (parts) => [
     {
       type: "text",
@@ -97,11 +89,9 @@ export const teamProjectsRecipe: Recipe<MaterialPart[], string> = {
   id: "team-projects",
   name: "Project Showcase",
   requiredMaterials: [{ type: "text", min: 1, label: "Project data" }],
-  catalyst: {
-    roleDefinition:
-      "You are a portfolio designer. Generate a project showcase section as semantic HTML with inline styles. Each project card should follow a Challenge → Solution → Result structure. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.5,
-  },
+  roleDefinition:
+    "You are a portfolio designer. Generate a project showcase section as semantic HTML with inline styles. Each project card should follow a Challenge → Solution → Result structure. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.5,
   spell: (parts) => {
     const text = extractText(parts);
     return `Using the following project data, generate a project showcase section as HTML with inline styles. Each project should be displayed as a card with: project name, challenge faced, solution implemented, and measurable results:
@@ -119,11 +109,9 @@ export const teamWhyJoinRecipe: Recipe<MaterialPart[], string> = {
   id: "team-why-join",
   name: "Why Join Us? / FAQ",
   requiredMaterials: [{ type: "text", min: 1, label: "Team info" }],
-  catalyst: {
-    roleDefinition:
-      "You are a talent acquisition copywriter. Generate a 'Why Join Us?' section followed by an FAQ accordion as semantic HTML with inline styles. Use <details>/<summary> elements for the FAQ. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
-    temperature: 0.6,
-  },
+  roleDefinition:
+    "You are a talent acquisition copywriter. Generate a 'Why Join Us?' section followed by an FAQ accordion as semantic HTML with inline styles. Use <details>/<summary> elements for the FAQ. If a response language is specified, write all visible text content in that language. Output only the HTML fragment — no markdown fences, no explanation.",
+  temperature: 0.6,
   spell: (parts) => [
     {
       type: "text",
@@ -141,11 +129,9 @@ export const teamFullPageRecipe: Recipe<MaterialPart[], string> = {
   id: "team-full-page",
   name: "Full Page Assembler",
   requiredMaterials: [{ type: "text", min: 1, label: "Team materials" }],
-  catalyst: {
-    roleDefinition:
-      "You are a full-stack landing page designer. Generate a complete, single-page team landing page as semantic HTML with inline styles. Include all major sections: hero, about/mission, team members, achievements, culture & values, project showcase, why join us, and a footer. If a response language is specified, write all visible text content in that language. Output only the HTML — no markdown fences, no explanation.",
-    temperature: 0.6,
-  },
+  roleDefinition:
+    "You are a full-stack landing page designer. Generate a complete, single-page team landing page as semantic HTML with inline styles. Include all major sections: hero, about/mission, team members, achievements, culture & values, project showcase, why join us, and a footer. If a response language is specified, write all visible text content in that language. Output only the HTML — no markdown fences, no explanation.",
+  temperature: 0.6,
   spell: (parts) => [
     {
       type: "text",
@@ -163,11 +149,9 @@ export const teamOrgChartRecipe: Recipe<MaterialPart[], string> = {
   id: "team-org-chart",
   name: "Org Chart",
   requiredMaterials: [{ type: "text", min: 1, label: "Team structure" }],
-  catalyst: {
-    roleDefinition:
-      "You are an organizational chart designer. Convert team structure information into a clear Mermaid graph showing reporting lines, team groupings, and roles. Use descriptive labels for each node.",
-    temperature: 0.3,
-  },
+  roleDefinition:
+    "You are an organizational chart designer. Convert team structure information into a clear Mermaid graph showing reporting lines, team groupings, and roles. Use descriptive labels for each node.",
+  temperature: 0.3,
   spell: (parts) => {
     const text = extractText(parts);
     return `Based on the following team information, create a Mermaid graph diagram showing the organizational structure. Include team members, their roles, and reporting relationships:\n\n${text}`;

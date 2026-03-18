@@ -1,4 +1,3 @@
-import { travelCatalystPresets } from "../../travel/catalysts.js";
 import { travelRecipeEntries } from "../../travel/recipes.js";
 import { AlchemyDemoApp } from "../shared/AlchemyDemoApp.js";
 import type { MaterialCard } from "../shared/types.js";
@@ -206,7 +205,6 @@ export function App() {
       emptyMessage={"\u65C5\u306E\u7D20\u6750\u3092\u9078\u3093\u3067\u304F\u3060\u3055\u3044"}
       materials={allMaterials}
       recipeEntries={travelRecipeEntries}
-      catalystPresets={travelCatalystPresets}
       materialGroups={materialGroups}
     />
   );
