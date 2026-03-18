@@ -6,7 +6,12 @@ import type {
   Recipe,
   TransmutationOptions,
 } from "@edv4h/alchemy-core";
-import { normalizeSpellOutput, TransmuteError } from "@edv4h/alchemy-core";
+import {
+  MaterialValidationError,
+  normalizeSpellOutput,
+  runMaterialValidation,
+  TransmuteError,
+} from "@edv4h/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -25,6 +30,10 @@ export class Alchemist {
 
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
+
+    if (this.config.validateMaterials) {
+      await this.autoValidate(recipe, parts);
+    }
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
@@ -67,6 +76,10 @@ export class Alchemist {
 
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
+
+    if (this.config.validateMaterials) {
+      await this.autoValidate(recipe, parts);
+    }
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
@@ -117,6 +130,16 @@ export class Alchemist {
     return [...global, ...local];
   }
 
+  private async autoValidate<TInput, TOutput>(
+    recipe: Recipe<TInput, TOutput>,
+    parts: MaterialPart[],
+  ): Promise<void> {
+    const result = await runMaterialValidation(recipe, parts);
+    if (!result.valid) {
+      throw new MaterialValidationError(result);
+    }
+  }
+
   private async applyTransforms(
     parts: MaterialPart[],
     context: MaterialTransformContext,
@@ -140,6 +163,7 @@ export {
   filterByType,
   isTextOnly,
   JsonRefiner,
+  MaterialValidationError,
   MermaidRefiner,
   normalizeSpellOutput,
   prependText,
