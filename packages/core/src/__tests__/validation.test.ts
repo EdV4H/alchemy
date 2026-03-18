@@ -171,7 +171,7 @@ describe("evaluate + judgeMaterials", () => {
           {
             type: "text",
             min: 1,
-            evaluate: async (parts) => {
+            evaluate: async (_parts) => {
               await new Promise((r) => setTimeout(r, 1));
               return { score: 0.8, message: "Good quality" };
             },

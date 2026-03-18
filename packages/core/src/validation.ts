@@ -61,7 +61,9 @@ export function validateMaterialRequirements(
 export async function runMaterialValidation(
   recipe: {
     requiredMaterials?: MaterialRequirement[];
-    validateMaterials?: (parts: MaterialPart[]) => MaterialValidationResult;
+    validateMaterials?: (
+      parts: MaterialPart[],
+    ) => MaterialValidationResult | Promise<MaterialValidationResult>;
     judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) => MaterialJudgement;
   },
   parts: MaterialPart[],
@@ -79,9 +81,20 @@ export async function runMaterialValidation(
   if (recipe.requiredMaterials) {
     const requirementsWithEvaluate = recipe.requiredMaterials.filter((r) => r.evaluate);
     if (requirementsWithEvaluate.length > 0) {
+      // Pre-group parts by type to avoid repeated O(parts) scans per requirement
+      const partsByType = new Map<string, MaterialPart[]>();
+      for (const part of parts) {
+        const arr = partsByType.get(part.type);
+        if (arr) {
+          arr.push(part);
+        } else {
+          partsByType.set(part.type, [part]);
+        }
+      }
+
       const evalResults = await Promise.all(
         requirementsWithEvaluate.map(async (req) => {
-          const matchingParts = parts.filter((p) => p.type === req.type);
+          const matchingParts = partsByType.get(req.type) ?? [];
           // biome-ignore lint/style/noNonNullAssertion: filtered above
           const evaluation = await req.evaluate!(matchingParts);
           return {
@@ -110,9 +123,13 @@ export async function runMaterialValidation(
 
   // 4. Custom function check
   if (recipe.validateMaterials) {
-    const customResult = recipe.validateMaterials(parts);
+    const customResult = await recipe.validateMaterials(parts);
     if (!customResult.valid) {
-      return { ...customResult, evaluations, judgement };
+      return {
+        ...customResult,
+        ...(evaluations !== undefined && { evaluations }),
+        ...(judgement !== undefined && { judgement }),
+      };
     }
   }
 

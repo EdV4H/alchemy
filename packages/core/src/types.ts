@@ -196,7 +196,9 @@ export interface Recipe<TInput, TOutput> {
   refiner: Refiner<TOutput>;
   transforms?: MaterialTransform[];
   requiredMaterials?: MaterialRequirement[];
-  validateMaterials?: (parts: MaterialPart[]) => MaterialValidationResult;
+  validateMaterials?: (
+    parts: MaterialPart[],
+  ) => MaterialValidationResult | Promise<MaterialValidationResult>;
   /** 全素材の評価結果を見て錬成可否を判断 */
   judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) => MaterialJudgement;
 }
