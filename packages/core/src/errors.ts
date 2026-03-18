@@ -25,3 +25,12 @@ export class TransformError extends AlchemyError {
     this.name = "TransformError";
   }
 }
+
+export class MaterialValidationError extends AlchemyError {
+  readonly result: import("./types.js").MaterialValidationResult;
+  constructor(result: import("./types.js").MaterialValidationResult) {
+    super(result.message ?? result.judgement?.message ?? "Material validation failed");
+    this.name = "MaterialValidationError";
+    this.result = result;
+  }
+}

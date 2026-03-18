@@ -1,5 +1,11 @@
 // Errors
-export { AlchemyError, RefineError, TransformError, TransmuteError } from "./errors.js";
+export {
+  AlchemyError,
+  MaterialValidationError,
+  RefineError,
+  TransformError,
+  TransmuteError,
+} from "./errors.js";
 // Material utilities
 export { extractAllText, extractText, isTextOnly, normalizeSpellOutput } from "./material.js";
 // MaterialInput
@@ -19,6 +25,9 @@ export type {
   ImageMaterialPart,
   KnownLanguage,
   Language,
+  MaterialEvaluation,
+  MaterialEvaluationEntry,
+  MaterialJudgement,
   MaterialPart,
   MaterialPartRegistry,
   MaterialPartType,
