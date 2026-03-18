@@ -110,6 +110,7 @@
           <tbody>
             <tr><td><code>roleDefinition</code></td><td><code>string?</code></td><td>System prompt / role definition</td></tr>
             <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
+            <tr><td><code>signal</code></td><td><code>AbortSignal?</code></td><td>Cancellation signal</td></tr>
             <tr><td><code>language</code></td><td><code>string?</code></td><td>Output language instruction</td></tr>
           </tbody>
         </table>
@@ -294,19 +295,19 @@ interface AlchemistConfig {
 
         <h4>Methods</h4>
 
-        <p><strong><code>transmute&lt;TInput, TOutput&gt;(params)</code></strong></p>
-        <p>Execute a recipe with materials and return the result.</p>
+        <p><strong><code>transmute&lt;TInput, TOutput&gt;(recipe, material, options?)</code></strong></p>
+        <p>Execute a recipe with materials and return the parsed output.</p>
         <table class="param-table">
           <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
           <tbody>
             <tr><td><code>recipe</code></td><td><code>Recipe&lt;TInput, TOutput&gt;</code></td><td>The recipe to execute</td></tr>
-            <tr><td><code>materials</code></td><td><code>MaterialPart[]</code></td><td>Input materials</td></tr>
+            <tr><td><code>material</code></td><td><code>TInput</code></td><td>Input material</td></tr>
             <tr><td><code>options</code></td><td><code>TransmutationOptions?</code></td><td>Override options (roleDefinition, temperature, language)</td></tr>
           </tbody>
         </table>
-        <p>Returns: <code>Promise&lt;{ output: TOutput; usage?: TokenUsage }&gt;</code></p>
+        <p>Returns: <code>Promise&lt;TOutput&gt;</code></p>
 
-        <p><strong><code>stream&lt;TInput&gt;(params)</code></strong></p>
+        <p><strong><code>stream&lt;TInput&gt;(recipe, material, options?)</code></strong></p>
         <p>Stream the response progressively.</p>
         <p>Returns: <code>AsyncGenerator&lt;string&gt;</code></p>
 

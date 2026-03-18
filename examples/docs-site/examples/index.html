@@ -88,18 +88,19 @@ const alchemist = new Alchemist({
   }),
 });
 
-const result = await alchemist.transmute({
-  recipe: {
-    spell: { output: "Translate this text to Japanese" },
-    temperature: 0.3,
-    roleDefinition: "You are a professional translator",
-  },
-  materials: [
-    { type: "text", text: "The quick brown fox jumps over the lazy dog." },
-  ],
-});
+const recipe = {
+  spell: () =&gt; "Translate this text to Japanese",
+  temperature: 0.3,
+  roleDefinition: "You are a professional translator",
+};
 
-console.log(result.output);
+const materials = [
+  { type: "text" as const, text: "The quick brown fox jumps over the lazy dog." },
+];
+
+const result = await alchemist.transmute(recipe, materials);
+
+console.log(result);
 // → "素早い茶色の狐が怠けた犬を飛び越える。"</code></pre>
         </div>
 
@@ -131,20 +132,21 @@ const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
-const result = await alchemist.transmute({
-  recipe: {
-    spell: { output: "Generate a product description based on these notes" },
-    refiner: new JsonRefiner(ProductSchema),
-    temperature: 0.7,
-  },
-  materials: [
-    { type: "text", text: "Note-taking app for developers, markdown support, git integration" },
-  ],
-});
+const recipe = {
+  spell: () =&gt; "Generate a product description based on these notes",
+  refiner: new JsonRefiner(ProductSchema),
+  temperature: 0.7,
+};
 
-// result.output is fully typed!
-console.log(result.output.name);        // "DevNotes"
-console.log(result.output.features[0]); // { title: "...", description: "..." }</code></pre>
+const materials = [
+  { type: "text" as const, text: "Note-taking app for developers, markdown support, git integration" },
+];
+
+const result = await alchemist.transmute(recipe, materials);
+
+// result is fully typed!
+console.log(result.name);        // "DevNotes"
+console.log(result.features[0]); // { title: "...", description: "..." }</code></pre>
         </div>
 
         <!-- Example 3 -->
@@ -176,25 +178,26 @@ const AnalysisSchema = z.object({
   dataHighlights: z.array(z.string()),
 });
 
-const result = await alchemist.transmute({
-  recipe: {
-    spell: { output: "Analyze this chart and its underlying data" },
-    refiner: new JsonRefiner(AnalysisSchema),
-  },
-  materials: [
-    { type: "text", text: "Q4 2024 Sales Report" },
-    { type: "image", source: { kind: "url", url: "https://example.com/sales-chart.png" } },
-    {
-      type: "data",
-      format: "csv",
-      content: "month,revenue\nOct,45000\nNov,52000\nDec,61000",
-      label: "Monthly Revenue",
-    },
-  ],
-});
+const recipe = {
+  spell: () =&gt; "Analyze this chart and its underlying data",
+  refiner: new JsonRefiner(AnalysisSchema),
+};
 
-console.log(result.output.trend);     // "up"
-console.log(result.output.insights);  // ["Revenue grew 35% over Q4", ...]</code></pre>
+const materials = [
+  { type: "text" as const, text: "Q4 2024 Sales Report" },
+  { type: "image" as const, source: { kind: "url" as const, url: "https://example.com/sales-chart.png" } },
+  {
+    type: "data" as const,
+    format: "csv" as const,
+    content: "month,revenue\nOct,45000\nNov,52000\nDec,61000",
+    label: "Monthly Revenue",
+  },
+];
+
+const result = await alchemist.transmute(recipe, materials);
+
+console.log(result.trend);     // "up"
+console.log(result.insights);  // ["Revenue grew 35% over Q4", ...]</code></pre>
         </div>
 
         <!-- Example 4 -->
@@ -212,19 +215,18 @@ const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),
 });
 
+const recipe = {
+  spell: () =&gt; "Write a detailed tutorial about building REST APIs with Hono",
+  temperature: 0.6,
+  roleDefinition: "You are a senior developer writing a technical blog post",
+};
+
+const materials = [
+  { type: "text" as const, text: "Target audience: intermediate TypeScript developers" },
+];
+
 // Stream a long response
-const stream = alchemist.stream({
-  recipe: {
-    spell: {
-      output: "Write a detailed tutorial about building REST APIs with Hono",
-    },
-    temperature: 0.6,
-    roleDefinition: "You are a senior developer writing a technical blog post",
-  },
-  materials: [
-    { type: "text", text: "Target audience: intermediate TypeScript developers" },
-  ],
-});
+const stream = alchemist.stream(recipe, materials);
 
 // Process chunks as they arrive
 let fullText = "";
@@ -260,7 +262,7 @@ const alchemist = new Alchemist({
 });
 
 const recipe = {
-  spell: { output: "Write marketing copy for this product" },
+  spell: () =&gt; "Write marketing copy for this product",
   refiner: new JsonRefiner(CopySchema),
   temperature: 0.9,
   roleDefinition: "You are a creative copywriter",
@@ -270,17 +272,13 @@ const materials = [
   { type: "text" as const, text: "AI-powered code review tool for teams" },
 ];
 
-// Generate 3 variations in parallel via Promise.allSettled
-const results = await alchemist.generate({
-  recipe,
-  materials,
-  count: 3,
-});
+// Generate 3 variations in parallel
+const results = await alchemist.generate(recipe, materials, 3);
 
-for (const [index, result] of results.entries()) {
-  if (result.status === "fulfilled") {
-    console.log(`Variation ${index + 1}:`, result.value.output.headline);
-  }
+for (const [key, value] of Object.entries(results)) {
+  if ("error" in value) continue;
+  console.log(`${key}:`, value.headline);
+  // "variation-1": { headline: "...", body: "...", cta: "..." }
 }</code></pre>
         </div>
 

@@ -301,6 +301,8 @@ export async function buildPromptPreview(
   for (const transform of transforms) {
     materialParts = await transform(materialParts, {
       recipeId: recipe.id,
+      roleDefinition: recipe.roleDefinition,
+      temperature: recipe.temperature,
     });
   }
 

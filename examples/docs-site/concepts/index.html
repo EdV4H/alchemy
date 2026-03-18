@@ -157,13 +157,13 @@ const alchemist = new Alchemist({
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">// Simple text spell
+          <pre><code class="language-ts">// Simple text spell — a function returning SpellOutput
 const recipe = {
-  spell: { output: "Summarize this document in 3 sentences" },
+  spell: () =&gt; "Summarize this document in 3 sentences",
   // ...
 };
 
-// The spell is appended to the materials before transmutation</code></pre>
+// The spell output is appended to the materials before transmutation</code></pre>
         </div>
 
         <h2 id="transmuter">Transmuter</h2>
@@ -233,7 +233,7 @@ const refiner = new JsonRefiner(z.object({
           <pre><code class="language-ts">import type { Recipe } from "@edv4h/alchemy-core";
 
 const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&gt; = {
-  spell: { output: "Summarize this text" },
+  spell: () =&gt; "Summarize this text",
   refiner: new JsonRefiner(z.object({
     summary: z.string(),
     bullets: z.array(z.string()),
@@ -294,17 +294,17 @@ const alchemist = new Alchemist({
 
 // Three ways to use the Alchemist:
 
-// 1. transmute — single execution
-const result = await alchemist.transmute({ recipe, materials });
+// 1. transmute — single execution, returns TOutput
+const result = await alchemist.transmute(recipe, materials);
 
 // 2. stream — progressive output
-for await (const chunk of alchemist.stream({ recipe, materials })) {
+for await (const chunk of alchemist.stream(recipe, materials)) {
   process.stdout.write(chunk);
 }
 
 // 3. generate — multiple variations
-const variations = await alchemist.generate({ recipe, materials, count: 3 });
-// Returns results from all variations via Promise.allSettled</code></pre>
+const variations = await alchemist.generate(recipe, materials, 3);
+// Returns Record&lt;string, TOutput | { error: Error }&gt;</code></pre>
         </div>
 
         <div class="callout callout-info">
