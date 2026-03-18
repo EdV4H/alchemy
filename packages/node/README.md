@@ -39,7 +39,7 @@ console.log(result.output);
 
 ## What's Included
 
-- **Alchemist** — Main orchestrator with `transmute()`, `stream()`, `compare()`, and `generate()`
+- **Alchemist** — Main orchestrator with `transmute()`, `stream()`, and `generate()`
 - All `@edv4h/alchemy-core` exports are re-exported for convenience
 
 ## License

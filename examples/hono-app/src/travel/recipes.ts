@@ -17,11 +17,9 @@ export const travelMemoryRecipe: Recipe<MaterialPart[], string> = {
   id: "travel-memory",
   name: "Travel Memory Story",
   requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a talented travel writer. Transform travel notes, photos, and data into a compelling narrative that brings the journey to life. Write in a warm, vivid style with sensory details. Output in the same language as the input materials.",
-    temperature: 0.7,
-  },
+  roleDefinition:
+    "You are a talented travel writer. Transform travel notes, photos, and data into a compelling narrative that brings the journey to life. Write in a warm, vivid style with sensory details. Output in the same language as the input materials.",
+  temperature: 0.7,
   spell: (parts) => [
     {
       type: "text",
@@ -57,11 +55,9 @@ export const travelHighlightsRecipe: Recipe<MaterialPart[], TravelHighlights> = 
   id: "travel-highlights",
   name: "Travel Highlights",
   requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a highlights curator. Identify the most memorable and noteworthy moments from travel materials and organize them into a structured highlights reel.",
-    temperature: 0.3,
-  },
+  roleDefinition:
+    "You are a highlights curator. Identify the most memorable and noteworthy moments from travel materials and organize them into a structured highlights reel.",
+  temperature: 0.3,
   spell: (parts) => {
     const text = extractText(parts);
     return `Analyze the following travel materials and extract highlights. Return a JSON object with these exact fields:
@@ -87,11 +83,9 @@ export const travelBlogRecipe: Recipe<MaterialPart[], string> = {
   id: "travel-blog",
   name: "Travel Blog Post",
   requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are an experienced travel blogger. Write engaging, SEO-friendly blog posts that balance personal anecdotes with useful information. Include section headers and a conversational tone.",
-    temperature: 0.6,
-  },
+  roleDefinition:
+    "You are an experienced travel blogger. Write engaging, SEO-friendly blog posts that balance personal anecdotes with useful information. Include section headers and a conversational tone.",
+  temperature: 0.6,
   spell: (parts) => [
     {
       type: "text",
@@ -123,12 +117,9 @@ export const photoCaptionRecipe: Recipe<MaterialPart[], PhotoCaptions> = {
   id: "photo-caption",
   name: "Photo Caption Generator",
   requiredMaterials: [{ type: "image", min: 1, label: "Travel photos" }],
-  catalyst: {
-    roleDefinition:
-      "You are a creative photo caption specialist. Generate evocative descriptions and social-media-ready captions for travel photos. Capture the mood and story behind each image.",
-    temperature: 0.5,
-    model: "gpt-4o",
-  },
+  roleDefinition:
+    "You are a creative photo caption specialist. Generate evocative descriptions and social-media-ready captions for travel photos. Capture the mood and story behind each image.",
+  temperature: 0.5,
   spell: (parts) => parts,
   refiner: new JsonRefiner(PhotoCaptionsSchema),
 };
@@ -162,11 +153,9 @@ export const tripSummaryRecipe: Recipe<MaterialPart[], TripSummary> = {
   id: "trip-summary",
   name: "Trip Summary Report",
   requiredMaterials: [{ type: "text", min: 1, label: "Trip notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a meticulous travel report writer. Compile travel materials into a comprehensive, well-organized trip report with timelines, destinations, and key takeaways.",
-    temperature: 0.2,
-  },
+  roleDefinition:
+    "You are a meticulous travel report writer. Compile travel materials into a comprehensive, well-organized trip report with timelines, destinations, and key takeaways.",
+  temperature: 0.2,
   spell: (parts) => {
     const text = extractText(parts);
     return `Compile the following travel materials into a trip summary report. Return a JSON object with these exact fields:
@@ -211,11 +200,9 @@ export const budgetAnalysisRecipe: Recipe<MaterialPart[], BudgetAnalysis> = {
   id: "budget-analysis",
   name: "Budget Analysis",
   requiredMaterials: [{ type: "text", min: 1, label: "Expense data" }],
-  catalyst: {
-    roleDefinition:
-      "You are a travel budget analyst. Analyze travel expense data and provide clear breakdowns, insights, and money-saving tips for future trips.",
-    temperature: 0.2,
-  },
+  roleDefinition:
+    "You are a travel budget analyst. Analyze travel expense data and provide clear breakdowns, insights, and money-saving tips for future trips.",
+  temperature: 0.2,
   spell: (parts) => {
     const text = extractText(parts);
     return `Analyze the following travel expense data. Return a JSON object with these exact fields:
@@ -253,11 +240,9 @@ export const destinationGuideRecipe: Recipe<MaterialPart[], DestinationGuide> = 
   id: "destination-guide",
   name: "Destination Guide",
   requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a knowledgeable travel guide writer. Create practical, insightful destination guides based on travel materials. Include local tips that only experienced travelers would know.",
-    temperature: 0.4,
-  },
+  roleDefinition:
+    "You are a knowledgeable travel guide writer. Create practical, insightful destination guides based on travel materials. Include local tips that only experienced travelers would know.",
+  temperature: 0.4,
   spell: (parts) => {
     const text = extractText(parts);
     return `Based on the following travel materials, create a destination guide. Return a JSON object with these exact fields:
@@ -284,11 +269,9 @@ export const travelFlowRecipe: Recipe<MaterialPart[], string> = {
   id: "travel-flow",
   name: "Trip Flow Diagram",
   requiredMaterials: [{ type: "text", min: 1, label: "Travel notes" }],
-  catalyst: {
-    roleDefinition:
-      "You are a travel itinerary visualizer. Convert travel notes into a clear Mermaid flowchart showing the journey flow — destinations, activities, and transportation between them. Use descriptive node labels.",
-    temperature: 0.3,
-  },
+  roleDefinition:
+    "You are a travel itinerary visualizer. Convert travel notes into a clear Mermaid flowchart showing the journey flow — destinations, activities, and transportation between them. Use descriptive node labels.",
+  temperature: 0.3,
   spell: (parts) => {
     const text = extractText(parts);
     return `Based on the following travel materials, create a Mermaid flowchart diagram showing the trip itinerary flow. Include destinations as nodes and transportation/connections as edges:\n\n${text}`;

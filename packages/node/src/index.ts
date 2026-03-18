@@ -1,13 +1,12 @@
 import type {
   AlchemistConfig,
-  CatalystConfig,
   MaterialPart,
   MaterialTransform,
   MaterialTransformContext,
   Recipe,
   TransmutationOptions,
 } from "@edv4h/alchemy-core";
-import { normalizeSpellOutput, resolveCatalyst, TransmuteError } from "@edv4h/alchemy-core";
+import { normalizeSpellOutput, TransmuteError } from "@edv4h/alchemy-core";
 
 export class Alchemist {
   private config: AlchemistConfig;
@@ -19,17 +18,21 @@ export class Alchemist {
   async transmute<TInput, TOutput>(
     recipe: Recipe<TInput, TOutput>,
     material: TInput,
-    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
+    options?: TransmutationOptions,
   ): Promise<TOutput> {
-    const { catalyst: overrideCatalyst, ...rest } = options ?? {};
-    const catalyst = resolveCatalyst(recipe, overrideCatalyst);
+    const roleDefinition = options?.roleDefinition ?? recipe.roleDefinition;
+    const temperature = options?.temperature ?? recipe.temperature;
 
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
-      parts = await this.applyTransforms(parts, { catalyst, recipeId: recipe.id }, transforms);
+      parts = await this.applyTransforms(
+        parts,
+        { roleDefinition, temperature, recipeId: recipe.id },
+        transforms,
+      );
     }
 
     const formatInstructions = recipe.refiner.getFormatInstructions?.();
@@ -37,7 +40,12 @@ export class Alchemist {
       parts.push({ type: "text", text: formatInstructions });
     }
 
-    const result = await this.config.transmuter.transmute(parts, { catalyst, ...rest });
+    const result = await this.config.transmuter.transmute(parts, {
+      roleDefinition,
+      temperature,
+      signal: options?.signal,
+      language: options?.language,
+    });
 
     return recipe.refiner.refine(result.text);
   }
@@ -45,7 +53,7 @@ export class Alchemist {
   async *stream<TInput>(
     recipe: Recipe<TInput, string>,
     material: TInput,
-    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
+    options?: TransmutationOptions,
   ): AsyncGenerator<string, void, unknown> {
     if (!this.config.transmuter.stream) {
       throw new TransmuteError(
@@ -54,48 +62,34 @@ export class Alchemist {
       );
     }
 
-    const { catalyst: overrideCatalyst, ...rest } = options ?? {};
-    const catalyst = resolveCatalyst(recipe, overrideCatalyst);
+    const roleDefinition = options?.roleDefinition ?? recipe.roleDefinition;
+    const temperature = options?.temperature ?? recipe.temperature;
 
     const spellOutput = await recipe.spell(material);
     let parts = normalizeSpellOutput(spellOutput);
 
     const transforms = this.collectTransforms(recipe);
     if (transforms.length > 0) {
-      parts = await this.applyTransforms(parts, { catalyst, recipeId: recipe.id }, transforms);
+      parts = await this.applyTransforms(
+        parts,
+        { roleDefinition, temperature, recipeId: recipe.id },
+        transforms,
+      );
     }
 
-    yield* this.config.transmuter.stream(parts, { catalyst, ...rest });
-  }
-
-  async compare<TInput, TOutput>(
-    recipe: Recipe<TInput, TOutput>,
-    material: TInput,
-    catalysts: Record<string, CatalystConfig>,
-    options?: Omit<TransmutationOptions, "catalyst">,
-  ): Promise<Record<string, TOutput | { error: Error }>> {
-    const entries = Object.entries(catalysts);
-    const settled = await Promise.allSettled(
-      entries.map(([, catalyst]) => this.transmute(recipe, material, { ...options, catalyst })),
-    );
-    return Object.fromEntries(
-      entries.map(([key], i) => {
-        const r = settled[i];
-        return [
-          key,
-          r.status === "fulfilled"
-            ? r.value
-            : { error: r.reason instanceof Error ? r.reason : new Error(String(r.reason)) },
-        ];
-      }),
-    );
+    yield* this.config.transmuter.stream(parts, {
+      roleDefinition,
+      temperature,
+      signal: options?.signal,
+      language: options?.language,
+    });
   }
 
   async generate<TInput, TOutput>(
     recipe: Recipe<TInput, TOutput>,
     material: TInput,
     count: number,
-    options?: Omit<TransmutationOptions, "catalyst"> & { catalyst?: CatalystConfig },
+    options?: TransmutationOptions,
   ): Promise<Record<string, TOutput | { error: Error }>> {
     if (count < 1) {
       throw new Error("count must be at least 1");
@@ -150,7 +144,6 @@ export {
   normalizeSpellOutput,
   prependText,
   RefineError,
-  resolveCatalyst,
   runMaterialValidation,
   TextRefiner,
   TransformError,

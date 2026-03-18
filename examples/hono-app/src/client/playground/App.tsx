@@ -158,7 +158,8 @@ export function App() {
       promptTemplate: selectedRecipe.promptTemplate,
       outputType: selectedRecipe.outputType,
       transforms: selectedRecipe.transforms,
-      catalyst: selectedCatalyst ?? undefined,
+      roleDefinition: selectedCatalyst?.roleDefinition,
+      temperature: selectedCatalyst?.temperature,
       language: selectedLanguage || undefined,
     });
   }, [
@@ -184,7 +185,8 @@ export function App() {
       promptTemplate: selectedRecipe.promptTemplate,
       outputType: selectedRecipe.outputType,
       transforms: selectedRecipe.transforms,
-      catalyst: selectedCatalyst ?? undefined,
+      roleDefinition: selectedCatalyst?.roleDefinition,
+      temperature: selectedCatalyst?.temperature,
       language: selectedLanguage || undefined,
       count: generateCount,
     });
@@ -209,7 +211,8 @@ export function App() {
       promptTemplate: selectedRecipe.promptTemplate,
       outputType: selectedRecipe.outputType,
       transforms: selectedRecipe.transforms,
-      catalyst: selectedCatalyst ?? undefined,
+      roleDefinition: selectedCatalyst?.roleDefinition,
+      temperature: selectedCatalyst?.temperature,
       language: selectedLanguage || undefined,
     });
   }, [
@@ -252,7 +255,7 @@ export function App() {
   return (
     <PageShell
       title="Playground"
-      subtitle="Write custom recipes, configure catalysts, and transmute materials"
+      subtitle="Write custom recipes, configure LLM settings, and transmute materials"
       headerExtra={<ApiKeyInput />}
       rightWidth={380}
       left={

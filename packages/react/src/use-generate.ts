@@ -13,7 +13,7 @@ export interface UseGenerateResult<TOutput = unknown> {
     recipeId: string,
     materials: MaterialInput[],
     count: number,
-    options?: { catalystKey?: string; language?: string },
+    options?: { language?: string },
   ) => Promise<Record<string, GenerateResultEntry<TOutput>> | undefined>;
   data: Record<string, GenerateResultEntry<TOutput>> | null;
   isLoading: boolean;
@@ -36,7 +36,7 @@ export function useGenerate<TOutput = unknown>(
       recipeId: string,
       materials: MaterialInput[],
       count: number,
-      opts?: { catalystKey?: string; language?: string },
+      opts?: { language?: string },
     ): Promise<Record<string, GenerateResultEntry<TOutput>> | undefined> => {
       abortRef.current?.abort();
       const controller = new AbortController();
@@ -51,7 +51,6 @@ export function useGenerate<TOutput = unknown>(
           body: JSON.stringify({
             materials,
             count,
-            catalystKey: opts?.catalystKey,
             language: opts?.language,
           }),
           signal: controller.signal,

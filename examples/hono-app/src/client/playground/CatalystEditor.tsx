@@ -41,7 +41,7 @@ export function CatalystEditor({
         onDelete={(id) => handleDeleteWithFallback(catalysts, id, selectedId, onDelete, onSelect)}
         onAdd={() => {
           const id = onAdd({
-            name: "New Catalyst",
+            name: "New LLM Settings",
             roleDefinition: "You are a helpful assistant.",
             temperature: 0.4,
           });
@@ -78,28 +78,17 @@ export function CatalystEditor({
               style={textareaStyle}
             />
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ flex: 1 }}>
-              <div style={fieldLabelStyle}>Temperature</div>
-              <input
-                type="number"
-                min={0}
-                max={2}
-                step={0.1}
-                value={selected.temperature}
-                onChange={(e) => onUpdate(selected.id, { temperature: Number(e.target.value) })}
-                style={inputStyle}
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={fieldLabelStyle}>Model (optional)</div>
-              <input
-                value={selected.model ?? ""}
-                onChange={(e) => onUpdate(selected.id, { model: e.target.value || undefined })}
-                placeholder="e.g. gpt-4o"
-                style={inputStyle}
-              />
-            </div>
+          <div style={fieldWrapperStyle}>
+            <div style={fieldLabelStyle}>Temperature</div>
+            <input
+              type="number"
+              min={0}
+              max={2}
+              step={0.1}
+              value={selected.temperature}
+              onChange={(e) => onUpdate(selected.id, { temperature: Number(e.target.value) })}
+              style={inputStyle}
+            />
           </div>
           <button
             type="button"

@@ -23,7 +23,6 @@ export interface PlaygroundCatalyst {
   name: string;
   roleDefinition: string;
   temperature: number;
-  model?: string;
 }
 
 interface PlaygroundStorage {

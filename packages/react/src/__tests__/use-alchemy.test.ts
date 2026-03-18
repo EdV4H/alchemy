@@ -20,29 +20,22 @@ describe("useAlchemy", () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.result).toBeNull();
-    expect(result.current.compareResults).toBeNull();
   });
 
-  it("selectRecipe resets catalyst and compare state", () => {
+  it("selectRecipe resets state", () => {
     const { result } = renderHook(() => useAlchemy({ initialRecipeId: "recipe-1" }));
 
     act(() => {
-      result.current.selectCatalyst("formal");
-      result.current.setCompareMode(true);
-      result.current.setCompareKeys(["a", "b"]);
+      result.current.setGenerateMode(true);
     });
-
-    expect(result.current.selectedCatalystKey).toBe("formal");
-    expect(result.current.compareMode).toBe(true);
+    expect(result.current.generateMode).toBe(true);
 
     act(() => {
       result.current.selectRecipe("recipe-2");
     });
 
     expect(result.current.selectedRecipeId).toBe("recipe-2");
-    expect(result.current.selectedCatalystKey).toBeNull();
-    expect(result.current.compareMode).toBe(false);
-    expect(result.current.selectedCompareKeys).toEqual([]);
+    expect(result.current.generateMode).toBe(false);
   });
 
   it("toggleMaterial adds and removes IDs", () => {
@@ -74,41 +67,6 @@ describe("useAlchemy", () => {
     expect(result.current.selectedIds.size).toBe(0);
   });
 
-  it("toggleCompareKey toggles keys in compare list", () => {
-    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
-
-    act(() => {
-      result.current.toggleCompareKey("formal");
-    });
-    expect(result.current.selectedCompareKeys).toEqual(["formal"]);
-
-    act(() => {
-      result.current.toggleCompareKey("casual");
-    });
-    expect(result.current.selectedCompareKeys).toEqual(["formal", "casual"]);
-
-    act(() => {
-      result.current.toggleCompareKey("formal");
-    });
-    expect(result.current.selectedCompareKeys).toEqual(["casual"]);
-  });
-
-  it("setCompareMode(false) clears compare keys", () => {
-    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
-
-    act(() => {
-      result.current.setCompareMode(true);
-      result.current.setCompareKeys(["a", "b"]);
-    });
-    expect(result.current.selectedCompareKeys).toEqual(["a", "b"]);
-
-    act(() => {
-      result.current.setCompareMode(false);
-    });
-    expect(result.current.compareMode).toBe(false);
-    expect(result.current.selectedCompareKeys).toEqual([]);
-  });
-
   it("transmute calls fetch and sets result", async () => {
     const payload = { text: "output" };
     mockFetch.mockResolvedValueOnce({
@@ -119,7 +77,6 @@ describe("useAlchemy", () => {
     const { result } = renderHook(() => useAlchemy({ initialRecipeId: "recipe-1" }));
 
     act(() => {
-      result.current.selectCatalyst("formal");
       result.current.setLanguage("Japanese");
     });
 
@@ -131,30 +88,8 @@ describe("useAlchemy", () => {
     expect(result.current.isLoading).toBe(false);
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.catalystKey).toBe("formal");
     expect(body.language).toBe("Japanese");
     expect(mockFetch).toHaveBeenCalledWith("/api/transmute/recipe-1", expect.anything());
-  });
-
-  it("compare calls fetch and sets compareResults", async () => {
-    const payload = { a: "x", b: "y" };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(payload),
-    });
-
-    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "recipe-1" }));
-
-    act(() => {
-      result.current.setCompareKeys(["a", "b"]);
-    });
-
-    await act(async () => {
-      await result.current.compare([{ type: "text", text: "hello" }]);
-    });
-
-    expect(result.current.compareResults).toEqual(payload);
-    expect(result.current.isLoading).toBe(false);
   });
 
   it("resetResults clears results and errors", async () => {
@@ -175,40 +110,7 @@ describe("useAlchemy", () => {
     });
 
     expect(result.current.result).toBeNull();
-    expect(result.current.compareResults).toBeNull();
     expect(result.current.error).toBeNull();
-  });
-
-  it("setGenerateMode(true) disables compareMode", () => {
-    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
-
-    act(() => {
-      result.current.setCompareMode(true);
-      result.current.setCompareKeys(["a", "b"]);
-    });
-    expect(result.current.compareMode).toBe(true);
-
-    act(() => {
-      result.current.setGenerateMode(true);
-    });
-    expect(result.current.generateMode).toBe(true);
-    expect(result.current.compareMode).toBe(false);
-    expect(result.current.selectedCompareKeys).toEqual([]);
-  });
-
-  it("setCompareMode(true) disables generateMode", () => {
-    const { result } = renderHook(() => useAlchemy({ initialRecipeId: "r1" }));
-
-    act(() => {
-      result.current.setGenerateMode(true);
-    });
-    expect(result.current.generateMode).toBe(true);
-
-    act(() => {
-      result.current.setCompareMode(true);
-    });
-    expect(result.current.compareMode).toBe(true);
-    expect(result.current.generateMode).toBe(false);
   });
 
   it("setGenerateCount clamps to 2-5 range", () => {
@@ -242,7 +144,6 @@ describe("useAlchemy", () => {
     act(() => {
       result.current.setGenerateMode(true);
       result.current.setGenerateCount(3);
-      result.current.selectCatalyst("formal");
     });
 
     await act(async () => {
@@ -253,7 +154,6 @@ describe("useAlchemy", () => {
     expect(mockFetch).toHaveBeenCalledWith("/api/generate/recipe-1", expect.anything());
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.count).toBe(3);
-    expect(body.catalystKey).toBe("formal");
   });
 
   it("selectRecipe resets generateMode", () => {

@@ -59,7 +59,7 @@ Material → Transform → Spell → Transmuter → Refiner → Typed Output
 - **Spell** — The prompt / instruction
 - **Transmuter** — LLM provider adapter (OpenAI, Anthropic, Google)
 - **Refiner** — Output parser and validator (Text, JSON/Zod, Mermaid)
-- **Recipe** — A reusable formula combining spell, refiner, catalyst, and transforms
+- **Recipe** — A reusable formula combining spell, refiner, and transforms
 
 ## Development
 

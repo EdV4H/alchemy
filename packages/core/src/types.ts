@@ -1,21 +1,4 @@
 // ──────────────────────────────────────────
-// Catalyst (触媒): モデル設定・システムプロンプト
-// ──────────────────────────────────────────
-
-export interface CatalystConfig {
-  roleDefinition?: string;
-  temperature?: number;
-  model?: string;
-}
-
-export interface NamedCatalyst {
-  readonly key: string;
-  readonly label: string;
-  readonly config: CatalystConfig;
-  readonly isDefault?: boolean;
-}
-
-// ──────────────────────────────────────────
 // Material (素材): LLM入力のコンテンツパーツ
 // ──────────────────────────────────────────
 
@@ -106,7 +89,8 @@ export type SpellOutput = string | MaterialPart | MaterialPart[];
 // ──────────────────────────────────────────
 
 export interface MaterialTransformContext {
-  readonly catalyst?: CatalystConfig;
+  readonly roleDefinition?: string;
+  readonly temperature?: number;
   readonly recipeId: string;
 }
 
@@ -136,7 +120,8 @@ export type KnownLanguage =
 export type Language = KnownLanguage | (string & {});
 
 export interface TransmutationOptions {
-  catalyst?: CatalystConfig;
+  roleDefinition?: string;
+  temperature?: number;
   signal?: AbortSignal;
   language?: Language;
 }
@@ -175,7 +160,8 @@ export interface Refiner<TOutput> {
 export interface Recipe<TInput, TOutput> {
   id: string;
   name?: string;
-  catalyst?: CatalystConfig;
+  roleDefinition?: string;
+  temperature?: number;
   spell: (material: TInput) => SpellOutput | Promise<SpellOutput>;
   refiner: Refiner<TOutput>;
   transforms?: MaterialTransform[];

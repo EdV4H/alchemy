@@ -27,8 +27,7 @@ export class GoogleTransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): Promise<TransmutationResult> {
-    const { catalyst } = options;
-    const modelName = catalyst?.model ?? this.defaultModel;
+    const modelName = this.defaultModel;
     const systemInstruction = this.buildSystemInstruction(options);
     const contents = this.toGoogleContents(material);
 
@@ -36,7 +35,7 @@ export class GoogleTransmuter implements Transmuter {
       model: modelName,
       systemInstruction: systemInstruction || undefined,
       generationConfig: {
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
       },
     });
 
@@ -60,8 +59,7 @@ export class GoogleTransmuter implements Transmuter {
     material: MaterialPart[],
     options: TransmutationOptions,
   ): AsyncGenerator<string, void, unknown> {
-    const { catalyst } = options;
-    const modelName = catalyst?.model ?? this.defaultModel;
+    const modelName = this.defaultModel;
     const systemInstruction = this.buildSystemInstruction(options);
     const contents = this.toGoogleContents(material);
 
@@ -69,7 +67,7 @@ export class GoogleTransmuter implements Transmuter {
       model: modelName,
       systemInstruction: systemInstruction || undefined,
       generationConfig: {
-        temperature: catalyst?.temperature,
+        temperature: options.temperature,
       },
     });
 
@@ -83,10 +81,10 @@ export class GoogleTransmuter implements Transmuter {
   }
 
   private buildSystemInstruction(options: TransmutationOptions): string {
-    const { catalyst, language } = options;
+    const { roleDefinition, language } = options;
     const parts: string[] = [];
-    if (catalyst?.roleDefinition) {
-      parts.push(catalyst.roleDefinition);
+    if (roleDefinition) {
+      parts.push(roleDefinition);
     }
     if (language) {
       parts.push(`Respond in ${language}.`);

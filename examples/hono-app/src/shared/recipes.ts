@@ -19,11 +19,9 @@ export type { RecipeFieldMeta, RecipeMeta } from "./recipe-types.js";
 export const rewriteRecipe: Recipe<MaterialPart[], string> = {
   id: "rewrite",
   name: "Professional Rewriter",
-  catalyst: {
-    roleDefinition:
-      "You are a professional editor. Rewrite the given text to be polished, clear, and well-structured. Keep the original meaning but improve style and readability. Reply with the rewritten text only.",
-    temperature: 0.4,
-  },
+  roleDefinition:
+    "You are a professional editor. Rewrite the given text to be polished, clear, and well-structured. Keep the original meaning but improve style and readability. Reply with the rewritten text only.",
+  temperature: 0.4,
   spell: (parts) => [
     { type: "text", text: "Rewrite the following text in a professional, polished style:" },
     ...parts,
@@ -55,11 +53,9 @@ export type Sentiment = z.infer<typeof SentimentSchema>;
 export const sentimentRecipe: Recipe<MaterialPart[], Sentiment> = {
   id: "sentiment",
   name: "Sentiment Analysis",
-  catalyst: {
-    roleDefinition:
-      "You are a sentiment analysis expert. Analyze text for sentiment, emotional tone, and confidence level.",
-    temperature: 0,
-  },
+  roleDefinition:
+    "You are a sentiment analysis expert. Analyze text for sentiment, emotional tone, and confidence level.",
+  temperature: 0,
   requiredMaterials: [{ type: "text", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);
@@ -83,11 +79,9 @@ ${text}`;
 export const translateAdaptRecipe: Recipe<MaterialPart[], string> = {
   id: "translate-adapt",
   name: "Smart Translator",
-  catalyst: {
-    roleDefinition:
-      "You are a professional translator specializing in English and Japanese. Detect the source language and translate to the other language. Produce natural, fluent output. Reply with the translation only.",
-    temperature: 0.3,
-  },
+  roleDefinition:
+    "You are a professional translator specializing in English and Japanese. Detect the source language and translate to the other language. Produce natural, fluent output. Reply with the translation only.",
+  temperature: 0.3,
   spell: async (parts): Promise<MaterialPart[]> => {
     const text = extractText(parts);
     return [
@@ -124,11 +118,9 @@ export type CodeReview = z.infer<typeof CodeReviewSchema>;
 export const codeReviewRecipe: Recipe<MaterialPart[], CodeReview> = {
   id: "code-review",
   name: "Code Review",
-  catalyst: {
-    roleDefinition:
-      "You are a senior software engineer performing a code review. Identify bugs, anti-patterns, security issues, and style problems. Also highlight strengths. Be specific about line references.",
-    temperature: 0,
-  },
+  roleDefinition:
+    "You are a senior software engineer performing a code review. Identify bugs, anti-patterns, security issues, and style problems. Also highlight strengths. Be specific about line references.",
+  temperature: 0,
   spell: (parts) => {
     const text = extractText(parts);
     return `Review the following code. Return a JSON object with these exact fields:
@@ -152,11 +144,9 @@ ${text}`;
 export const codeExplainRecipe: Recipe<MaterialPart[], string> = {
   id: "code-explain",
   name: "Code Explainer",
-  catalyst: {
-    roleDefinition:
-      "You are a patient programming teacher. Explain code clearly, covering what it does, how it works, and why certain patterns are used. Use simple language suitable for intermediate developers.",
-    temperature: 0.3,
-  },
+  roleDefinition:
+    "You are a patient programming teacher. Explain code clearly, covering what it does, how it works, and why certain patterns are used. Use simple language suitable for intermediate developers.",
+  temperature: 0.3,
   spell: (parts) => parts,
   refiner: new TextRefiner(),
   transforms: [
@@ -174,12 +164,9 @@ export const codeExplainRecipe: Recipe<MaterialPart[], string> = {
 export const imageAnalysisRecipe: Recipe<MaterialPart[], string> = {
   id: "image-analysis",
   name: "Image Analysis",
-  catalyst: {
-    roleDefinition:
-      "You are a helpful image analyst. Describe and analyze images based on the user's instructions.",
-    temperature: 0.3,
-    model: "gpt-4o",
-  },
+  roleDefinition:
+    "You are a helpful image analyst. Describe and analyze images based on the user's instructions.",
+  temperature: 0.3,
   spell: (parts) => parts,
   refiner: new TextRefiner(),
   requiredMaterials: [{ type: "image", min: 1 }],
@@ -201,11 +188,9 @@ export type Summary = z.infer<typeof SummarySchema>;
 export const summarizeRecipe: Recipe<MaterialPart[], Summary> = {
   id: "summarize",
   name: "Smart Summarizer",
-  catalyst: {
-    roleDefinition:
-      "You are an expert summarizer. Produce structured summaries that capture the essence of the input at multiple levels of detail.",
-    temperature: 0.2,
-  },
+  roleDefinition:
+    "You are an expert summarizer. Produce structured summaries that capture the essence of the input at multiple levels of detail.",
+  temperature: 0.2,
   spell: (parts) => {
     const text = extractText(parts);
     return `Summarize the following text. Return a JSON object with these exact fields:
@@ -243,11 +228,9 @@ export type Extraction = z.infer<typeof ExtractionSchema>;
 export const structuredExtractRecipe: Recipe<MaterialPart[], Extraction> = {
   id: "structured-extract",
   name: "Entity & Fact Extraction",
-  catalyst: {
-    roleDefinition:
-      "You are an information extraction specialist. Extract entities, key facts, and metadata from text with precision.",
-    temperature: 0,
-  },
+  roleDefinition:
+    "You are an information extraction specialist. Extract entities, key facts, and metadata from text with precision.",
+  temperature: 0,
   spell: (parts) => {
     const text = extractText(parts);
     return `Extract all named entities, key facts, and metadata from the following text. Return a JSON object with these exact fields:
@@ -277,11 +260,9 @@ export type DataAnalysis = z.infer<typeof DataAnalysisSchema>;
 export const dataAnalystRecipe: Recipe<MaterialPart[], DataAnalysis> = {
   id: "data-analyst",
   name: "Data Analyst",
-  catalyst: {
-    roleDefinition:
-      "You are a data analyst expert. Analyze structured data (CSV, JSON, TSV) and provide insights, identify anomalies, and suggest actionable recommendations.",
-    temperature: 0.2,
-  },
+  roleDefinition:
+    "You are a data analyst expert. Analyze structured data (CSV, JSON, TSV) and provide insights, identify anomalies, and suggest actionable recommendations.",
+  temperature: 0.2,
   requiredMaterials: [{ type: "data", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);
@@ -304,11 +285,9 @@ ${text}`;
 export const docSummarizerRecipe: Recipe<MaterialPart[], Summary> = {
   id: "doc-summarizer",
   name: "Document Summarizer",
-  catalyst: {
-    roleDefinition:
-      "You are an expert document summarizer. Produce structured summaries that capture the essence of the document at multiple levels of detail.",
-    temperature: 0.2,
-  },
+  roleDefinition:
+    "You are an expert document summarizer. Produce structured summaries that capture the essence of the document at multiple levels of detail.",
+  temperature: 0.2,
   requiredMaterials: [{ type: "document", min: 1 }],
   spell: (parts) => {
     const text = extractText(parts);

@@ -525,7 +525,7 @@ export function FieldRow({ field, depth = 0 }: { field: RecipeFieldMeta; depth?:
 
 export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
   const { meta } = entry;
-  const catalyst = entry.recipe.catalyst;
+  const { roleDefinition, temperature } = entry.recipe;
   const hasCustomValidation = !!entry.recipe.validateMaterials;
 
   return (
@@ -629,27 +629,21 @@ export function RecipeDetail({ entry }: { entry: RecipeEntry }) {
         </div>
       )}
 
-      {/* CATALYST */}
-      {catalyst && (
+      {/* LLM SETTINGS */}
+      {(roleDefinition || temperature !== undefined) && (
         <div style={{ marginBottom: 10 }}>
-          <div style={popoverSectionLabel}>Catalyst</div>
+          <div style={popoverSectionLabel}>LLM Settings</div>
           <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
-            <div>
-              <span style={{ color: "#999" }}>role: </span>
-              {catalyst.roleDefinition && catalyst.roleDefinition.length > 80
-                ? `${catalyst.roleDefinition.slice(0, 80)}...`
-                : catalyst.roleDefinition}
-            </div>
-            {catalyst.temperature !== undefined && (
+            {roleDefinition && (
               <div>
-                <span style={{ color: "#999" }}>temperature: </span>
-                {catalyst.temperature}
+                <span style={{ color: "#999" }}>role: </span>
+                {roleDefinition.length > 80 ? `${roleDefinition.slice(0, 80)}...` : roleDefinition}
               </div>
             )}
-            {catalyst.model && (
+            {temperature !== undefined && (
               <div>
-                <span style={{ color: "#999" }}>model: </span>
-                {catalyst.model}
+                <span style={{ color: "#999" }}>temperature: </span>
+                {temperature}
               </div>
             )}
           </div>
@@ -1016,11 +1010,10 @@ export function ResultPanel({
 
 // ─── Mode Selector ──────────────────────────────────────────────────────────
 
-export type TransmuteMode = "single" | "compare" | "generate";
+export type TransmuteMode = "single" | "generate";
 
 const ALL_MODES: { value: TransmuteMode; label: string }[] = [
   { value: "single", label: "Single" },
-  { value: "compare", label: "Compare" },
   { value: "generate", label: "Generate" },
 ];
 
