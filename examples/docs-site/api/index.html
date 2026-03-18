@@ -70,30 +70,6 @@
 
         <h3 id="core-types">Types</h3>
 
-        <h4 id="catalystconfig"><code>CatalystConfig</code></h4>
-        <p>Model configuration for transmutation.</p>
-        <table class="param-table">
-          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
-            <tr><td><code>model</code></td><td><code>string?</code></td><td>Model identifier override</td></tr>
-            <tr><td><code>roleDefinition</code></td><td><code>string?</code></td><td>System prompt / role definition</td></tr>
-            <tr><td><code>language</code></td><td><code>string?</code></td><td>Output language instruction</td></tr>
-          </tbody>
-        </table>
-
-        <h4 id="namedcatalyst"><code>NamedCatalyst</code></h4>
-        <p>Named catalyst preset for A/B testing UI.</p>
-        <table class="param-table">
-          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>key</code></td><td><code>string</code></td><td>Unique identifier</td></tr>
-            <tr><td><code>label</code></td><td><code>string</code></td><td>Display name</td></tr>
-            <tr><td><code>config</code></td><td><code>CatalystConfig</code></td><td>Model configuration</td></tr>
-            <tr><td><code>isDefault</code></td><td><code>boolean?</code></td><td>Whether this is the default catalyst</td></tr>
-          </tbody>
-        </table>
-
         <h4 id="materialpart"><code>MaterialPart</code></h4>
         <p>Discriminated union of all material types. Built-in types:</p>
         <table class="param-table">
@@ -132,7 +108,9 @@
         <table class="param-table">
           <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Model configuration</td></tr>
+            <tr><td><code>roleDefinition</code></td><td><code>string?</code></td><td>System prompt / role definition</td></tr>
+            <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
+            <tr><td><code>language</code></td><td><code>string?</code></td><td>Output language instruction</td></tr>
           </tbody>
         </table>
 
@@ -162,7 +140,8 @@
             <tr><td><code>name</code></td><td><code>string?</code></td><td>Display name</td></tr>
             <tr><td><code>spell</code></td><td><code>(material: TInput) =&gt; SpellOutput | Promise&lt;SpellOutput&gt;</code></td><td>Prompt instruction function</td></tr>
             <tr><td><code>refiner</code></td><td><code>Refiner&lt;TOutput&gt;</code></td><td>Output parser/validator</td></tr>
-            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Model configuration</td></tr>
+            <tr><td><code>roleDefinition</code></td><td><code>string?</code></td><td>System prompt / role definition</td></tr>
+            <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
             <tr><td><code>transforms</code></td><td><code>MaterialTransform[]?</code></td><td>Recipe-specific transforms</td></tr>
             <tr><td><code>requiredMaterials</code></td><td><code>MaterialRequirement[]?</code></td><td>Declarative material type requirements</td></tr>
             <tr><td><code>validateMaterials</code></td><td><code>(parts: MaterialPart[]) =&gt; MaterialValidationResult</code></td><td>Custom validation function</td></tr>
@@ -310,7 +289,6 @@
 interface AlchemistConfig {
   transmuter: Transmuter;
   transforms?: MaterialTransform[];
-  defaultCatalyst?: CatalystConfig;
 }</code></pre>
         </div>
 
@@ -323,7 +301,7 @@ interface AlchemistConfig {
           <tbody>
             <tr><td><code>recipe</code></td><td><code>Recipe&lt;TInput, TOutput&gt;</code></td><td>The recipe to execute</td></tr>
             <tr><td><code>materials</code></td><td><code>MaterialPart[]</code></td><td>Input materials</td></tr>
-            <tr><td><code>catalyst</code></td><td><code>CatalystConfig?</code></td><td>Override catalyst</td></tr>
+            <tr><td><code>options</code></td><td><code>TransmutationOptions?</code></td><td>Override options (roleDefinition, temperature, language)</td></tr>
           </tbody>
         </table>
         <p>Returns: <code>Promise&lt;{ output: TOutput; usage?: TokenUsage }&gt;</code></p>
@@ -331,18 +309,6 @@ interface AlchemistConfig {
         <p><strong><code>stream&lt;TInput&gt;(params)</code></strong></p>
         <p>Stream the response progressively.</p>
         <p>Returns: <code>AsyncGenerator&lt;string&gt;</code></p>
-
-        <p><strong><code>compare&lt;TInput, TOutput&gt;(params)</code></strong></p>
-        <p>Execute the same recipe with multiple catalysts in parallel.</p>
-        <table class="param-table">
-          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>recipe</code></td><td><code>Recipe&lt;TInput, TOutput&gt;</code></td><td>The recipe to execute</td></tr>
-            <tr><td><code>materials</code></td><td><code>MaterialPart[]</code></td><td>Input materials</td></tr>
-            <tr><td><code>catalysts</code></td><td><code>CatalystConfig[]</code></td><td>Catalysts to compare</td></tr>
-          </tbody>
-        </table>
-        <p>Uses <code>Promise.allSettled</code> internally — all catalysts run in parallel.</p>
 
         <p><strong><code>generate&lt;TInput, TOutput&gt;(recipe, material, count, options?)</code></strong></p>
         <p>Generate multiple variations of the same recipe in parallel.</p>
@@ -479,29 +445,8 @@ interface GoogleTransmuterConfig {
 
         <hr class="section-divider" />
 
-        <h3 id="usecompare"><code>useCompare&lt;TOutput&gt;</code></h3>
-        <p>Low-level hook for comparing multiple catalysts.</p>
-
-        <div class="code-block">
-          <div class="code-block-header"><span class="code-block-lang">ts</span></div>
-          <pre><code class="language-ts">const {
-  compare,  // (recipeId, materials, catalystKeys, options?) => Promise
-  data,     // Record&lt;string, TOutput&gt; | null
-  isLoading,
-  error,
-  reset,
-} = useCompare&lt;TOutput&gt;({
-  baseUrl?: string;
-  headers?: Record&lt;string, string&gt;;
-});</code></pre>
-        </div>
-
-        <p>Calls <code>POST /api/compare/{recipeId}</code> with materials and catalyst keys.</p>
-
-        <hr class="section-divider" />
-
         <h3 id="usealchemy"><code>useAlchemy&lt;TOutput&gt;</code></h3>
-        <p>High-level orchestration hook combining <code>useTransmute</code> and <code>useCompare</code> with full state management.</p>
+        <p>High-level orchestration hook combining <code>useTransmute</code> and <code>useGenerate</code> with full state management.</p>
 
         <div class="code-block">
           <div class="code-block-header"><span class="code-block-lang">ts</span></div>
@@ -515,28 +460,15 @@ interface GoogleTransmuterConfig {
   toggleMaterial,
   clearSelection,
 
-  // Catalyst
-  selectedCatalystKey,
-  selectCatalyst,
-
   // Language
   selectedLanguage,
   setLanguage,
 
-  // Compare mode
-  compareMode,
-  setCompareMode,
-  selectedCompareKeys,
-  toggleCompareKey,
-  setCompareKeys,
-
   // Actions
   transmute,       // (materials) => Promise
-  compare,         // (materials) => Promise
 
   // Results
   result,          // TOutput | null
-  compareResults,  // Record&lt;string, TOutput&gt; | null
   isLoading,
   error,
   resetResults,
@@ -549,7 +481,7 @@ interface GoogleTransmuterConfig {
 
         <div class="callout callout-info">
           <strong>State Reset Behavior</strong>
-          <p>Changing the recipe resets catalyst, compare mode, and results. Toggling materials resets results but preserves recipe and catalyst selection.</p>
+          <p>Changing the recipe resets results. Toggling materials resets results but preserves recipe selection.</p>
         </div>
       </div>
     </main>

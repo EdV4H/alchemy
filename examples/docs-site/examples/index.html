@@ -53,7 +53,7 @@
         <a href="#structured-json" class="sidebar-link sub">Structured JSON</a>
         <a href="#multimodal" class="sidebar-link sub">Multimodal Input</a>
         <a href="#streaming" class="sidebar-link sub">Streaming</a>
-        <a href="#compare" class="sidebar-link sub">A/B Comparison</a>
+        <a href="#generate" class="sidebar-link sub">Generate Variations</a>
         <a href="#react-ui" class="sidebar-link sub">React UI</a>
         <a href="#validation" class="sidebar-link sub">Validation</a>
       </div>
@@ -91,10 +91,8 @@ const alchemist = new Alchemist({
 const result = await alchemist.transmute({
   recipe: {
     spell: { output: "Translate this text to Japanese" },
-    catalyst: {
-      temperature: 0.3,
-      roleDefinition: "You are a professional translator",
-    },
+    temperature: 0.3,
+    roleDefinition: "You are a professional translator",
   },
   materials: [
     { type: "text", text: "The quick brown fox jumps over the lazy dog." },
@@ -137,7 +135,7 @@ const result = await alchemist.transmute({
   recipe: {
     spell: { output: "Generate a product description based on these notes" },
     refiner: new JsonRefiner(ProductSchema),
-    catalyst: { temperature: 0.7, model: "gpt-4o" },
+    temperature: 0.7,
   },
   materials: [
     { type: "text", text: "Note-taking app for developers, markdown support, git integration" },
@@ -220,11 +218,8 @@ const stream = alchemist.stream({
     spell: {
       output: "Write a detailed tutorial about building REST APIs with Hono",
     },
-    catalyst: {
-      temperature: 0.6,
-      model: "gpt-4o",
-      roleDefinition: "You are a senior developer writing a technical blog post",
-    },
+    temperature: 0.6,
+    roleDefinition: "You are a senior developer writing a technical blog post",
   },
   materials: [
     { type: "text", text: "Target audience: intermediate TypeScript developers" },
@@ -242,8 +237,8 @@ console.log(`\n\nTotal length: ${fullText.length} characters`);</code></pre>
         </div>
 
         <!-- Example 5 -->
-        <h2 id="compare">A/B Catalyst Comparison</h2>
-        <p>Run the same recipe with different model configurations in parallel.</p>
+        <h2 id="generate">Generate Variations</h2>
+        <p>Generate multiple variations of the same recipe in parallel.</p>
 
         <div class="code-block">
           <div class="code-block-header">
@@ -267,26 +262,24 @@ const alchemist = new Alchemist({
 const recipe = {
   spell: { output: "Write marketing copy for this product" },
   refiner: new JsonRefiner(CopySchema),
+  temperature: 0.9,
+  roleDefinition: "You are a creative copywriter",
 };
 
 const materials = [
   { type: "text" as const, text: "AI-powered code review tool for teams" },
 ];
 
-// Compare creative vs. precise catalysts
-const results = await alchemist.compare({
+// Generate 3 variations in parallel via Promise.allSettled
+const results = await alchemist.generate({
   recipe,
   materials,
-  catalysts: [
-    { temperature: 0.9, model: "gpt-4o", roleDefinition: "You are a creative copywriter" },
-    { temperature: 0.2, model: "gpt-4o-mini", roleDefinition: "You are a concise technical writer" },
-  ],
+  count: 3,
 });
 
-// Both run in parallel via Promise.allSettled
 for (const [index, result] of results.entries()) {
   if (result.status === "fulfilled") {
-    console.log(`Catalyst ${index}:`, result.value.output.headline);
+    console.log(`Variation ${index + 1}:`, result.value.output.headline);
   }
 }</code></pre>
         </div>
@@ -308,20 +301,15 @@ function TranslatorApp() {
     result,
     isLoading,
     error,
-    selectCatalyst,
-    selectedCatalystKey,
   } = useAlchemy&lt;{ translation: string; language: string }&gt;({
     initialRecipeId: "translate",
     baseUrl: "/api",
   });
 
-  const handleTranslate = async (text: string, targetLang: string) => {
+  const handleTranslate = async (text: string) => {
     const materials: MaterialInput[] = [
       { type: "text", text },
     ];
-
-    // Set language before transmuting
-    selectCatalyst(targetLang);
     await transmute(materials);
   };
 
@@ -331,22 +319,10 @@ function TranslatorApp() {
         placeholder="Enter text to translate..."
         onKeyDown={(e) =&gt; {
           if (e.key === "Enter" &amp;&amp; e.metaKey) {
-            handleTranslate(e.currentTarget.value, "ja");
+            handleTranslate(e.currentTarget.value);
           }
         }}
       /&gt;
-
-      &lt;div className="catalysts"&gt;
-        {["ja", "fr", "de", "es"].map((lang) =&gt; (
-          &lt;button
-            key={lang}
-            onClick={() =&gt; selectCatalyst(lang)}
-            data-active={selectedCatalystKey === lang}
-          &gt;
-            {lang.toUpperCase()}
-          &lt;/button&gt;
-        ))}
-      &lt;/div&gt;
 
       {isLoading &amp;&amp; &lt;p&gt;Translating...&lt;/p&gt;}
       {error &amp;&amp; &lt;p className="error"&gt;{error}&lt;/p&gt;}
