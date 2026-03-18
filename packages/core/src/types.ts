@@ -65,6 +65,32 @@ export interface MaterialRequirement {
   readonly min?: number; // デフォルト: 1
   readonly max?: number; // undefined = 無制限
   readonly label?: string; // 表示用ラベル
+  /** 該当typeの素材を受けて品質スコアを返す */
+  readonly evaluate?: (parts: MaterialPart[]) => MaterialEvaluation | Promise<MaterialEvaluation>;
+}
+
+/** 個別素材の評価結果 */
+export interface MaterialEvaluation {
+  /** 0-1 の品質スコア */
+  score: number;
+  /** 評価メッセージ（例: "回答率が低いため精度が下がる可能性があります"） */
+  message?: string;
+}
+
+/** judge に渡される素材評価の集約エントリ */
+export interface MaterialEvaluationEntry {
+  type: MaterialPartType;
+  label?: string;
+  evaluation: MaterialEvaluation;
+}
+
+/** judge の判定結果 */
+export interface MaterialJudgement {
+  canTransmute: boolean;
+  /** canTransmute=true でも警告を出せる */
+  warning?: string;
+  /** canTransmute=false の理由 */
+  message?: string;
 }
 
 /** バリデーション結果 */
@@ -72,6 +98,10 @@ export interface MaterialValidationResult {
   valid: boolean;
   message?: string;
   issues?: MaterialValidationIssue[];
+  /** 各素材の品質スコア */
+  evaluations?: MaterialEvaluationEntry[];
+  /** 錬成可否判定 */
+  judgement?: MaterialJudgement;
 }
 
 export interface MaterialValidationIssue {
@@ -166,7 +196,11 @@ export interface Recipe<TInput, TOutput> {
   refiner: Refiner<TOutput>;
   transforms?: MaterialTransform[];
   requiredMaterials?: MaterialRequirement[];
-  validateMaterials?: (parts: MaterialPart[]) => MaterialValidationResult;
+  validateMaterials?: (
+    parts: MaterialPart[],
+  ) => MaterialValidationResult | Promise<MaterialValidationResult>;
+  /** 全素材の評価結果を見て錬成可否を判断 */
+  judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) => MaterialJudgement;
 }
 
 // ──────────────────────────────────────────
@@ -176,4 +210,6 @@ export interface Recipe<TInput, TOutput> {
 export interface AlchemistConfig {
   transmuter: Transmuter;
   transforms?: MaterialTransform[];
+  /** true にすると transmute() の先頭で素材バリデーションを自動実行 */
+  validateMaterials?: boolean;
 }

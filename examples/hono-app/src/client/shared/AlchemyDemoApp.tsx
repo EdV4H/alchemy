@@ -126,14 +126,14 @@ export function AlchemyDemoApp({
     });
   }, [selectedMaterials]);
 
-  const validateBeforeSubmit = useCallback((): boolean => {
+  const validateBeforeSubmit = useCallback(async (): Promise<boolean> => {
     if (!selectedEntry) return true;
     const recipe = selectedEntry.recipe;
     if (!recipe.requiredMaterials && !recipe.validateMaterials) return true;
 
     const inputs = buildMaterialInputs();
     const parts = toMaterialParts(inputs) as MaterialPart[];
-    const result = runMaterialValidation(recipe, parts);
+    const result = await runMaterialValidation(recipe, parts);
     if (!result.valid) {
       const msg =
         result.message ??
@@ -153,14 +153,14 @@ export function AlchemyDemoApp({
     return true;
   }, [selectedEntry, buildMaterialInputs]);
 
-  const handleTransmute = useCallback(() => {
-    if (!validateBeforeSubmit()) return;
+  const handleTransmute = useCallback(async () => {
+    if (!(await validateBeforeSubmit())) return;
     setLocalError(null);
     alchemy.transmute(buildMaterialInputs());
   }, [alchemy.transmute, buildMaterialInputs, validateBeforeSubmit]);
 
-  const handleGenerate = useCallback(() => {
-    if (!validateBeforeSubmit()) return;
+  const handleGenerate = useCallback(async () => {
+    if (!(await validateBeforeSubmit())) return;
     setLocalError(null);
     alchemy.generate(buildMaterialInputs());
   }, [alchemy.generate, buildMaterialInputs, validateBeforeSubmit]);

@@ -181,7 +181,7 @@ app.post("/api/transmute/:recipeId", async (c) => {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
 
-    const validation = runMaterialValidation(recipe, parts);
+    const validation = await runMaterialValidation(recipe, parts);
     if (!validation.valid) {
       return c.json({ error: formatValidationError(validation) }, 400);
     }
@@ -224,7 +224,7 @@ app.post("/api/generate/:recipeId", async (c) => {
     const alchemist = resolveAlchemist(c);
     const parts = serverToMaterialParts(materials);
 
-    const validation = runMaterialValidation(recipe, parts);
+    const validation = await runMaterialValidation(recipe, parts);
     if (!validation.valid) {
       return c.json({ error: formatValidationError(validation) }, 400);
     }
@@ -342,7 +342,7 @@ app.post("/api/preview/:recipeId", async (c) => {
   try {
     const parts = serverToMaterialParts(materials);
 
-    const validation = runMaterialValidation(recipe, parts);
+    const validation = await runMaterialValidation(recipe, parts);
     if (!validation.valid) {
       return c.json({ error: formatValidationError(validation) }, 400);
     }

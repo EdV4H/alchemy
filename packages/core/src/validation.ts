@@ -1,4 +1,6 @@
 import type {
+  MaterialEvaluationEntry,
+  MaterialJudgement,
   MaterialPart,
   MaterialRequirement,
   MaterialValidationIssue,
@@ -52,26 +54,84 @@ export function validateMaterialRequirements(
 }
 
 /**
- * Run both declarative (requiredMaterials) and custom (validateMaterials) validation.
- * Declarative check runs first; if it fails, custom check is skipped.
+ * Run both declarative (requiredMaterials) and custom (validateMaterials) validation,
+ * including evaluate and judgeMaterials when provided.
+ * Declarative check runs first; if it fails, subsequent checks are skipped.
  */
-export function runMaterialValidation(
+export async function runMaterialValidation(
   recipe: {
     requiredMaterials?: MaterialRequirement[];
-    validateMaterials?: (parts: MaterialPart[]) => MaterialValidationResult;
+    validateMaterials?: (
+      parts: MaterialPart[],
+    ) => MaterialValidationResult | Promise<MaterialValidationResult>;
+    judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) => MaterialJudgement;
   },
   parts: MaterialPart[],
-): MaterialValidationResult {
-  // 1. Declarative check
+): Promise<MaterialValidationResult> {
+  // 1. Declarative check (型×個数)
   if (recipe.requiredMaterials && recipe.requiredMaterials.length > 0) {
     const result = validateMaterialRequirements(recipe.requiredMaterials, parts);
     if (!result.valid) return result;
   }
 
-  // 2. Custom function check
-  if (recipe.validateMaterials) {
-    return recipe.validateMaterials(parts);
+  // 2. Evaluate (各素材の品質スコア)
+  let evaluations: MaterialEvaluationEntry[] | undefined;
+  let judgement: MaterialJudgement | undefined;
+
+  if (recipe.requiredMaterials) {
+    const requirementsWithEvaluate = recipe.requiredMaterials.filter((r) => r.evaluate);
+    if (requirementsWithEvaluate.length > 0) {
+      // Pre-group parts by type to avoid repeated O(parts) scans per requirement
+      const partsByType = new Map<string, MaterialPart[]>();
+      for (const part of parts) {
+        const arr = partsByType.get(part.type);
+        if (arr) {
+          arr.push(part);
+        } else {
+          partsByType.set(part.type, [part]);
+        }
+      }
+
+      const evalResults = await Promise.all(
+        requirementsWithEvaluate.map(async (req) => {
+          const matchingParts = partsByType.get(req.type) ?? [];
+          // biome-ignore lint/style/noNonNullAssertion: filtered above
+          const evaluation = await req.evaluate!(matchingParts);
+          return {
+            type: req.type,
+            label: req.label,
+            evaluation,
+          } satisfies MaterialEvaluationEntry;
+        }),
+      );
+      evaluations = evalResults;
+    }
   }
 
-  return { valid: true };
+  // 3. Judge (錬成可否判定)
+  if (recipe.judgeMaterials && evaluations && evaluations.length > 0) {
+    judgement = recipe.judgeMaterials(evaluations);
+    if (!judgement.canTransmute) {
+      return {
+        valid: false,
+        message: judgement.message,
+        evaluations,
+        judgement,
+      };
+    }
+  }
+
+  // 4. Custom function check
+  if (recipe.validateMaterials) {
+    const customResult = await recipe.validateMaterials(parts);
+    if (!customResult.valid) {
+      return {
+        ...customResult,
+        ...(evaluations !== undefined && { evaluations }),
+        ...(judgement !== undefined && { judgement }),
+      };
+    }
+  }
+
+  return { valid: true, evaluations, judgement };
 }

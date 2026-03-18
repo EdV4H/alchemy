@@ -4,7 +4,7 @@ import type {
   TransmutationResult,
   Transmuter,
 } from "@edv4h/alchemy-core";
-import { JsonRefiner, TextRefiner } from "@edv4h/alchemy-core";
+import { JsonRefiner, MaterialValidationError, TextRefiner } from "@edv4h/alchemy-core";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Alchemist } from "../index.js";
@@ -330,5 +330,114 @@ describe("MaterialTransform pipeline", () => {
     const parts = (transmuter.stream as ReturnType<typeof vi.fn>).mock
       .calls[0][0] as MaterialPart[];
     expect(parts[0]).toEqual({ type: "text", text: "STREAM-PREFIX" });
+  });
+});
+
+describe("Auto material validation (validateMaterials: true)", () => {
+  it("throws MaterialValidationError when requiredMaterials fail", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter, validateMaterials: true });
+
+    await expect(
+      alchemist.transmute(
+        {
+          id: "auto-validate",
+          requiredMaterials: [{ type: "image", min: 1 }],
+          spell: () => "no image here",
+          refiner: new TextRefiner(),
+        },
+        undefined,
+      ),
+    ).rejects.toThrow(MaterialValidationError);
+    expect(transmuter.transmute).not.toHaveBeenCalled();
+  });
+
+  it("throws MaterialValidationError when judgeMaterials returns canTransmute=false", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter, validateMaterials: true });
+
+    try {
+      await alchemist.transmute(
+        {
+          id: "judge-fail",
+          requiredMaterials: [
+            {
+              type: "text",
+              min: 1,
+              label: "課題感",
+              evaluate: () => ({ score: 0.1 }),
+            },
+          ],
+          judgeMaterials: (evals) => {
+            const low = evals.find((e) => e.evaluation.score < 0.3);
+            return low
+              ? { canTransmute: false, message: `${low.label}の品質不足` }
+              : { canTransmute: true };
+          },
+          spell: () => "test",
+          refiner: new TextRefiner(),
+        },
+        undefined,
+      );
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(MaterialValidationError);
+      const err = e as MaterialValidationError;
+      expect(err.message).toBe("課題感の品質不足");
+      expect(err.result.judgement?.canTransmute).toBe(false);
+    }
+  });
+
+  it("does not validate when validateMaterials is false (default)", async () => {
+    const transmuter = mockTransmuter("result");
+    const alchemist = new Alchemist({ transmuter });
+
+    const result = await alchemist.transmute(
+      {
+        id: "no-auto-validate",
+        requiredMaterials: [{ type: "image", min: 1 }],
+        spell: () => "no image",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+    expect(result).toBe("result");
+  });
+
+  it("passes validation and proceeds to transmute", async () => {
+    const transmuter = mockTransmuter("success");
+    const alchemist = new Alchemist({ transmuter, validateMaterials: true });
+
+    const result = await alchemist.transmute(
+      {
+        id: "valid-materials",
+        requiredMaterials: [{ type: "text", min: 1 }],
+        spell: (input: string) => input,
+        refiner: new TextRefiner(),
+      },
+      "hello world",
+    );
+    expect(result).toBe("success");
+    expect(transmuter.transmute).toHaveBeenCalled();
+  });
+
+  it("validates in stream() before yielding", async () => {
+    const transmuter: Transmuter = {
+      transmute: vi.fn(),
+      stream: vi.fn(),
+    };
+    const alchemist = new Alchemist({ transmuter, validateMaterials: true });
+
+    const gen = alchemist.stream(
+      {
+        id: "stream-validate",
+        requiredMaterials: [{ type: "image", min: 1 }],
+        spell: () => "no image",
+        refiner: new TextRefiner(),
+      },
+      undefined,
+    );
+    await expect(gen.next()).rejects.toThrow(MaterialValidationError);
+    expect(transmuter.stream).not.toHaveBeenCalled();
   });
 });
