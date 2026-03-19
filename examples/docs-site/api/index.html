@@ -242,7 +242,7 @@
           <pre><code class="language-ts">async function runMaterialValidation(
   recipe: {
     requiredMaterials?: MaterialRequirement[];
-    validateMaterials?: (parts: MaterialPart[]) =&gt; MaterialValidationResult | Promise&lt;…&gt;;
+    validateMaterials?: (parts: MaterialPart[]) =&gt; MaterialValidationResult | Promise&lt;MaterialValidationResult&gt;;
     judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) =&gt; MaterialJudgement;
   },
   parts: MaterialPart[],
