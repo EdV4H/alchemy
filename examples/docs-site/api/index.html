@@ -145,7 +145,8 @@
             <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
             <tr><td><code>transforms</code></td><td><code>MaterialTransform[]?</code></td><td>Recipe-specific transforms</td></tr>
             <tr><td><code>requiredMaterials</code></td><td><code>MaterialRequirement[]?</code></td><td>Declarative material type requirements</td></tr>
-            <tr><td><code>validateMaterials</code></td><td><code>(parts: MaterialPart[]) =&gt; MaterialValidationResult</code></td><td>Custom validation function</td></tr>
+            <tr><td><code>validateMaterials</code></td><td><code>(parts) =&gt; MaterialValidationResult | Promise&lt;…&gt;</code></td><td>Custom validation function (sync or async)</td></tr>
+            <tr><td><code>judgeMaterials</code></td><td><code>(evaluations: MaterialEvaluationEntry[]) =&gt; MaterialJudgement</code></td><td>Aggregate quality evaluation to decide transmute eligibility</td></tr>
           </tbody>
         </table>
 
@@ -164,6 +165,7 @@
             <tr><td><code>min</code></td><td><code>number?</code></td><td>Minimum count (default: 1)</td></tr>
             <tr><td><code>max</code></td><td><code>number?</code></td><td>Maximum count (undefined = unlimited)</td></tr>
             <tr><td><code>label</code></td><td><code>string?</code></td><td>Display label for error messages</td></tr>
+            <tr><td><code>evaluate</code></td><td><code>(parts: MaterialPart[]) =&gt; MaterialEvaluation | Promise&lt;…&gt;</code></td><td>Quality scoring function (0–1 score)</td></tr>
           </tbody>
         </table>
 
@@ -173,7 +175,9 @@
           <tbody>
             <tr><td><code>valid</code></td><td><code>boolean</code></td><td>Whether validation passed</td></tr>
             <tr><td><code>message</code></td><td><code>string?</code></td><td>Human-readable message</td></tr>
-            <tr><td><code>issues</code></td><td><code>MaterialValidationIssue[]?</code></td><td>Detailed issue list</td></tr>
+            <tr><td><code>issues</code></td><td><code>MaterialValidationIssue[]?</code></td><td>Detailed issue list (type × count check)</td></tr>
+            <tr><td><code>evaluations</code></td><td><code>MaterialEvaluationEntry[]?</code></td><td>Per-material quality scores</td></tr>
+            <tr><td><code>judgement</code></td><td><code>MaterialJudgement?</code></td><td>Aggregate transmute eligibility</td></tr>
           </tbody>
         </table>
 
@@ -189,6 +193,38 @@
           </tbody>
         </table>
 
+        <h4 id="materialevaluation"><code>MaterialEvaluation</code></h4>
+        <p>Quality score returned by <code>evaluate</code> on a <code>MaterialRequirement</code>.</p>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>score</code></td><td><code>number</code></td><td>Quality score between 0 (worst) and 1 (best)</td></tr>
+            <tr><td><code>message</code></td><td><code>string?</code></td><td>Explanation (e.g. "Response rate is low")</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="materialevaluationentry"><code>MaterialEvaluationEntry</code></h4>
+        <p>Entry passed to <code>judgeMaterials</code>, grouping a requirement's type/label with its evaluation result.</p>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>type</code></td><td><code>MaterialPartType</code></td><td>Material type</td></tr>
+            <tr><td><code>label</code></td><td><code>string?</code></td><td>Label from the requirement</td></tr>
+            <tr><td><code>evaluation</code></td><td><code>MaterialEvaluation</code></td><td>The evaluation result</td></tr>
+          </tbody>
+        </table>
+
+        <h4 id="materialjudgement"><code>MaterialJudgement</code></h4>
+        <p>Result of <code>judgeMaterials</code>, deciding whether transmutation should proceed.</p>
+        <table class="param-table">
+          <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>canTransmute</code></td><td><code>boolean</code></td><td>Whether to allow transmutation</td></tr>
+            <tr><td><code>warning</code></td><td><code>string?</code></td><td>Warning even when <code>canTransmute</code> is true</td></tr>
+            <tr><td><code>message</code></td><td><code>string?</code></td><td>Reason when <code>canTransmute</code> is false</td></tr>
+          </tbody>
+        </table>
+
         <h4 id="validatematerialrequirements"><code>validateMaterialRequirements(requirements, parts)</code></h4>
         <p>Validate material parts against declarative requirements.</p>
         <div class="code-block">
@@ -200,17 +236,25 @@
         </div>
 
         <h4 id="runmaterialvalidation"><code>runMaterialValidation(recipe, parts)</code></h4>
-        <p>Run both declarative (<code>requiredMaterials</code>) and custom (<code>validateMaterials</code>) validation. Declarative check runs first; if it fails, the custom check is skipped.</p>
+        <p>Run the full validation pipeline: declarative check → evaluate → judgeMaterials → custom validateMaterials. Each stage is skipped if the previous stage fails.</p>
         <div class="code-block">
           <div class="code-block-header"><span class="code-block-lang">ts</span></div>
-          <pre><code class="language-ts">function runMaterialValidation(
+          <pre><code class="language-ts">async function runMaterialValidation(
   recipe: {
     requiredMaterials?: MaterialRequirement[];
-    validateMaterials?: (parts: MaterialPart[]) =&gt; MaterialValidationResult;
+    validateMaterials?: (parts: MaterialPart[]) =&gt; MaterialValidationResult | Promise&lt;…&gt;;
+    judgeMaterials?: (evaluations: MaterialEvaluationEntry[]) =&gt; MaterialJudgement;
   },
   parts: MaterialPart[],
-): MaterialValidationResult;</code></pre>
+): Promise&lt;MaterialValidationResult&gt;;</code></pre>
         </div>
+        <p>Validation stages:</p>
+        <ol>
+          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type</li>
+          <li><strong>Evaluate</strong> — runs each requirement's <code>evaluate()</code> in parallel, producing quality scores</li>
+          <li><strong>Judge</strong> — passes all evaluations to <code>judgeMaterials()</code> for transmute eligibility</li>
+          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> as a final filter</li>
+        </ol>
 
         <hr class="section-divider" />
 
@@ -270,6 +314,7 @@
             <tr><td><code>TransmuteError</code></td><td>LLM API call failure</td></tr>
             <tr><td><code>RefineError</code></td><td>Output parsing/validation failure</td></tr>
             <tr><td><code>TransformError</code></td><td>Material transform failure</td></tr>
+            <tr><td><code>MaterialValidationError</code></td><td>Material validation failure (has <code>result: MaterialValidationResult</code> property)</td></tr>
           </tbody>
         </table>
 
@@ -290,6 +335,7 @@
 interface AlchemistConfig {
   transmuter: Transmuter;
   transforms?: MaterialTransform[];
+  validateMaterials?: boolean; // Auto-validate before transmute/stream (default: false)
 }</code></pre>
         </div>
 

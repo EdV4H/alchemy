@@ -271,10 +271,44 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
 };</code></pre>
         </div>
 
-        <p>Validation runs in two stages via <code>runMaterialValidation()</code>:</p>
+        <h4>Quality Scoring (evaluate &amp; judgeMaterials)</h4>
+        <p>Beyond presence/count checks, you can score each material's quality with <code>evaluate</code> and make aggregate decisions with <code>judgeMaterials</code>:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">const recipe: Recipe&lt;MaterialPart[], BrewResult&gt; = {
+  id: "find-theme",
+  requiredMaterials: [
+    {
+      type: "data", min: 1, label: "Engagement score",
+      evaluate: (parts) =&gt; {
+        const data = JSON.parse((parts[0] as DataMaterialPart).content);
+        return {
+          score: data.responseRate,
+          message: data.responseRate &lt; 0.5 ? "Low response rate" : undefined,
+        };
+      },
+    },
+  ],
+  judgeMaterials: (evaluations) =&gt; {
+    const failed = evaluations.filter((e) =&gt; e.evaluation.score &lt; 0.3);
+    if (failed.length &gt; 0) {
+      return { canTransmute: false, message: `${failed[0].label} quality is insufficient` };
+    }
+    return { canTransmute: true };
+  },
+  // ...
+};</code></pre>
+        </div>
+
+        <p>Validation runs in four stages via <code>runMaterialValidation()</code> (async):</p>
         <ol>
           <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type</li>
-          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> only if the declarative check passes</li>
+          <li><strong>Evaluate</strong> — runs each requirement's <code>evaluate()</code> in parallel, producing 0–1 quality scores</li>
+          <li><strong>Judge</strong> — passes all evaluations to <code>judgeMaterials()</code> to decide transmute eligibility</li>
+          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> as a final filter</li>
         </ol>
 
         <h2 id="alchemist">Alchemist</h2>
@@ -289,7 +323,8 @@ import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter({ apiKey: "..." }),
-  transforms: [dataToText()],  // Global transforms
+  transforms: [dataToText()],       // Global transforms
+  validateMaterials: true,           // Auto-validate before each transmute/stream
 });
 
 // Three ways to use the Alchemist:

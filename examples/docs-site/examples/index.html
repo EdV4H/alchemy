@@ -363,12 +363,12 @@ const imageAnalysisRecipe: Recipe&lt;MaterialPart[], { description: string }&gt;
   ],
 };
 
-// Validate before calling the API
+// Validate before calling the API (async)
 const materials: MaterialPart[] = [
   { type: "text", text: "What's in this photo?" },
 ];
 
-const validation = runMaterialValidation(imageAnalysisRecipe, materials);
+const validation = await runMaterialValidation(imageAnalysisRecipe, materials);
 
 if (!validation.valid) {
   console.error("Validation failed:");
@@ -381,8 +381,85 @@ if (!validation.valid) {
 }</code></pre>
         </div>
 
+        <h3>Quality Scoring (evaluate &amp; judgeMaterials)</h3>
+        <p>Score each material's quality on a 0–1 scale and let <code>judgeMaterials</code> decide whether to proceed.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import type { Recipe, MaterialPart, DataMaterialPart, TextMaterialPart } from "@edv4h/alchemy-core";
+
+const recipe: Recipe&lt;MaterialPart[], AnalysisResult&gt; = {
+  id: "find-theme",
+  requiredMaterials: [
+    {
+      type: "data", min: 1, label: "Engagement score",
+      evaluate: (parts) =&gt; {
+        const data = JSON.parse((parts[0] as DataMaterialPart).content);
+        return {
+          score: data.responseRate,
+          message: data.responseRate &lt; 0.5 ? "Low response rate" : undefined,
+        };
+      },
+    },
+    {
+      type: "text", min: 1, label: "Issue description",
+      evaluate: (parts) =&gt; {
+        const len = (parts[0] as TextMaterialPart).text.length;
+        return { score: Math.min(len / 100, 1) };
+      },
+    },
+  ],
+  judgeMaterials: (evaluations) =&gt; {
+    const failed = evaluations.filter((e) =&gt; e.evaluation.score &lt; 0.3);
+    if (failed.length &gt; 0) {
+      return { canTransmute: false, message: `${failed[0].label} quality is insufficient` };
+    }
+    const avg = evaluations.reduce((s, e) =&gt; s + e.evaluation.score, 0) / evaluations.length;
+    if (avg &lt; 0.5) {
+      return { canTransmute: true, warning: "Material quality is low, accuracy may decrease" };
+    }
+    return { canTransmute: true };
+  },
+  spell: (material) =&gt; "Analyze the data and find themes",
+  refiner: new JsonRefiner(AnalysisSchema),
+};
+
+// The result includes evaluations and judgement
+const result = await runMaterialValidation(recipe, materials);
+if (result.judgement?.warning) {
+  console.warn(result.judgement.warning);
+}</code></pre>
+        </div>
+
+        <h3>Auto-Validation with Alchemist</h3>
+        <p>Enable <code>validateMaterials: true</code> on <code>AlchemistConfig</code> to automatically validate before each <code>transmute()</code> or <code>stream()</code> call. Throws <code>MaterialValidationError</code> on failure.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">import { Alchemist, MaterialValidationError } from "@edv4h/alchemy-node";
+
+const alchemist = new Alchemist({
+  transmuter: new OpenAITransmuter(),
+  validateMaterials: true,
+});
+
+try {
+  const result = await alchemist.transmute(recipe, materials);
+} catch (e) {
+  if (e instanceof MaterialValidationError) {
+    console.error(e.message);           // "Engagement score quality is insufficient"
+    console.log(e.result.evaluations);  // Per-material scores
+    console.log(e.result.judgement);    // { canTransmute: false, message: "..." }
+  }
+}</code></pre>
+        </div>
+
         <h3>Custom Validation</h3>
-        <p>For more complex rules, use <code>validateMaterials</code> alongside or instead of <code>requiredMaterials</code>.</p>
+        <p>For more complex rules, use <code>validateMaterials</code> alongside or instead of <code>requiredMaterials</code>. Supports both sync and async functions.</p>
 
         <div class="code-block">
           <div class="code-block-header">
