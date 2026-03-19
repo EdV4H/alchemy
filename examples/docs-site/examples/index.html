@@ -388,7 +388,12 @@ if (!validation.valid) {
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import type { Recipe, MaterialPart, DataMaterialPart, TextMaterialPart } from "@edv4h/alchemy-core";
+          <pre><code class="language-ts">import { JsonRefiner, runMaterialValidation } from "@edv4h/alchemy-core";
+import type { Recipe, MaterialPart, DataMaterialPart, TextMaterialPart } from "@edv4h/alchemy-core";
+import { z } from "zod";
+
+const AnalysisSchema = z.object({ themes: z.array(z.string()) });
+type AnalysisResult = z.infer&lt;typeof AnalysisSchema&gt;;
 
 const recipe: Recipe&lt;MaterialPart[], AnalysisResult&gt; = {
   id: "find-theme",
@@ -426,6 +431,12 @@ const recipe: Recipe&lt;MaterialPart[], AnalysisResult&gt; = {
   refiner: new JsonRefiner(AnalysisSchema),
 };
 
+// Sample materials with a data part and text description
+const materials: MaterialPart[] = [
+  { type: "data", format: "json", content: '{"responseRate": 0.45}' },
+  { type: "text", text: "Team engagement has been declining since Q3" },
+];
+
 // The result includes evaluations and judgement
 const result = await runMaterialValidation(recipe, materials);
 if (result.judgement?.warning) {
@@ -441,6 +452,7 @@ if (result.judgement?.warning) {
             <span class="code-block-lang">ts</span>
           </div>
           <pre><code class="language-ts">import { Alchemist, MaterialValidationError } from "@edv4h/alchemy-node";
+import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter(),

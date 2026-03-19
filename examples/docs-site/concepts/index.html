@@ -303,12 +303,12 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
 };</code></pre>
         </div>
 
-        <p>Validation runs in four stages via <code>runMaterialValidation()</code> (async):</p>
+        <p>Validation runs up to four stages via <code>runMaterialValidation()</code> (async). Each stage runs only when configured, and is skipped if a previous stage fails:</p>
         <ol>
-          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type</li>
-          <li><strong>Evaluate</strong> — runs each requirement's <code>evaluate()</code> in parallel, producing 0–1 quality scores</li>
-          <li><strong>Judge</strong> — passes all evaluations to <code>judgeMaterials()</code> to decide transmute eligibility</li>
-          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> as a final filter</li>
+          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type (if <code>requiredMaterials</code> is set)</li>
+          <li><strong>Evaluate</strong> — runs each requirement's <code>evaluate()</code> in parallel, producing 0–1 quality scores (only for requirements with <code>evaluate</code>)</li>
+          <li><strong>Judge</strong> — passes evaluations to <code>judgeMaterials()</code> to decide transmute eligibility (only if evaluations exist and <code>judgeMaterials</code> is set)</li>
+          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> as a final filter (if provided)</li>
         </ol>
 
         <h2 id="alchemist">Alchemist</h2>
