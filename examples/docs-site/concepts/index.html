@@ -271,10 +271,44 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
 };</code></pre>
         </div>
 
-        <p>Validation runs in two stages via <code>runMaterialValidation()</code>:</p>
+        <h4>Quality Scoring (evaluate &amp; judgeMaterials)</h4>
+        <p>Beyond presence/count checks, you can score each material's quality with <code>evaluate</code> and make aggregate decisions with <code>judgeMaterials</code>:</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">ts</span>
+          </div>
+          <pre><code class="language-ts">const recipe: Recipe&lt;MaterialPart[], BrewResult&gt; = {
+  id: "find-theme",
+  requiredMaterials: [
+    {
+      type: "data", min: 1, label: "Engagement score",
+      evaluate: (parts) =&gt; {
+        const data = JSON.parse((parts[0] as DataMaterialPart).content);
+        return {
+          score: data.responseRate,
+          message: data.responseRate &lt; 0.5 ? "Low response rate" : undefined,
+        };
+      },
+    },
+  ],
+  judgeMaterials: (evaluations) =&gt; {
+    const failed = evaluations.filter((e) =&gt; e.evaluation.score &lt; 0.3);
+    if (failed.length &gt; 0) {
+      return { canTransmute: false, message: `${failed[0].label} quality is insufficient` };
+    }
+    return { canTransmute: true };
+  },
+  // ...
+};</code></pre>
+        </div>
+
+        <p>Validation runs up to four stages via <code>runMaterialValidation()</code> (async). Each stage runs only when configured, and is skipped if a previous stage fails:</p>
         <ol>
-          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type</li>
-          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> only if the declarative check passes</li>
+          <li><strong>Declarative check</strong> — validates <code>requiredMaterials</code> counts by type (if <code>requiredMaterials</code> is set)</li>
+          <li><strong>Evaluate</strong> — runs each requirement's <code>evaluate()</code> in parallel, producing 0–1 quality scores (only for requirements with <code>evaluate</code>)</li>
+          <li><strong>Judge</strong> — passes evaluations to <code>judgeMaterials()</code> to decide transmute eligibility (only if evaluations exist and <code>judgeMaterials</code> is set)</li>
+          <li><strong>Custom check</strong> — runs <code>validateMaterials()</code> as a final filter (if provided)</li>
         </ol>
 
         <h2 id="alchemist">Alchemist</h2>
@@ -284,12 +318,13 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist } from "@edv4h/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist, dataToText } from "@edv4h/alchemy-node";
 import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 const alchemist = new Alchemist({
   transmuter: new OpenAITransmuter({ apiKey: "..." }),
-  transforms: [dataToText()],  // Global transforms
+  transforms: [dataToText()],       // Global transforms
+  validateMaterials: true,           // Auto-validate before each transmute/stream
 });
 
 // Three ways to use the Alchemist:
