@@ -1,6 +1,6 @@
 {
   "name": "@edv4h/alchemy-node",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Node.js runtime for Alchemy — the Alchemist orchestrator class with core re-exports",
   "license": "MIT",
   "author": "EdV4H",

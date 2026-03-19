@@ -1,4 +1,4 @@
-# @edv4h/alchemy-react
+# @edv4h/alchemy-plugin-transmuter-google
 
 ## 1.0.0
 
@@ -22,7 +22,15 @@
 
 ### Minor Changes
 
-- 1a81407: Add multi-variation generation feature: `Alchemist.generate()` runs the same recipe N times in parallel and returns `Record<string, TOutput | { error: Error }>`. Includes `useGenerate` hook and `useAlchemy` generate mode integration for React (per-variation results typed as `TOutput | { error: string }`), with ModeSelector/GenerateCountStepper/VariationResultsGrid UI components.
+- e6b0aaa: Move LLM SDK dependencies to peerDependencies in transmuter plugins, update alchemy-node description, fix docs-site import paths, and add README files for all packages
+- 736731a: Extract Transmuter and Node Transform into independent plugin packages
+
+  - `@edv4h/alchemy-plugin-transmuter-anthropic`: Anthropic (Claude) transmuter
+  - `@edv4h/alchemy-plugin-transmuter-openai`: OpenAI transmuter
+  - `@edv4h/alchemy-plugin-transmuter-google`: Google (Gemini) transmuter
+  - `@edv4h/alchemy-plugin-transforms-node`: Node.js material transforms (imageUrlToBase64, documentToText, audioToText, videoToFrames)
+
+  `@edv4h/alchemy-node` is now a facade that re-exports from the plugin packages, maintaining full backward compatibility.
 
 ### Patch Changes
 
@@ -31,15 +39,3 @@
 - Updated dependencies [a6ef47b]
 - Updated dependencies [eb2ad1a]
   - @edv4h/alchemy-core@1.0.0
-
-## 0.1.0
-
-### Minor Changes
-
-- ecd52a9: Add headless React hooks (useTransmute, useCompare, useAlchemy) for client-side transmutation workflows. Extract buildMessages() in OpenAITransmuter to deduplicate transmute/stream methods.
-- 6d0601a: Type safety improvements: MaterialInput discriminated union, generic useAlchemy<TOutput>, custom error hierarchy, Language type hints. Alchemist.compare() now uses Promise.allSettled for partial failure resilience. TextRefiner adds getFormatInstructions(). VideoMaterialPart gains base64 support. Stub transforms throw by default. Remove unused ToolDefinition. Extract toMaterialParts() to core. Deduplicate Zod helpers in demo app.
-
-### Patch Changes
-
-- Updated dependencies [6d0601a]
-  - @edv4h/alchemy-core@0.1.0

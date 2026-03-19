@@ -1,6 +1,6 @@
 {
   "name": "@edv4h/alchemy-plugin-transmuter-google",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Google (Gemini) transmuter plugin for Alchemy",
   "license": "MIT",
   "author": "EdV4H",
