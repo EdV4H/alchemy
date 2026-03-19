@@ -145,8 +145,8 @@
             <tr><td><code>temperature</code></td><td><code>number?</code></td><td>Sampling temperature (0–2)</td></tr>
             <tr><td><code>transforms</code></td><td><code>MaterialTransform[]?</code></td><td>Recipe-specific transforms</td></tr>
             <tr><td><code>requiredMaterials</code></td><td><code>MaterialRequirement[]?</code></td><td>Declarative material type requirements</td></tr>
-            <tr><td><code>validateMaterials</code></td><td><code>(parts: MaterialPart[]) =&gt; MaterialValidationResult | Promise&lt;MaterialValidationResult&gt;</code></td><td>Custom validation function (sync or async)</td></tr>
-            <tr><td><code>judgeMaterials</code></td><td><code>(evaluations: MaterialEvaluationEntry[]) =&gt; MaterialJudgement</code></td><td>Aggregate quality evaluation to decide transmute eligibility</td></tr>
+            <tr><td><code>validateMaterials</code></td><td><code>((parts: MaterialPart[]) =&gt; MaterialValidationResult | Promise&lt;MaterialValidationResult&gt;)?</code></td><td>Custom validation function (sync or async)</td></tr>
+            <tr><td><code>judgeMaterials</code></td><td><code>((evaluations: MaterialEvaluationEntry[]) =&gt; MaterialJudgement)?</code></td><td>Aggregate quality evaluation to decide transmute eligibility</td></tr>
           </tbody>
         </table>
 
@@ -165,7 +165,7 @@
             <tr><td><code>min</code></td><td><code>number?</code></td><td>Minimum count (default: 1)</td></tr>
             <tr><td><code>max</code></td><td><code>number?</code></td><td>Maximum count (undefined = unlimited)</td></tr>
             <tr><td><code>label</code></td><td><code>string?</code></td><td>Display label for error messages</td></tr>
-            <tr><td><code>evaluate</code></td><td><code>(parts: MaterialPart[]) =&gt; MaterialEvaluation | Promise&lt;MaterialEvaluation&gt;</code></td><td>Quality scoring function (0–1 score)</td></tr>
+            <tr><td><code>evaluate</code></td><td><code>((parts: MaterialPart[]) =&gt; MaterialEvaluation | Promise&lt;MaterialEvaluation&gt;)?</code></td><td>Quality scoring function (0–1 score)</td></tr>
           </tbody>
         </table>
 

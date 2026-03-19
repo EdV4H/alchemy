@@ -318,7 +318,7 @@ const summarizeRecipe: Recipe&lt;string, { summary: string; bullets: string[] }&
           <div class="code-block-header">
             <span class="code-block-lang">ts</span>
           </div>
-          <pre><code class="language-ts">import { Alchemist } from "@edv4h/alchemy-node";
+          <pre><code class="language-ts">import { Alchemist, dataToText } from "@edv4h/alchemy-node";
 import { OpenAITransmuter } from "@edv4h/alchemy-plugin-transmuter-openai";
 
 const alchemist = new Alchemist({
